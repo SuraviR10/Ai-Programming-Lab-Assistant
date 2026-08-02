@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+*.log
+backend/temp/*.c
+backend/temp/*.exe
+.venv/
+venv/
