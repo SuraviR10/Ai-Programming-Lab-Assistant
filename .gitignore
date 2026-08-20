@@ -4,5 +4,6 @@ __pycache__/
 *.log
 backend/temp/*.c
 backend/temp/*.exe
+backend/data/*.db
 .venv/
 venv/

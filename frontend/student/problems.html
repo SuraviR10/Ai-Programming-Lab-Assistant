@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mission Control — CODEVERSE</title>
+  <meta name="description" content="Select your next C programming mission in the CODEVERSE laboratory." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <style>
+    .main-content {
+      margin-left: 260px;
+      min-height: 100vh;
+      padding: 32px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .filters-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .missions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .main-content { margin-left: 0; padding: 20px; }
+      .missions-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-content" id="page-content">
+    <!-- Header -->
+    <div class="page-header anim-init anim-fade-up">
+      <div>
+        <div class="label" style="color: var(--neon-cyan); margin-bottom: 4px;">ACTIVE BOUNTIES</div>
+        <h1 style="font-size: var(--text-3xl); font-weight: 900;">Mission Control</h1>
+        <p style="font-size: var(--text-sm); color: var(--text-faint);">Select a tactical mission to deploy into the Coding Matrix.</p>
+      </div>
+      <div style="display: flex; gap: 16px; font-family: var(--font-mono); font-size: var(--text-xs);">
+        <div><strong id="count-completed" style="color: var(--neon-emerald); font-size: 16px;">18</strong> <span style="color: var(--text-ghost);">CONQUERED</span></div>
+        <div><strong id="count-pending" style="color: var(--xp-gold); font-size: 16px;">7</strong> <span style="color: var(--text-ghost);">AVAILABLE</span></div>
+      </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="filters-bar anim-init anim-fade-up anim-delay-1">
+      <button class="filter-btn active" data-filter="all">ALL BOUNTIES</button>
+      <button class="filter-btn" data-filter="easy">EASY (+100 XP)</button>
+      <button class="filter-btn" data-filter="medium">MEDIUM (+120 XP)</button>
+      <button class="filter-btn" data-filter="hard">HARD (+150 XP)</button>
+      <span style="width: 1px; height: 28px; background: var(--border-subtle); margin: 0 4px;"></span>
+      <button class="filter-btn" data-filter="completed">CONQUERED</button>
+      <button class="filter-btn" data-filter="attempted">IN PROGRESS</button>
+      <button class="filter-btn" data-filter="pending">UNCLAIMED</button>
+    </div>
+
+    <!-- Missions Grid -->
+    <div class="missions-grid" id="missions-grid"></div>
+  </div>
+
+  <!-- ═══ MISSION LAUNCH TRANSITION MODAL ═══ -->
+  <div class="mission-launch-modal" id="mission-launch-modal">
+    <div class="launch-telemetry" id="launch-telemetry">INITIALIZING MISSION MATRIX...</div>
+    <div class="launch-mission-title" id="launch-title">MISSION 03: LARGEST OF THREE</div>
+    <div class="launch-progress-bar">
+      <div class="launch-progress-fill" id="launch-progress-fill"></div>
+    </div>
+    <button class="launch-skip-btn" onclick="skipLaunchTransition()">[ SKIP LAUNCH SEQUENCE ]</button>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/audio.js"></script>
+  <script src="../js/gamification.js"></script>
+  <script src="../js/cursor.js"></script>
+  <script src="../js/toast.js"></script>
+  <script src="../js/animations.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/app.js"></script>
+
+  <script>
+    let pendingLaunchUrl = '';
+    let loadedProblems = [];
+
+    App.init({
+      role: 'student',
+      activeNav: 'problems',
+      onReady: async () => {
+        try {
+          const res = await API.getProblems();
+          if (res.success && res.problems) {
+            loadedProblems = res.problems;
+          } else {
+            loadedProblems = MockData.problems;
+          }
+        } catch (e) {
+          console.warn('API error, falling back to mock problems', e);
+          loadedProblems = MockData.problems;
+        }
+
+        const completed = loadedProblems.filter(p => p.status === 'completed').length;
+        const pending = loadedProblems.length - completed;
+        const cEl = document.getElementById('count-completed');
+        const pEl = document.getElementById('count-pending');
+        if (cEl) cEl.textContent = completed;
+        if (pEl) pEl.textContent = pending;
+
+        renderMissions(loadedProblems);
+        initFilters();
+      }
+    });
+
+    function renderMissions(list) {
+      const grid = document.getElementById('missions-grid');
+      grid.innerHTML = '';
+
+      list.forEach((p, i) => {
+        const card = document.createElement('div');
+        card.className = 'mission-card tilt-card';
+        card.setAttribute('data-reveal', '');
+        card.style.animationDelay = `${i * 0.04}s`;
+        card.onclick = () => launchMission(p);
+
+        const xp = p.xp_reward || p.xpReward || (p.difficulty === 'hard' ? 150 : (p.difficulty === 'medium' ? 120 : 100));
+
+        card.innerHTML = `
+          <div class="mission-number">${String(p.id).padStart(2, '0')}</div>
+          <div class="mission-header">
+            <span class="difficulty-badge difficulty-${p.difficulty}">${p.difficulty.toUpperCase()}</span>
+            <span class="mission-xp-badge">★ +${xp} XP</span>
+          </div>
+          <div class="mission-title">${p.title}</div>
+          <div class="mission-concepts">
+            ${(p.concepts || []).map(c => `<span class="concept-tag">${c}</span>`).join('')}
+          </div>
+          <div class="mission-footer">
+            <div style="font-family: var(--font-mono); font-size: 12px; color: ${p.status === 'completed' ? 'var(--neon-emerald)' : 'var(--text-ghost)'};">
+              ${p.status === 'completed' ? '✓ CONQUERED' : (p.status === 'attempted' ? '◌ IN PROGRESS' : '○ UNCLAIMED')}
+            </div>
+            <div class="mission-cta">
+              ENGAGE MISSION →
+            </div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      Animations.initTiltCards();
+      Animations.initScrollReveal();
+      if (typeof SoundFX !== 'undefined') SoundFX.attachButtonSounds();
+      if (typeof CyberCursor !== 'undefined') CyberCursor.attachCursorEvents();
+    }
+
+    function initFilters() {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const filter = btn.dataset.filter;
+          let filtered = loadedProblems;
+
+          if (['easy', 'medium', 'hard'].includes(filter)) {
+            filtered = filtered.filter(p => p.difficulty === filter);
+          } else if (['completed', 'attempted', 'pending'].includes(filter)) {
+            filtered = filtered.filter(p => p.status === filter);
+          }
+
+          renderMissions(filtered);
+        });
+      });
+    }
+
+    // ── Mission Launch Cinematic Sequence ─────────────────────
+    function launchMission(problem) {
+      if (typeof SoundFX !== 'undefined') SoundFX.playExecute();
+
+      pendingLaunchUrl = `lab.html?problem=${problem.id}`;
+      const modal = document.getElementById('mission-launch-modal');
+      const titleEl = document.getElementById('launch-title');
+      const telemetryEl = document.getElementById('launch-telemetry');
+      const fillEl = document.getElementById('launch-progress-fill');
+
+      titleEl.textContent = `MISSION ${String(problem.id).padStart(2, '0')}: ${problem.title.toUpperCase()}`;
+      telemetryEl.textContent = 'INITIALIZING MATRIX ENVIRONMENT...';
+      fillEl.style.width = '0%';
+
+      modal.classList.add('active');
+
+      setTimeout(() => {
+        fillEl.style.width = '60%';
+        telemetryEl.textContent = 'COMPILING MISSION BRIEFING & HEURISTICS...';
+      }, 300);
+
+      setTimeout(() => {
+        fillEl.style.width = '100%';
+        telemetryEl.textContent = 'MISSION READY. DEPLOYING CADET...';
+      }, 700);
+
+      setTimeout(() => {
+        window.location.href = pendingLaunchUrl;
+      }, 1000);
+    }
+
+    function skipLaunchTransition() {
+      if (pendingLaunchUrl) window.location.href = pendingLaunchUrl;
+    }
+  </script>
+</body>
+</html>

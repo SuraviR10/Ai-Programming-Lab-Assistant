@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coding Matrix — CODEVERSE</title>
+  <meta name="description" content="Cyberpunk C Programming Laboratory with Monaco Editor, Focus Mode, and Progressive AI Debug Core." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <style>
+    body { overflow: hidden; }
+
+    /* Lab Cyber HUD Header */
+    .lab-header {
+      height: 48px;
+      background: rgba(6, 10, 23, 0.95);
+      border-bottom: 1px solid var(--border-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .lab-header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .lab-header-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .lab-back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-display);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      letter-spacing: 0.05em;
+      transition: color var(--duration-fast);
+    }
+
+    .lab-back-btn:hover {
+      color: var(--neon-cyan);
+    }
+
+    .lab-title-hud {
+      font-family: var(--font-display);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lab-body {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      height: calc(100vh - 48px);
+      transition: all 0.3s ease;
+    }
+
+    /* Problem Briefing Panel */
+    .problem-panel {
+      overflow-y: auto;
+      padding: 20px;
+      border-right: 1px solid var(--border-cyan);
+      background: rgba(9, 15, 34, 0.95);
+      position: relative;
+    }
+
+    .problem-desc {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .problem-expected {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      background: var(--bg-deepest);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      color: var(--neon-emerald);
+      white-space: pre-wrap;
+    }
+
+    /* Editor Area */
+    .editor-area {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-deepest);
+    }
+
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-deep);
+    }
+
+    #editor-wrap {
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Bottom Output / Terminal Tabs */
+    .output-area {
+      border-top: 1px solid var(--border-cyan);
+      max-height: 48vh;
+      overflow-y: auto;
+      background: var(--bg-deep);
+    }
+
+    .output-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-base);
+    }
+
+    .output-tab {
+      padding: 9px 20px;
+      font-family: var(--font-display);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--text-faint);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: all var(--duration-fast);
+    }
+
+    .output-tab.active {
+      color: var(--neon-cyan);
+      border-bottom-color: var(--neon-cyan);
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+    }
+
+    .output-box {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      background: var(--bg-deepest);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      min-height: 70px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.7;
+      color: var(--text-ghost);
+    }
+
+    .ai-feedback-container {
+      display: none;
+      padding: 18px 20px;
+    }
+
+    .ai-orb-core {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .ai-orb-core::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px dashed var(--neon-cyan);
+      animation: rotate 10s linear infinite;
+    }
+
+    /* Victory Result Modal */
+    .result-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 5, 14, 0.85);
+      backdrop-filter: blur(16px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-overlay.show { display: flex; }
+
+    .result-card {
+      background: linear-gradient(135deg, rgba(13, 21, 46, 0.95), rgba(24, 38, 78, 0.9));
+      border: 2px solid var(--neon-cyan);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      max-width: 460px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(0, 242, 254, 0.35);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ LAB HUD HEADER ═══ -->
+  <header class="lab-header">
+    <div class="lab-header-left">
+      <button class="lab-back-btn" onclick="window.location.href='problems.html'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        MISSION CONTROL
+      </button>
+      <span style="width: 1px; height: 18px; background: var(--border-subtle);"></span>
+      <div class="lab-title-hud">
+        <span id="lab-title" style="color: var(--neon-cyan);">MISSION 01: HELLO WORLD</span>
+        <span class="difficulty-badge difficulty-easy" id="prob-difficulty">EASY</span>
+      </div>
+    </div>
+
+    <div class="lab-header-right">
+      <button class="btn-focus-mode" id="btn-focus-toggle" onclick="toggleFocusMode()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        FOCUS MODE
+      </button>
+      <button class="btn-audio-toggle" onclick="SoundFX.toggleMute()">🔊 SFX</button>
+      <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; color: var(--neon-emerald);">
+        <span class="status-dot online"></span>
+        MATRIX ACTIVE
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ LAB BODY ═══ -->
+  <div class="lab-body" id="lab-body">
+
+    <!-- Problem / Mission Panel -->
+    <aside class="problem-panel corner-brackets" id="problem-panel">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <span class="label" style="color: var(--neon-cyan);">MISSION OBJECTIVE</span>
+        <span class="mission-xp-badge" id="mission-xp-tag">★ +100 XP</span>
+      </div>
+
+      <h2 id="prob-title" style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px;">Hello World</h2>
+      <p class="problem-desc" id="prob-desc">Write a C program that prints "Hello, World!" to the console.</p>
+
+      <div style="margin-bottom: 20px;">
+        <div class="label" style="margin-bottom: 8px;">CONCEPTS INVOLVED</div>
+        <div class="problem-concepts" id="prob-concepts">
+          <span class="concept-tag">printf</span>
+          <span class="concept-tag">basics</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;" id="sample-input-section" style="display: none;">
+        <div class="label" style="margin-bottom: 8px;">SAMPLE INPUT</div>
+        <div class="problem-expected" id="prob-input" style="color: var(--text-secondary);"></div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <div class="label" style="margin-bottom: 8px;">EXPECTED OUTPUT</div>
+        <div class="problem-expected" id="prob-output">Hello, World!</div>
+      </div>
+
+      <!-- Progressive 3-Tier Hint Decryptor -->
+      <div style="margin-bottom: 24px;">
+        <div class="label" style="color: var(--xp-gold); margin-bottom: 8px;">PROGRESSIVE HINT DECRYPTOR</div>
+        <div class="hint-decryptor" id="hint-decryptor-container"></div>
+      </div>
+
+      <button class="btn btn-submit" id="btn-submit" style="width: 100%;" data-magnetic>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        SUBMIT SOLUTION (+100 XP)
+      </button>
+    </aside>
+
+    <!-- Editor Area -->
+    <div class="editor-area">
+      <!-- Toolbar -->
+      <div class="editor-toolbar">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--neon-cyan);"></div>
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-faint);">main.c</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--font-mono); color: var(--text-faint);">
+            <span class="status-dot" id="run-dot"></span>
+            <span id="run-status">READY</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-clear">CLEAR</button>
+          <button class="btn-run" id="btn-run" data-magnetic>
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5l9 4.5-9 4.5V1.5z"/></svg>
+            EXECUTE CODE
+          </button>
+        </div>
+      </div>
+
+      <!-- Monaco Editor -->
+      <div id="editor-wrap"></div>
+
+      <!-- Output / Terminal HUD -->
+      <div class="output-area" id="output-area">
+        <div class="output-tabs">
+          <button class="output-tab active" data-tab="output">Terminal Output</button>
+          <button class="output-tab" data-tab="ai" id="ai-tab" style="display: none;">AI Neural Debugger</button>
+        </div>
+
+        <!-- Terminal Output Tab -->
+        <div style="padding: 16px 20px;" id="tab-output">
+          <div class="output-box" id="output-box">Terminal output will appear after execution...</div>
+        </div>
+
+        <!-- AI Neural Debugger Tab -->
+        <div class="ai-feedback-container" id="tab-ai">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div class="ai-orb-core">◈</div>
+            <div>
+              <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: 800; color: #fff;">AI Neural Diagnostic Core</div>
+              <div style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-cyan);" id="ai-status-text">ANALYSIS READY</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="ai-card">
+              <div class="label" style="color: var(--accent-400); margin-bottom: 6px;">📘 DIAGNOSTIC FINDING</div>
+              <div style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6;" id="ai-explanation">—</div>
+            </div>
+            <div class="ai-card amber">
+              <div class="label" style="color: var(--warning-400); margin-bottom: 6px;">⚠️ ROOT CAUSE</div>
+              <div style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6;" id="ai-reason">—</div>
+            </div>
+            <div class="ai-card emerald">
+              <div class="label" style="color: var(--success-400); margin-bottom: 6px;">💡 TACTICAL HINT</div>
+              <div style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6;" id="ai-hint">—</div>
+            </div>
+            <div class="ai-card purple">
+              <div class="label" style="color: var(--primary-300); margin-bottom: 6px;">📚 C LANGUAGE CONCEPT</div>
+              <div style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6;" id="ai-concept">—</div>
+            </div>
+          </div>
+
+          <!-- Raw GCC Diagnostics Toggle -->
+          <div style="margin-top: 14px;">
+            <button class="collapsible-trigger" id="gcc-toggle">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              View raw GCC compiler telemetry
+            </button>
+            <div class="collapsible-content" id="gcc-content">
+              <div class="output-box" id="gcc-raw-output" style="margin-top: 8px; color: var(--neon-crimson); font-size: 11px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ MISSION COMPLETE VICTORY OVERLAY ═══ -->
+  <div class="result-overlay" id="result-overlay">
+    <div class="result-card corner-brackets">
+      <div style="font-family: var(--font-cyber); font-size: 11px; color: var(--neon-emerald); letter-spacing: 0.15em; margin-bottom: 12px;">MISSION CONQUERED</div>
+      <div style="font-family: var(--font-cyber); font-size: 64px; font-weight: 900; line-height: 1;" class="gradient-text-cyan" id="result-score-value">9.4</div>
+      <div style="font-size: 14px; font-family: var(--font-mono); color: var(--text-faint); margin-bottom: 24px;">ACCURACY RATING / 10</div>
+
+      <div class="score-breakdown" id="result-breakdown"></div>
+      <div id="creative-section"></div>
+
+      <div style="font-size: 14px; font-weight: 700; color: var(--neon-emerald); margin: 20px 0;" id="result-encourage"></div>
+
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button class="btn btn-secondary" onclick="closeResult()">Refactor Code</button>
+        <a href="problems.html" class="btn btn-primary" data-magnetic>Next Mission →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/audio.js"></script>
+  <script src="../js/gamification.js"></script>
+  <script src="../js/cursor.js"></script>
+  <script src="../js/encouragement.js"></script>
+  <script src="../js/toast.js"></script>
+  <script src="../js/animations.js"></script>
+  <script src="../js/app.js"></script>
+
+  <script>
+    let editor = null;
+    let currentProblem = null;
+    let attemptCount = 0;
+    let hadErrorLastRun = false;
+    let isFocusMode = false;
+    let mode = 'practice'; // practice | writeup | exam
+    let modeId = null;
+    let timerInterval = null;
+    let autosaveInterval = null;
+    let selectedRating = 3;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const problemId = parseInt(urlParams.get('problem')) || 1;
+    if (urlParams.get('mode')) mode = urlParams.get('mode');
+    if (urlParams.get('id')) modeId = parseInt(urlParams.get('id'));
+
+    function toggleFocusMode() {
+      isFocusMode = !isFocusMode;
+      document.body.classList.toggle('focus-mode-active', isFocusMode);
+      document.getElementById('btn-focus-toggle').classList.toggle('active', isFocusMode);
+
+      if (editor) {
+        setTimeout(() => editor.layout(), 300);
+      }
+
+      if (typeof SoundFX !== 'undefined') SoundFX.playClick();
+      if (typeof Toast !== 'undefined') {
+        Toast.info(isFocusMode ? '⛶ Focus Mode Active — Minimal Distractions' : '◈ Normal HUD Restored');
+      }
+    }
+
+    async function loadProblem(id) {
+      try {
+        const res = await API.getProblem(id);
+        if (res.success && res.problem) {
+          currentProblem = res.problem;
+        } else {
+          currentProblem = MockData.getProblem(id);
+        }
+      } catch (err) {
+        console.warn('Falling back to mock problem', err);
+        currentProblem = MockData.getProblem(id);
+      }
+
+      document.getElementById('lab-title').textContent = `${mode.toUpperCase()} MATRIX: ${currentProblem.title.toUpperCase()}`;
+      document.getElementById('prob-title').textContent = currentProblem.title;
+      document.getElementById('prob-desc').textContent = currentProblem.description;
+      document.getElementById('prob-output').textContent = currentProblem.expected_output || currentProblem.expectedOutput;
+
+      const diffEl = document.getElementById('prob-difficulty');
+      diffEl.textContent = currentProblem.difficulty.toUpperCase();
+      diffEl.className = `difficulty-badge difficulty-${currentProblem.difficulty}`;
+
+      const xp = currentProblem.xp_reward || currentProblem.xpReward || 100;
+      document.getElementById('mission-xp-tag').textContent = `★ +${xp} XP`;
+      document.getElementById('btn-submit').textContent = `SUBMIT SOLUTION (+${xp} XP)`;
+
+      const concepts = currentProblem.concepts || [];
+      document.getElementById('prob-concepts').innerHTML =
+        concepts.map(c => `<span class="concept-tag">${c}</span>`).join('');
+
+      // Progressive Hints Setup
+      const hintContainer = document.getElementById('hint-decryptor-container');
+      hintContainer.innerHTML = '';
+      const progHints = currentProblem.progressive_hints || currentProblem.progressiveHints || [];
+
+      progHints.forEach((h, idx) => {
+        const tierDiv = document.createElement('div');
+        tierDiv.className = `hint-tier ${idx === 0 ? 'unlocked' : 'locked'}`;
+        tierDiv.id = `hint-tier-${idx}`;
+
+        tierDiv.innerHTML = `
+          <div class="hint-header">
+            <span class="hint-label">TIER 0${h.tier || idx+1}: ${h.title}</span>
+            ${idx > 0 ? `<button class="hint-btn-unlock" id="hint-unlock-btn-${idx}" onclick="unlockHint(${idx})">🔓 DECRYPT HINT</button>` : '<span style="font-size: 10px; color: var(--neon-emerald);">UNLOCKED</span>'}
+          </div>
+          <div class="hint-body" id="hint-body-${idx}" style="${idx > 0 ? 'display: none;' : ''}">${h.text}</div>
+        `;
+        hintContainer.appendChild(tierDiv);
+      });
+
+      if (editor) {
+        editor.setValue(currentProblem.starter_code || currentProblem.starterCode);
+      }
+
+      // Check mode specific settings (Writeup / Exam timer & restrictions)
+      setupModeEnvironment();
+    }
+
+    async function setupModeEnvironment() {
+      if (mode === 'exam') {
+        // Exam mode: AI guidance strictly disabled
+        document.getElementById('ai-tab').style.display = 'none';
+        Toast.warning('EXAM MODE ACTIVE: AI Guidance is strictly disabled.');
+      }
+
+      if ((mode === 'writeup' || mode === 'exam') && modeId) {
+        try {
+          const res = (mode === 'writeup') ? await API.startWriteup(modeId) : await API.startExam(modeId);
+          const data = res.writeup || res.exam;
+          if (data && data.remaining_seconds) {
+            startTimer(data.remaining_seconds);
+          }
+        } catch (e) {
+          startTimer(1800); // 30 minutes fallback timer
+        }
+
+        // Set autosave every 15 seconds
+        autosaveInterval = setInterval(async () => {
+          if (!editor) return;
+          const code = editor.getValue();
+          const codeMap = {};
+          codeMap[currentProblem.id] = code;
+          if (mode === 'writeup') await API.autosaveWriteup(modeId, codeMap);
+          else if (mode === 'exam') await API.autosaveExam(modeId, codeMap);
+          Toast.info('Draft auto-saved to matrix server.');
+        }, 15000);
+      }
+    }
+
+    function startTimer(seconds) {
+      let remaining = seconds;
+      const titleHud = document.getElementById('lab-title');
+
+      timerInterval = setInterval(() => {
+        remaining--;
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+        if (titleHud) {
+          titleHud.innerHTML = `<span style="color: var(--neon-crimson); font-weight: 800;">⏱ ${timeStr} REMAINING</span> · ${currentProblem.title}`;
+        }
+
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          Toast.error('TIME UP! Auto-submitting solution...');
+          document.getElementById('btn-submit').click();
+        }
+      }, 1000);
+    }
+
+    function unlockHint(tierIdx) {
+      if (typeof SoundFX !== 'undefined') SoundFX.playHintUnlock();
+      const tierEl = document.getElementById(`hint-tier-${tierIdx}`);
+      const bodyEl = document.getElementById(`hint-body-${tierIdx}`);
+      const btnEl = document.getElementById(`hint-unlock-btn-${tierIdx}`);
+
+      if (tierEl) {
+        tierEl.classList.remove('locked');
+        tierEl.classList.add('unlocked');
+      }
+      if (bodyEl) bodyEl.style.display = 'block';
+      if (btnEl) btnEl.outerHTML = '<span style="font-size: 10px; color: var(--neon-emerald); font-weight: 700;">DECRYPTED</span>';
+    }
+
+    // Monaco Setup
+    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js' } });
+
+    require(['vs/editor/editor.main'], function () {
+      monaco.editor.defineTheme('cyber-dark', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+          { token: 'keyword', foreground: '00f2fe', fontStyle: 'bold' },
+          { token: 'string', foreground: '00f5d4' },
+          { token: 'number', foreground: 'ffd166' },
+          { token: 'comment', foreground: '475569', fontStyle: 'italic' },
+          { token: 'type', foreground: 'a855f7' }
+        ],
+        colors: {
+          'editor.background': '#02050e',
+          'editor.foreground': '#f8fafc',
+          'editor.lineHighlightBackground': '#0d152e',
+          'editorLineNumber.foreground': '#334155',
+          'editorLineNumber.activeForeground': '#00f2fe',
+          'editorCursor.foreground': '#00f2fe',
+          'editor.selectionBackground': '#00f2fe30'
+        }
+      });
+
+      editor = monaco.editor.create(document.getElementById('editor-wrap'), {
+        value: '',
+        language: 'c',
+        theme: 'cyber-dark',
+        fontSize: 14,
+        fontFamily: "'JetBrains Mono', monospace",
+        lineNumbers: 'on',
+        minimap: { enabled: false },
+        automaticLayout: true,
+        padding: { top: 14, bottom: 14 },
+        tabSize: 4
+      });
+
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
+      loadProblem(problemId);
+    });
+
+    const btnRun = document.getElementById('btn-run');
+    const btnClear = document.getElementById('btn-clear');
+    const outputBox = document.getElementById('output-box');
+    const runDot = document.getElementById('run-dot');
+    const runStatus = document.getElementById('run-status');
+    const aiTab = document.getElementById('ai-tab');
+    const tabOutput = document.getElementById('tab-output');
+    const tabAI = document.getElementById('tab-ai');
+
+    // Tabs
+    document.querySelectorAll('.output-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        tabOutput.style.display = tab.dataset.tab === 'output' ? 'block' : 'none';
+        tabAI.style.display = tab.dataset.tab === 'ai' ? 'block' : 'none';
+      });
+    });
+
+    // GCC toggle
+    document.getElementById('gcc-toggle').addEventListener('click', function() {
+      this.classList.toggle('open');
+      document.getElementById('gcc-content').classList.toggle('open');
+    });
+
+    btnClear.addEventListener('click', () => {
+      if (editor && currentProblem) editor.setValue(currentProblem.starter_code || currentProblem.starterCode);
+      outputBox.textContent = 'Terminal output will appear after execution...';
+      outputBox.style.color = 'var(--text-ghost)';
+      tabAI.style.display = 'none';
+      aiTab.style.display = 'none';
+      runDot.className = 'status-dot';
+      runStatus.textContent = 'READY';
+      runStatus.style.color = '';
+    });
+
+    // ── RUN CODE (GCC + Groq Integration) ─────────────────────
+    async function runCode() {
+      if (!editor) return;
+      const code = editor.getValue();
+      if (!code.trim()) {
+        Toast.warning('Editor empty. Input your algorithm.');
+        return;
+      }
+
+      attemptCount++;
+      if (typeof SoundFX !== 'undefined') SoundFX.playExecute();
+
+      Animations.runButtonState(btnRun, 'compiling');
+      runDot.className = 'status-dot warning';
+      runStatus.textContent = 'COMPILING WITH GCC...';
+      runStatus.style.color = 'var(--neon-amber)';
+
+      tabAI.style.display = 'none';
+      aiTab.style.display = 'none';
+      outputBox.textContent = 'Compiling C source with GCC / MinGW toolchain...';
+      outputBox.style.color = 'var(--text-ghost)';
+
+      document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('[data-tab="output"]').classList.add('active');
+      tabOutput.style.display = 'block';
+
+      try {
+        const res = await API.runCode(code, currentProblem ? currentProblem.id : problemId, null, mode);
+
+        if (res.success) {
+          Animations.runButtonState(btnRun, 'success');
+          runDot.className = 'status-dot online';
+          runStatus.textContent = 'EXECUTION SUCCESS';
+          runStatus.style.color = 'var(--neon-emerald)';
+          if (typeof SoundFX !== 'undefined') SoundFX.playSuccess();
+
+          if (hadErrorLastRun) {
+            hadErrorLastRun = false;
+            Gamification.awardXP(40, 'Compiler Bug Resolved!', btnRun);
+          }
+
+          outputBox.textContent = res.output || '[Program executed with no output]';
+          outputBox.style.color = '#fff';
+
+        } else {
+          hadErrorLastRun = true;
+          Animations.runButtonState(btnRun, 'error');
+          runDot.className = 'status-dot offline';
+          runStatus.textContent = 'DEBUG REQUIRED';
+          runStatus.style.color = 'var(--neon-crimson)';
+          if (typeof SoundFX !== 'undefined') SoundFX.playError();
+
+          outputBox.textContent = res.compiler_error || 'Compilation Error';
+          outputBox.style.color = 'var(--neon-crimson)';
+          document.getElementById('gcc-raw-output').textContent = res.compiler_error;
+
+          if (mode !== 'exam' && res.ai_feedback && !res.ai_feedback.ai_disabled) {
+            aiTab.style.display = 'block';
+            document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+            aiTab.classList.add('active');
+            tabOutput.style.display = 'none';
+            tabAI.style.display = 'block';
+
+            document.getElementById('ai-explanation').textContent = res.ai_feedback.explanation;
+            document.getElementById('ai-reason').textContent = res.ai_feedback.reason;
+            document.getElementById('ai-hint').textContent = res.ai_feedback.hint;
+            document.getElementById('ai-concept').textContent = res.ai_feedback.concept;
+
+            Animations.revealAIPanel(tabAI);
+          }
+        }
+      } catch (err) {
+        Animations.runButtonState(btnRun, 'error');
+        runDot.className = 'status-dot offline';
+        runStatus.textContent = 'SERVER ERROR';
+        outputBox.textContent = `Backend compilation service error: ${err.message}`;
+      }
+    }
+    btnRun.addEventListener('click', runCode);
+
+    // ── SUBMIT SOLUTION ───────────────────────────────────────
+    document.getElementById('btn-submit').addEventListener('click', async () => {
+      if (!editor) return;
+      const code = editor.getValue();
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> EVALUATING TEST SUITE...';
+      if (typeof SoundFX !== 'undefined') SoundFX.playExecute();
+
+      try {
+        const evalData = await API.submitSolution(currentProblem.id, code, mode);
+
+        if (evalData.success) {
+          Gamification.awardXP(evalData.xp_earned, evalData.feedback, btn);
+          showResultModal(evalData);
+        } else {
+          Toast.error(evalData.compiler_error || 'Submission failed');
+        }
+      } catch (err) {
+        Toast.error('Submission service error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = `SUBMIT SOLUTION (+${currentProblem.xp_reward || 100} XP)`;
+      }
+    });
+
+    function showResultModal(evalData) {
+      if (typeof SoundFX !== 'undefined') {
+        if (evalData.is_hardcoded) SoundFX.playError();
+        else SoundFX.playSuccess();
+      }
+      const overlay = document.getElementById('result-overlay');
+      const scoreVal = document.getElementById('result-score-value');
+      const encourageEl = document.getElementById('result-encourage');
+
+      scoreVal.textContent = evalData.score;
+      if (evalData.is_hardcoded) {
+        scoreVal.style.color = 'var(--neon-amber)';
+        encourageEl.innerHTML = `<span style="color: var(--neon-amber); font-weight: 700;">⚠️ SOLUTION NEEDS DYNAMIC LOGIC</span><br/><span style="font-size: 13px; color: var(--text-muted);">${evalData.feedback}</span>`;
+      } else {
+        scoreVal.style.color = 'var(--neon-cyan)';
+        encourageEl.textContent = `★ +${evalData.xp_earned} XP AWARDED · ${evalData.feedback}`;
+      }
+
+      document.getElementById('result-breakdown').innerHTML = `
+        <div class="score-row"><span>Test Cases Passed</span><span>${evalData.passed_test_cases} / ${evalData.total_test_cases}</span></div>
+        <div class="score-row"><span>Correctness Score</span><span>${evalData.correctness_value} / 6.0</span></div>
+        <div class="score-row"><span>Approach Quality</span><span>${evalData.approach_value} / 2.0</span></div>
+        <div class="score-row"><span>Algorithmic Creativity</span><span>${evalData.creativity_value} / 1.0 ${evalData.is_creative ? '✨ (★ BONUS +50 XP)' : ''}</span></div>
+        ${evalData.is_hardcoded ? '<div class="score-row" style="color: var(--neon-amber);"><span>Hardcoding Detection</span><span>⚠ Input Processing Missing</span></div>' : ''}
+      `;
+
+      overlay.classList.add('show');
+      if (!evalData.is_hardcoded) {
+        Animations.confetti(window.innerWidth / 2, window.innerHeight / 2 - 80, { count: 30 });
+      }
+    }
+
+    function closeResult() {
+      document.getElementById('result-overlay').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

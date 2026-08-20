@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terminal Access — CODEVERSE</title>
+  <meta name="description" content="Sign in to the CODEVERSE C programming laboratory." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+
+  <style>
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    .login-terminal {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 460px;
+      padding: 44px 38px;
+      background: rgba(13, 21, 46, 0.8);
+      backdrop-filter: blur(28px);
+      border: 1px solid var(--border-cyan);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 242, 254, 0.15);
+    }
+
+    .login-terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .terminal-status-tag {
+      font-family: var(--font-cyber);
+      font-size: 10px;
+      color: var(--neon-emerald);
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .role-toggle-bar {
+      display: flex;
+      background: var(--bg-deepest);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+
+    .role-btn {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-family: var(--font-display);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--text-faint);
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: all var(--duration-fast);
+    }
+
+    .role-btn.active {
+      background: rgba(0, 242, 254, 0.15);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+    }
+
+    .login-input {
+      background: var(--bg-deepest);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      padding: 14px 16px;
+      width: 100%;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .login-input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-page">
+    <div class="login-terminal corner-brackets anim-scale-in">
+      <div class="login-terminal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, #00f2fe, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-family: var(--font-cyber); font-weight: 900; font-size: 14px;">◈</div>
+          <span style="font-family: var(--font-cyber); font-size: 14px; font-weight: 800; color: #fff; letter-spacing: 0.08em;">CODEVERSE</span>
+        </div>
+        <div class="terminal-status-tag">
+          <span class="status-dot online"></span>
+          AUTH ONLINE
+        </div>
+      </div>
+
+      <h1 style="font-size: var(--text-2xl); font-weight: 800; margin-bottom: 6px;">Identify Programmer</h1>
+      <p style="font-size: var(--text-sm); color: var(--text-faint); margin-bottom: 24px;">Enter your credentials to enter the laboratory matrix.</p>
+
+      <!-- Role Selector -->
+      <div class="role-toggle-bar" role="tablist">
+        <button class="role-btn active" data-role="student" role="tab" id="btn-role-student">Student Cadet</button>
+        <button class="role-btn" data-role="faculty" role="tab" id="btn-role-faculty">Faculty Officer</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="terminal-login-form">
+        <div class="input-group">
+          <label class="input-label" id="label-user-id" for="input-user-id">Student Cadet ID</label>
+          <input class="login-input" type="text" id="input-user-id" placeholder="e.g. STU2024001" autocomplete="username" required value="STU2024001" />
+        </div>
+
+        <div class="input-group" style="margin-bottom: 28px;">
+          <label class="input-label" for="input-password">Security Passcode</label>
+          <input class="login-input" type="password" id="input-password" placeholder="••••••••" autocomplete="current-password" required value="password123" />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" id="btn-submit-login" style="width: 100%;" data-magnetic>
+          <span style="font-family: var(--font-cyber); letter-spacing: 0.05em;">INITIALIZE SESSION →</span>
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 24px; font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono);">
+        ENCRYPTED TELEMETRY ACTIVE · ALL PROGRESS SAVED
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/cursor.js"></script>
+  <script src="js/api.js"></script>
+
+  <script>
+    let selectedRole = 'student';
+    const roleButtons = document.querySelectorAll('.role-btn');
+    const labelUserId = document.getElementById('label-user-id');
+    const inputUserId = document.getElementById('input-user-id');
+    const form = document.getElementById('terminal-login-form');
+    const submitBtn = document.getElementById('btn-submit-login');
+
+    roleButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        roleButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedRole = btn.dataset.role;
+
+        if (typeof SoundFX !== 'undefined') SoundFX.playClick();
+
+        if (selectedRole === 'faculty') {
+          labelUserId.textContent = 'Faculty Officer ID';
+          inputUserId.placeholder = 'e.g. FAC2024001';
+          inputUserId.value = 'FAC2024001';
+        } else {
+          labelUserId.textContent = 'Student Cadet ID';
+          inputUserId.placeholder = 'e.g. STU2024001';
+          inputUserId.value = 'STU2024001';
+        }
+      });
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (typeof SoundFX !== 'undefined') SoundFX.playExecute();
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span> CONNECTING TO MATRIX...';
+
+      const userId = inputUserId.value.trim() || (selectedRole === 'faculty' ? 'FAC2024001' : 'STU2024001');
+
+      try {
+        await API.login(userId, selectedRole);
+      } catch (err) {
+        console.log('Login API fallback local storage set');
+        localStorage.setItem('codeverse_user_id', userId);
+        localStorage.setItem('codeverse_role', selectedRole);
+      }
+
+      await new Promise(r => setTimeout(r, 600));
+
+      if (selectedRole === 'faculty') {
+        window.location.href = 'faculty/dashboard.html';
+      } else {
+        window.location.href = 'student/dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>

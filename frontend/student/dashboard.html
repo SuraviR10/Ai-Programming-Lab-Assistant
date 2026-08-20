@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Command Center — CODEVERSE</title>
+  <meta name="description" content="Player Command Center in the CODEVERSE C programming laboratory." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <style>
+    .main-content {
+      margin-left: 260px;
+      min-height: 100vh;
+      padding: 32px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .dashboard-col {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .stat-card-cyber {
+      background: rgba(13, 21, 46, 0.75);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      transition: all 0.3s ease;
+    }
+
+    .stat-card-cyber:hover {
+      border-color: var(--border-cyan);
+      box-shadow: 0 8px 30px rgba(0, 242, 254, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .sphere-box {
+      width: 100%;
+      height: 220px;
+      position: relative;
+    }
+
+    /* Quest Log */
+    .quest-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .quest-item:last-child {
+      border-bottom: none;
+    }
+
+    @media (max-width: 1100px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .main-content { margin-left: 0; padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-content" id="page-content">
+
+    <!-- ═══ PLAYER HUD BANNER ═══ -->
+    <div class="player-hud corner-brackets anim-init anim-fade-up">
+      <div class="player-hud-grid">
+        <div class="player-avatar-ring">S</div>
+        <div>
+          <div class="player-rank-title" data-hud-rank>CODE ARCHITECT</div>
+          <div class="player-name">Suravi</div>
+          <div class="xp-bar-container">
+            <div class="xp-bar-fill" data-hud-xp-fill style="width: 78%;"></div>
+          </div>
+          <div class="xp-metrics">
+            <span data-hud-level style="font-family: var(--font-cyber); color: var(--neon-cyan); font-weight: 700;">LEVEL 08</span>
+            <span data-hud-xp-text>2,840 / 3,500 XP (660 XP TO NEXT LEVEL)</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 11px; font-family: var(--font-cyber); color: var(--neon-amber); margin-bottom: 6px;">
+            🔥 5-DAY STREAK
+          </div>
+          <div class="streak-matrix">
+            <div class="streak-day-node active">M</div>
+            <div class="streak-day-node active">T</div>
+            <div class="streak-day-node active">W</div>
+            <div class="streak-day-node active">T</div>
+            <div class="streak-day-node active">F</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TELEMETRY STATS ROW ═══ -->
+    <div class="stats-row">
+      <div class="stat-card-cyber anim-init anim-fade-up anim-delay-1">
+        <div class="label" style="color: var(--text-faint);">MISSIONS CONQUERED</div>
+        <div class="stat-value" id="stat-problems" style="font-family: var(--font-cyber); color: var(--neon-cyan);">18</div>
+        <div style="font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-top: 4px;">7 BOUNTIES REMAINING</div>
+      </div>
+
+      <div class="stat-card-cyber anim-init anim-fade-up anim-delay-2">
+        <div class="label" style="color: var(--text-faint);">AVERAGE ACCURACY</div>
+        <div class="stat-value" id="stat-score" style="font-family: var(--font-cyber); color: var(--neon-emerald);">8.6</div>
+        <div style="font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-top: 4px;">TARGET: > 9.0</div>
+      </div>
+
+      <div class="stat-card-cyber anim-init anim-fade-up anim-delay-3">
+        <div class="label" style="color: var(--text-faint);">FIRST-RUN SUCCESS</div>
+        <div class="stat-value" id="stat-success" style="font-family: var(--font-cyber); color: var(--primary-glow);">82%</div>
+        <div style="font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-top: 4px;">TOP 10% CADET TIER</div>
+      </div>
+
+      <div class="stat-card-cyber anim-init anim-fade-up anim-delay-4">
+        <div class="label" style="color: var(--text-faint);">DEBUGGING RATIO</div>
+        <div class="stat-value" id="stat-bugs" style="font-family: var(--font-cyber); color: var(--xp-gold);">31 / 34</div>
+        <div style="font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-top: 4px;">91% ERRORS RESOLVED</div>
+      </div>
+    </div>
+
+    <!-- ═══ DASHBOARD MAIN GRID ═══ -->
+    <div class="dashboard-grid">
+      <!-- Left Column -->
+      <div class="dashboard-col">
+        <!-- Daily Motivation Mission -->
+        <div class="card-cyber anim-init anim-fade-up anim-delay-5" data-reveal>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="label" style="color: var(--neon-cyan);">TRANSMISSION OF THE DAY</div>
+            <span class="mission-xp-badge">+25 DAILY XP</span>
+          </div>
+          <div class="motivation-quote" id="daily-quote">"Every compiler error is a clue in the digital realm."</div>
+          <div class="motivation-subtext" id="daily-sub">Keep experimenting. Keep debugging. Level up.</div>
+        </div>
+
+        <!-- Next Recommended Challenge -->
+        <div class="card-cyber" data-reveal>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div class="label" style="color: var(--xp-gold);">TACTICAL RECOMMENDATION</div>
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-emerald);">BOUNTY ACTIVE</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; background: rgba(0, 242, 254, 0.04); border: 1px solid var(--border-cyan); border-radius: var(--radius-md); padding: 18px;">
+            <div>
+              <div style="font-size: 11px; font-family: var(--font-cyber); color: var(--neon-cyan);">MISSION 19 · HARD</div>
+              <div style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin: 4px 0;">Dynamic Memory Allocation</div>
+              <div style="font-size: 12px; color: var(--text-muted);">Pointers · malloc · free · Heap Management</div>
+            </div>
+            <a href="lab.html?problem=19" class="btn btn-primary btn-sm" data-magnetic>
+              ENTER MISSION (+150 XP) →
+            </a>
+          </div>
+        </div>
+
+        <!-- Quest Log (Recent Activity) -->
+        <div class="card-cyber" data-reveal>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div class="label" style="color: var(--text-faint);">MISSION LOGBOOK</div>
+            <a href="progress.html" style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-cyan);">VIEW JOURNEY →</a>
+          </div>
+          <div id="recent-list"></div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="dashboard-col">
+        <!-- 3D Interactive Core -->
+        <div class="card-cyber" style="padding-bottom: 6px;" data-reveal>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="label" style="color: var(--neon-cyan);">CODEVERSE QUANTUM CORE</div>
+            <span class="status-dot cyan"></span>
+          </div>
+          <div class="sphere-box" id="dashboard-sphere"></div>
+          <div style="text-align: center; font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-bottom: 8px;">
+            INTERACTIVE CORE · HOVER TO ENGAGE
+          </div>
+        </div>
+
+        <!-- Competency Radar -->
+        <div class="card-cyber" data-reveal>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div class="label" style="color: var(--text-faint);">SKILL MASTERY GAUGES</div>
+            <a href="progress.html" style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-cyan);">MAP →</a>
+          </div>
+          <div id="skills-list" style="display: grid; gap: 14px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/audio.js"></script>
+  <script src="../js/gamification.js"></script>
+  <script src="../js/cursor.js"></script>
+  <script src="../js/toast.js"></script>
+  <script src="../js/animations.js"></script>
+  <script src="../js/three-scenes.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/app.js"></script>
+
+  <script>
+    App.init({
+      role: 'student',
+      activeNav: 'dashboard',
+      onReady: async () => {
+        let profile = MockData.student;
+        let recentSubs = [];
+        let concepts = [];
+
+        try {
+          const res = await API.getStudentProgress();
+          if (res.success && res.profile) {
+            profile = res.profile;
+            recentSubs = res.recent_submissions || [];
+            concepts = res.concepts_breakdown || [];
+          }
+        } catch (e) {
+          console.warn('API error, using default student profile', e);
+        }
+
+        // Daily quote
+        const msg = MockData.getDailyMessage();
+        document.getElementById('daily-quote').textContent = `"${msg.quote}"`;
+        document.getElementById('daily-sub').textContent = msg.sub;
+
+        // Animated stats
+        Animations.countUp(document.getElementById('stat-problems'), profile.problems_completed || profile.problemsCompleted || 18);
+        Animations.countUp(document.getElementById('stat-score'), profile.average_score || profile.averageScore || 8.6, { decimals: 1 });
+        Animations.countUp(document.getElementById('stat-success'), profile.successRate || 82, { suffix: '%' });
+
+        // Submissions logbook
+        const list = document.getElementById('recent-list');
+        list.innerHTML = '';
+        const subsToRender = recentSubs.length > 0 ? recentSubs.slice(0, 4) : MockData.submissions.slice(0, 4);
+
+        subsToRender.forEach(sub => {
+          const pTitle = sub.problem_title || sub.title || 'C Mission';
+          const pScore = sub.score !== undefined ? sub.score : 10.0;
+          const pXp = sub.xp_earned || sub.xpEarned || 100;
+          const pDate = sub.timestamp ? App.formatDate(sub.timestamp) : 'Today';
+
+          list.innerHTML += `
+            <div class="quest-item">
+              <div>
+                <div style="font-size: 13px; font-weight: 700; color: #fff;">${pTitle}</div>
+                <div style="font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono);">${pDate} · ${sub.mode || 'practice'}</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--neon-emerald);">${pScore} / 10</div>
+                <div style="font-family: var(--font-cyber); font-size: 10px; color: var(--xp-gold);">+${pXp} XP</div>
+              </div>
+            </div>
+          `;
+        });
+
+        // Skills Mastery Gauges
+        const skillsList = document.getElementById('skills-list');
+        skillsList.innerHTML = '';
+        const skillsToRender = concepts.length > 0 ? concepts.slice(0, 5) : MockData.skills.slice(0, 4);
+
+        skillsToRender.forEach((skill, i) => {
+          const sName = skill.concept || skill.name;
+          const sPct = skill.mastery !== undefined ? skill.mastery : skill.percentage;
+
+          const skillEl = document.createElement('div');
+          skillEl.className = 'skill-bar';
+          skillEl.innerHTML = `
+            <div class="skill-bar-header">
+              <span class="skill-bar-name" style="font-size: 12px;">${sName}</span>
+              <span class="skill-bar-value" style="color: var(--neon-cyan);">${sPct}%</span>
+            </div>
+            <div class="progress-bar" style="height: 6px;">
+              <div class="progress-bar-fill" id="skill-fill-${i}" style="width: 0%;
+                background: ${sPct >= 80 ? 'linear-gradient(90deg, #059669, #00f5d4)' :
+                              sPct >= 60 ? 'linear-gradient(90deg, #6366f1, #00f2fe)' :
+                              'linear-gradient(90deg, #d97706, #ffb703)'};">
+              </div>
+            </div>
+          `;
+          skillsList.appendChild(skillEl);
+
+          setTimeout(() => {
+            Animations.animateProgressBar(document.getElementById(`skill-fill-${i}`), sPct, { delay: 0.2 });
+          }, 300 + i * 80);
+        });
+
+        // 3D Core Sphere
+        ThreeScenes.createDashboardScene('dashboard-sphere');
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      ThreeScenes.destroyAll();
+    });
+  </script>
+</body>
+</html>

@@ -3,460 +3,432 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Lab Assistant — C Programming</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <title>CODEVERSE — 3D AI C Programming Laboratory</title>
+  <meta name="description" content="Enter the Codeverse — an intelligent 3D gaming-style C programming laboratory designed for next-generation software engineers." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Design System Styles -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+
   <style>
-    * { box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: #080d1a; color: #e2e8f0; margin: 0; }
-
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-
-    .app-grid {
-      display: grid;
-      grid-template-columns: 290px 1fr;
-      height: calc(100vh - 56px);
+    .landing-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      z-index: var(--z-nav);
+      transition: background 0.3s ease, border-color 0.3s ease;
     }
 
-    .left-panel  { overflow-y: auto; padding: 14px; border-right: 1px solid #1e293b; }
-    .right-panel { overflow-y: auto; padding: 14px 18px; }
-
-    .card {
-      background: #0f172a;
-      border: 1px solid #1e293b;
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin-bottom: 12px;
+    .landing-nav.scrolled {
+      background: rgba(6, 10, 23, 0.85);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border-cyan);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
     }
 
-    #editor-wrap {
-      height: 400px;
-      border-radius: 0 0 8px 8px;
+    .landing-nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .landing-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .landing-nav-links a {
+      padding: 8px 16px;
+      font-family: var(--font-display);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: var(--radius-md);
+      letter-spacing: 0.03em;
+      transition: all var(--duration-fast) var(--ease-out);
+    }
+
+    .landing-nav-links a:hover {
+      color: var(--neon-cyan);
+      background: rgba(0, 242, 254, 0.06);
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
       overflow: hidden;
     }
 
-    .output-box {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      background: #020817;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 14px 16px;
-      min-height: 80px;
-      white-space: pre-wrap;
-      word-break: break-all;
-      line-height: 1.7;
-      color: #475569;
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
     }
 
-    .ai-card {
-      background: #0a1628;
-      border-radius: 8px;
-      padding: 14px 16px;
-      border-left: 3px solid #6366f1;
-      margin-bottom: 10px;
+    #three-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
     }
-    .ai-card.amber   { border-color: #f59e0b; }
-    .ai-card.emerald { border-color: #10b981; }
-    .ai-card.purple  { border-color: #a855f7; }
 
-    .lbl {
-      font-size: 10px;
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 720px;
+      padding-left: 80px;
+    }
+
+    .hero-telemetry-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 16px;
+      background: rgba(0, 242, 254, 0.08);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      border-radius: var(--radius-full);
+      font-family: var(--font-cyber);
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
+      color: var(--neon-cyan);
+      margin-bottom: 24px;
+      letter-spacing: 0.1em;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
     }
 
-    .btn-run {
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      padding: 7px 20px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 6vw, 5.2rem);
+      font-weight: 900;
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .hero-words {
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 2vw, 1.4rem);
+      color: var(--text-faint);
+      margin-bottom: 28px;
+      line-height: 1.8;
+      letter-spacing: 0.04em;
+    }
+
+    .hero-words span {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .hero-words span.cyan {
+      color: var(--neon-cyan);
+      text-shadow: 0 0 12px rgba(0, 242, 254, 0.6);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    /* Live Telemetry Ticker */
+    .telemetry-ticker {
+      display: flex;
+      gap: 24px;
+      padding: 14px 20px;
+      background: rgba(13, 21, 46, 0.6);
+      border: 1px solid var(--border-cyan);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(16px);
+      max-width: 540px;
+    }
+
+    .telemetry-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .telemetry-label {
+      font-size: 10px;
+      font-family: var(--font-cyber);
+      color: var(--text-ghost);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .telemetry-val {
+      font-size: 14px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .hero-gradient-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(
+        90deg,
+        rgba(2, 5, 14, 0.95) 0%,
+        rgba(2, 5, 14, 0.75) 45%,
+        rgba(2, 5, 14, 0.2) 75%,
+        transparent 100%
+      );
+      pointer-events: none;
+    }
+
+    /* Missions Preview Grid */
+    .features-section {
+      padding: 120px 0;
+      position: relative;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    .feature-card {
+      background: rgba(13, 21, 46, 0.7);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 242, 254, 0.15);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .feature-card:hover {
+      border-color: var(--neon-cyan);
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 242, 254, 0.2);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
-      gap: 6px;
-      box-shadow: 0 0 16px rgba(99,102,241,.4);
-      transition: opacity .15s;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      color: var(--neon-cyan);
     }
-    .btn-run:hover:not(:disabled) { opacity: .88; }
-    .btn-run:disabled { opacity: .5; cursor: not-allowed; }
 
-    .btn-clear {
-      background: #1e293b;
-      color: #94a3b8;
-      border: 1px solid #334155;
-      border-radius: 7px;
-      padding: 7px 16px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
+    .feature-card h4 {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #fff;
     }
-    .btn-clear:hover { background: #273549; color: #e2e8f0; }
 
-    .spinner {
-      width: 13px; height: 13px;
-      border: 2px solid rgba(255,255,255,.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .6s linear infinite;
-      display: inline-block;
+    .feature-card p {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.7;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #475569; }
-    .dot.green { background: #10b981; box-shadow: 0 0 5px #10b981; }
-    .dot.red   { background: #f87171; box-shadow: 0 0 5px #f87171; }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
+    /* Footer */
+    .landing-footer {
+      padding: 40px;
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+      color: var(--text-ghost);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
     }
-    .fade-up { animation: fadeUp .25s ease forwards; }
+
+    @media (max-width: 768px) {
+      .hero-content { padding-left: 24px; padding-right: 24px; }
+      .landing-nav { padding: 0 20px; }
+      .features-grid { padding: 0 20px; }
+    }
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header style="height:56px; background:#080d1a; border-bottom:1px solid #1e293b;"
-        class="flex items-center justify-between px-5">
-  <div class="flex items-center gap-3">
-    <div style="background:linear-gradient(135deg,#6366f1,#a855f7);border-radius:8px;width:30px;height:30px;"
-         class="flex items-center justify-center text-white font-bold text-xs">AI</div>
-    <span class="font-semibold text-white text-sm">AI Lab Assistant</span>
-    <span style="background:#1e293b;color:#64748b;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;">C Programming</span>
-  </div>
-  <div class="flex items-center gap-2">
-    <span class="dot" id="srv-dot"></span>
-    <span style="font-size:11px;color:#64748b;" id="srv-txt">Checking server...</span>
-  </div>
-</header>
-
-<!-- MAIN -->
-<div class="app-grid">
-
-  <!-- LEFT -->
-  <aside class="left-panel">
-    <div class="card">
-      <div class="lbl" style="color:#6366f1;">Lab Question</div>
-      <div class="text-white font-semibold text-sm mb-2">Hello World Program</div>
-      <div class="text-slate-400 text-xs leading-relaxed">
-        Write a C program that prints
-        <code style="background:#1e293b;color:#818cf8;padding:1px 5px;border-radius:3px;">Hello, World!</code>
-        to the console.
-      </div>
-      <div class="mt-3 pt-3" style="border-top:1px solid #1e293b;">
-        <div class="lbl" style="color:#475569;">Expected Output</div>
-        <div class="output-box text-xs" style="min-height:32px;color:#4ade80;">Hello, World!</div>
+  <!-- ═══ NAVIGATION ═══ -->
+  <nav class="landing-nav" id="landing-nav">
+    <div class="landing-nav-logo">
+      <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #00f2fe, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-family: var(--font-cyber); font-weight: 900; font-size: 16px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);">◈</div>
+      <div>
+        <span style="font-family: var(--font-cyber); font-weight: 900; font-size: 16px; color: #fff; letter-spacing: 0.1em;">CODEVERSE</span>
+        <span style="font-size: 10px; font-family: var(--font-mono); color: var(--neon-cyan); margin-left: 6px;">v2.0</span>
       </div>
     </div>
+    <div class="landing-nav-links">
+      <a href="#features">Missions</a>
+      <a href="login.html" class="btn btn-primary btn-sm" data-magnetic>
+        Initialize Session →
+      </a>
+    </div>
+  </nav>
 
-    <div class="card">
-      <div class="lbl" style="color:#475569;">Quick Tips</div>
-      <ul class="space-y-2 text-xs text-slate-400">
-        <li>▸ Include <code style="color:#818cf8;">#include &lt;stdio.h&gt;</code></li>
-        <li>▸ Every program needs <code style="color:#818cf8;">int main()</code></li>
-        <li>▸ Use <code style="color:#818cf8;">printf()</code> to print</li>
-        <li>▸ End statements with <code style="color:#818cf8;">;</code></li>
-        <li>▸ Return <code style="color:#818cf8;">0</code> from main</li>
-      </ul>
+  <!-- ═══ HERO SECTION ═══ -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div id="three-canvas"></div>
+    </div>
+    <div class="hero-gradient-overlay"></div>
+
+    <div class="hero-content">
+      <div class="hero-telemetry-badge anim-init anim-fade-up">
+        <span class="status-dot cyan"></span>
+        3D QUANTUM PROGRAMMING LAB ACTIVE
+      </div>
+
+      <h1 class="hero-title anim-init anim-fade-up anim-delay-1">
+        THE <span class="gradient-text-cyan">CODEVERSE</span><br>
+        LABORATORY
+      </h1>
+
+      <div class="hero-words anim-init anim-fade-up anim-delay-2">
+        <span class="cyan">Write.</span> &nbsp;
+        <span>Debug.</span> &nbsp;
+        <span class="cyan">Experiment.</span> &nbsp;
+        <span>Level Up.</span>
+      </div>
+
+      <div class="hero-actions anim-init anim-fade-up anim-delay-3">
+        <a href="login.html" class="btn btn-primary btn-lg" data-magnetic>
+          <span style="font-family: var(--font-cyber);">ENTER CODEVERSE</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a href="#features" class="btn btn-secondary btn-lg" data-magnetic>Explore Missions</a>
+      </div>
+
+      <!-- Live Telemetry Ticker -->
+      <div class="telemetry-ticker anim-init anim-fade-up anim-delay-4 corner-brackets">
+        <div class="telemetry-item">
+          <span class="telemetry-label">SYSTEM CORE</span>
+          <span class="telemetry-val" style="color: var(--neon-emerald);">ONLINE (60 FPS)</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">AI DEBUG ENGINE</span>
+          <span class="telemetry-val" style="color: var(--neon-cyan);">ACTIVE (GROQ)</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">MISSIONS READY</span>
+          <span class="telemetry-val" style="color: var(--xp-gold);">25 BOUNTIES</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FEATURES / MISSIONS SECTION ═══ -->
+  <section class="features-section" id="features">
+    <div class="container" style="text-align: center; margin-bottom: 60px;">
+      <div class="label" style="color: var(--neon-cyan); margin-bottom: 12px;">ENGINEERED FOR PROGRESSION</div>
+      <h2 data-reveal style="font-size: clamp(2rem, 4vw, 3rem);">Level Up Your Engineering Skills</h2>
+      <p data-reveal style="max-width: 600px; margin: 12px auto 0; font-size: var(--text-base);">Every line of C code builds real comprehension, debugging intuition, and algorithm mastery.</p>
     </div>
 
-    <div class="card">
-      <div class="lbl" style="color:#475569;">Shortcuts</div>
-      <div class="flex justify-between items-center mb-2">
-        <span class="text-xs text-slate-400">Run code</span>
-        <kbd style="background:#1e293b;border:1px solid #334155;color:#94a3b8;font-size:10px;padding:2px 7px;border-radius:4px;">Ctrl+Enter</kbd>
+    <div class="features-grid">
+      <div class="feature-card tilt-card" data-reveal>
+        <div class="feature-icon">🧠</div>
+        <h4>Progressive AI Debugger</h4>
+        <p>Decipher compiler diagnostics with 3-tier progressive hints. Gain debugging instincts without having solutions spoiled.</p>
       </div>
-      <div class="flex justify-between items-center">
-        <span class="text-xs text-slate-400">Clear</span>
-        <kbd style="background:#1e293b;border:1px solid #334155;color:#94a3b8;font-size:10px;padding:2px 7px;border-radius:4px;">Ctrl+L</kbd>
+
+      <div class="feature-card tilt-card" data-reveal>
+        <div class="feature-icon">⚡</div>
+        <h4>Creative Algorithm Bounties</h4>
+        <p>Earn bonus XP and unlock the Explorer rank by discovering valid alternative solutions and memory-efficient approaches.</p>
+      </div>
+
+      <div class="feature-card tilt-card" data-reveal>
+        <div class="feature-icon">🌌</div>
+        <h4>3D Journey Map</h4>
+        <p>Traverse an interactive 3D constellation of C concepts. Track your mastery from basic variables up to pointers and memory management.</p>
+      </div>
+
+      <div class="feature-card tilt-card" data-reveal>
+        <div class="feature-icon">⛶</div>
+        <h4>Focus Mode IDE</h4>
+        <p>Switch seamlessly between a high-tech gaming HUD and an ultra-clean, distraction-free Monaco Editor environment.</p>
+      </div>
+
+      <div class="feature-card tilt-card" data-reveal>
+        <div class="feature-icon">🏆</div>
+        <h4>Ranks & Trophy Ladder</h4>
+        <p>Progress through 20 levels and 6 ranks from Novice Coder to Algorithm Master as you conquer challenging laboratory missions.</p>
+      </div>
+
+      <div class="feature-card tilt-card" data-reveal>
+        <div class="feature-icon">👨‍🏫</div>
+        <h4>Instructor Telemetry</h4>
+        <p>Provides faculty with real-time class diagnostics, concept mastery heatmaps, and actionable learning trend metrics.</p>
       </div>
     </div>
-  </aside>
+  </section>
 
-  <!-- RIGHT -->
-  <main class="right-panel">
-
-    <!-- Editor card -->
-    <div class="card" style="padding:0;overflow:hidden;margin-bottom:12px;">
-      <!-- Toolbar -->
-      <div class="flex items-center justify-between px-4 py-2" style="border-bottom:1px solid #1e293b;background:#0a1628;">
-        <div class="flex items-center gap-3">
-          <div class="flex gap-1.5">
-            <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div>
-            <div style="width:10px;height:10px;border-radius:50%;background:#febc2e;"></div>
-            <div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div>
-          </div>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#475569;">main.c</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="dot" id="run-dot"></span>
-          <span style="font-size:11px;color:#64748b;" id="run-txt">Ready</span>
-          <div style="width:1px;height:14px;background:#1e293b;"></div>
-          <button class="btn-clear" id="btn-clear">Clear</button>
-          <button class="btn-run" id="btn-run">
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5l9 4.5-9 4.5V1.5z"/></svg>
-            Run
-          </button>
-        </div>
-      </div>
-      <div id="editor-wrap"></div>
+  <!-- ═══ CTA SECTION ═══ -->
+  <section style="padding: 100px 0; text-align: center; position: relative;" data-reveal>
+    <div class="container">
+      <h2 style="font-size: var(--text-3xl); margin-bottom: 16px;">Ready to Begin Your Mission?</h2>
+      <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 36px;">Enter the laboratory and start mastering C programming today.</p>
+      <a href="login.html" class="btn btn-primary btn-lg" data-magnetic>
+        <span style="font-family: var(--font-cyber);">INITIALIZE CADET SESSION →</span>
+      </a>
     </div>
+  </section>
 
-    <!-- Output card -->
-    <div class="card" style="margin-bottom:12px;">
-      <div class="flex items-center justify-between mb-2">
-        <div class="lbl" style="color:#475569;margin:0;">Compiler Output</div>
-        <span id="out-badge" style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:#1e293b;color:#475569;">—</span>
-      </div>
-      <div class="output-box" id="output-box">Output will appear here after you click Run...</div>
-    </div>
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="landing-footer">
+    <p>CODEVERSE C PROGRAMMING LABORATORY · SYSTEM ACTIVE · 2026</p>
+  </footer>
 
-    <!-- AI Panel -->
-    <div id="ai-panel" style="display:none;">
-      <div style="height:1px;background:linear-gradient(90deg,transparent,#6366f1 40%,#a855f7 60%,transparent);opacity:.4;margin-bottom:14px;"></div>
-      <div class="flex items-center gap-2 mb-3">
-        <div style="background:linear-gradient(135deg,#6366f1,#a855f7);border-radius:7px;width:26px;height:26px;"
-             class="flex items-center justify-center shrink-0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
-        <div>
-          <div class="text-white font-semibold text-sm">AI Tutor Explanation</div>
-          <div style="font-size:11px;color:#475569;">Powered by Groq · llama-3.3-70b</div>
-        </div>
-      </div>
+  <!-- ═══ SCRIPTS ═══ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="ai-card fade-up">
-          <div class="lbl" style="color:#818cf8;">📘 Simple Explanation</div>
-          <div class="text-slate-300 text-xs leading-relaxed" id="ai-explanation">—</div>
-        </div>
-        <div class="ai-card amber fade-up">
-          <div class="lbl" style="color:#fbbf24;">⚠️ Why It Happened</div>
-          <div class="text-slate-300 text-xs leading-relaxed" id="ai-reason">—</div>
-        </div>
-        <div class="ai-card emerald fade-up">
-          <div class="lbl" style="color:#34d399;">🔍 Debugging Hint</div>
-          <div class="text-slate-300 text-xs leading-relaxed" id="ai-hint">—</div>
-        </div>
-        <div class="ai-card purple fade-up">
-          <div class="lbl" style="color:#c084fc;">💡 Programming Concept</div>
-          <div class="text-slate-300 text-xs leading-relaxed" id="ai-concept">—</div>
-        </div>
-      </div>
-      <div style="height:20px;"></div>
-    </div>
+  <script src="js/audio.js"></script>
+  <script src="js/cursor.js"></script>
+  <script src="js/animations.js"></script>
+  <script src="js/three-scenes.js"></script>
 
-  </main>
-</div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Navbar scroll effect
+      const nav = document.getElementById('landing-nav');
+      window.addEventListener('scroll', () => {
+        nav.classList.toggle('scrolled', window.scrollY > 40);
+      }, { passive: true });
 
-<!-- MONACO -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
-<script>
-  // ── Monaco ────────────────────────────────────────────────────────
-  require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
-  let editor;
-  require(['vs/editor/editor.main'], function () {
-    monaco.editor.defineTheme('dark', {
-      base: 'vs-dark', inherit: true,
-      rules: [
-        { token: 'keyword',  foreground: '818cf8', fontStyle: 'bold' },
-        { token: 'string',   foreground: '34d399' },
-        { token: 'number',   foreground: 'fbbf24' },
-        { token: 'comment',  foreground: '4a5568', fontStyle: 'italic' },
-        { token: 'type',     foreground: '60a5fa' },
-      ],
-      colors: {
-        'editor.background':                '#020817',
-        'editor.foreground':                '#e2e8f0',
-        'editor.lineHighlightBackground':   '#0d1526',
-        'editorLineNumber.foreground':      '#2d3f55',
-        'editorLineNumber.activeForeground':'#6366f1',
-        'editorCursor.foreground':          '#6366f1',
-        'editor.selectionBackground':       '#6366f130',
-        'editorWidget.background':          '#0d1526',
-      }
+      // 3D Core Scene
+      ThreeScenes.createLandingScene('three-canvas');
+
+      // Scroll animations
+      Animations.initScrollReveal();
+      Animations.initTiltCards();
     });
-    editor = monaco.editor.create(document.getElementById('editor-wrap'), {
-      value: '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}\n',
-      language: 'c',
-      theme: 'dark',
-      fontSize: 14,
-      fontFamily: "'JetBrains Mono', monospace",
-      lineNumbers: 'on',
-      minimap: { enabled: false },
-      scrollBeyondLastLine: false,
-      automaticLayout: true,
-      padding: { top: 14, bottom: 14 },
-      tabSize: 4,
-      wordWrap: 'on',
+
+    window.addEventListener('beforeunload', () => {
+      ThreeScenes.destroyAll();
     });
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL,  clearAll);
-  });
-
-  // ── Elements ──────────────────────────────────────────────────────
-  const btnRun    = document.getElementById('btn-run');
-  const btnClear  = document.getElementById('btn-clear');
-  const outputBox = document.getElementById('output-box');
-  const outBadge  = document.getElementById('out-badge');
-  const aiPanel   = document.getElementById('ai-panel');
-  const srvDot    = document.getElementById('srv-dot');
-  const srvTxt    = document.getElementById('srv-txt');
-  const runDot    = document.getElementById('run-dot');
-  const runTxt    = document.getElementById('run-txt');
-
-  // ── Server health ping ────────────────────────────────────────────
-  function ping() {
-    fetch('/health')
-      .then(r => {
-        if (r.ok) {
-          srvDot.className = 'dot green';
-          srvTxt.textContent = 'Server Online';
-          srvTxt.style.color = '#4ade80';
-        } else { offline(); }
-      })
-      .catch(offline);
-  }
-  function offline() {
-    srvDot.className = 'dot red';
-    srvTxt.textContent = 'Server Offline';
-    srvTxt.style.color = '#f87171';
-  }
-  ping();
-  setInterval(ping, 4000);
-
-  // ── Output helpers ────────────────────────────────────────────────
-  function showOutput(text, type) {
-    outputBox.textContent = text;
-    if (type === 'success') {
-      outputBox.style.color = '#4ade80';
-      outBadge.textContent = 'PASSED';
-      outBadge.style.background = '#052e16';
-      outBadge.style.color = '#4ade80';
-    } else if (type === 'error') {
-      outputBox.style.color = '#f87171';
-      outBadge.textContent = 'FAILED';
-      outBadge.style.background = '#2d0a0a';
-      outBadge.style.color = '#f87171';
-    } else {
-      outputBox.style.color = '#475569';
-      outBadge.textContent = '—';
-      outBadge.style.background = '#1e293b';
-      outBadge.style.color = '#475569';
-    }
-  }
-
-  function showAI(fb) {
-    document.getElementById('ai-explanation').textContent = fb.explanation || '—';
-    document.getElementById('ai-reason').textContent      = fb.reason      || '—';
-    document.getElementById('ai-hint').textContent        = fb.hint        || '—';
-    document.getElementById('ai-concept').textContent     = fb.concept     || '—';
-    aiPanel.style.display = 'block';
-  }
-
-  function clearAll() {
-    if (editor) editor.setValue('');
-    showOutput('Output will appear here after you click Run...', 'idle');
-    aiPanel.style.display = 'none';
-    runDot.className = 'dot';
-    runTxt.textContent = 'Ready';
-    runTxt.style.color = '';
-  }
-  btnClear.addEventListener('click', clearAll);
-
-  // ── RUN ───────────────────────────────────────────────────────────
-  async function runCode() {
-    if (!editor) return;
-    const code = editor.getValue();
-    if (!code.trim()) {
-      showOutput('Editor is empty.', 'error');
-      return;
-    }
-
-    // UI: loading state
-    btnRun.disabled = true;
-    btnRun.innerHTML = '<span class="spinner"></span> Running...';
-    runDot.className = 'dot';
-    runTxt.textContent = 'Compiling...';
-    runTxt.style.color = '#fbbf24';
-    aiPanel.style.display = 'none';
-    showOutput('Compiling...', 'idle');
-
-    let response;
-    try {
-      response = await fetch('/compile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code }),
-      });
-    } catch (networkErr) {
-      showOutput(
-        'Cannot connect to backend server.\n\n' +
-        'Make sure the server is running:\n' +
-        '  cd backend\n' +
-        '  python -m uvicorn app:app --reload --port 8000\n\n' +
-        'Then open http://localhost:8000 in your browser.\n\n' +
-        'Error: ' + networkErr.message,
-        'error'
-      );
-      btnRun.disabled = false;
-      btnRun.innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5l9 4.5-9 4.5V1.5z"/></svg> Run';
-      runDot.className = 'dot red';
-      runTxt.textContent = 'Server Offline';
-      runTxt.style.color = '#f87171';
-      offline();
-      return;
-    }
-
-    let data;
-    try {
-      data = await response.json();
-    } catch (parseErr) {
-      showOutput('Server returned invalid response: ' + parseErr.message, 'error');
-      btnRun.disabled = false;
-      btnRun.innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5l9 4.5-9 4.5V1.5z"/></svg> Run';
-      return;
-    }
-
-    // ── Handle result ─────────────────────────────────────────────
-    if (data.success === true) {
-      // Compiled and ran successfully — show output, hide AI
-      const out = (data.output !== undefined && data.output !== null)
-        ? data.output
-        : '(Program exited with no output)';
-      showOutput(out || '(Program exited with no output)', 'success');
-      runDot.className = 'dot green';
-      runTxt.textContent = 'Success';
-      runTxt.style.color = '#4ade80';
-      aiPanel.style.display = 'none';
-
-    } else {
-      // Compilation failed — show GCC error + AI explanation
-      const errText = (data.compiler_error !== undefined && data.compiler_error !== null && data.compiler_error.trim() !== '')
-        ? data.compiler_error
-        : 'Compilation failed (no error details returned by server).';
-      showOutput(errText, 'error');
-      runDot.className = 'dot red';
-      runTxt.textContent = 'Compile Error';
-      runTxt.style.color = '#f87171';
-      if (data.ai_feedback) showAI(data.ai_feedback);
-    }
-
-    btnRun.disabled = false;
-    btnRun.innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5l9 4.5-9 4.5V1.5z"/></svg> Run';
-  }
-
-  btnRun.addEventListener('click', runCode);
-</script>
+  </script>
 </body>
 </html>

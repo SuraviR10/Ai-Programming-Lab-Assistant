@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Journey Map — CODEVERSE</title>
+  <meta name="description" content="3D Interactive Learning Journey Constellation and Telemetry in CODEVERSE." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <style>
+    .main-content {
+      margin-left: 260px;
+      min-height: 100vh;
+      padding: 32px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .journey-3d-box {
+      width: 100%;
+      height: 380px;
+      position: relative;
+      background: rgba(13, 21, 46, 0.7);
+      border: 1px solid var(--border-cyan);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    #journey-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .journey-tooltip {
+      position: absolute;
+      display: none;
+      background: rgba(2, 5, 14, 0.9);
+      border: 1px solid var(--neon-cyan);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      pointer-events: none;
+      z-index: 20;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    }
+
+    .progress-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .chart-card-cyber {
+      background: rgba(13, 21, 46, 0.75);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      backdrop-filter: blur(16px);
+    }
+
+    @media (max-width: 900px) {
+      .main-content { margin-left: 0; padding: 20px; }
+      .progress-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-content" id="page-content">
+    <div class="page-header anim-init anim-fade-up">
+      <div>
+        <div class="label" style="color: var(--neon-cyan); margin-bottom: 4px;">CONSTELLATION TELEMETRY</div>
+        <h1 style="font-size: var(--text-3xl); font-weight: 900;">3D Learning Journey</h1>
+        <p style="font-size: var(--text-sm); color: var(--text-faint);">Explore your progression nodes across the C Programming language architecture.</p>
+      </div>
+    </div>
+
+    <!-- ═══ 3D INTERACTIVE LEARNING MAP ═══ -->
+    <div class="journey-3d-box corner-brackets anim-init anim-fade-up anim-delay-1">
+      <div id="journey-canvas"></div>
+      <div class="journey-tooltip" id="journey-map-tooltip"></div>
+      <div style="position: absolute; bottom: 14px; left: 20px; font-family: var(--font-mono); font-size: 11px; color: var(--text-ghost); z-index: 10;">
+        ROTATE / HOVER NODES TO INSPECT CONCEPT MASTERY
+      </div>
+    </div>
+
+    <!-- ═══ TELEMETRY CHARTS ═══ -->
+    <div class="progress-grid">
+      <div class="chart-card-cyber" data-reveal>
+        <h3 style="font-size: var(--text-base); margin-bottom: 18px; color: #fff;">📈 Mastery Trajectory</h3>
+        <div style="height: 220px;">
+          <canvas id="chart-timeline"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card-cyber" data-reveal>
+        <h3 style="font-size: var(--text-base); margin-bottom: 18px; color: #fff;">🎯 Overall Accuracy Rating</h3>
+        <div style="height: 220px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: relative; width: 160px; height: 160px;">
+            <canvas id="chart-success" width="160" height="160"></canvas>
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+              <div style="font-family: var(--font-cyber); font-size: 32px; font-weight: 900; color: var(--neon-cyan);">82%</div>
+              <div style="font-size: 10px; font-family: var(--font-mono); color: var(--text-ghost);">SUCCESS RATE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill Matrices -->
+    <div class="chart-card-cyber" data-reveal>
+      <h3 style="font-size: var(--text-base); margin-bottom: 20px; color: #fff;">🧠 Concept Mastery Gauges</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" id="progress-skills-grid"></div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/audio.js"></script>
+  <script src="../js/gamification.js"></script>
+  <script src="../js/cursor.js"></script>
+  <script src="../js/animations.js"></script>
+  <script src="../js/charts.js"></script>
+  <script src="../js/three-scenes.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/app.js"></script>
+
+  <script>
+    App.init({
+      role: 'student',
+      activeNav: 'progress',
+      onReady: async () => {
+        let skills = MockData.skills;
+        try {
+          const res = await API.getStudentProgress();
+          if (res.success && res.concepts_breakdown) {
+            skills = res.concepts_breakdown.map(c => ({
+              name: c.concept,
+              percentage: c.mastery
+            }));
+          }
+        } catch (e) {
+          console.warn('API error, using default skills matrix', e);
+        }
+
+        // 3D Journey Constellation
+        ThreeScenes.createJourneyMapScene('journey-canvas', MockData.journeyNodes, (node) => {
+          if (typeof SoundFX !== 'undefined') SoundFX.playClick();
+          if (typeof Toast !== 'undefined') {
+            Toast.info(`<strong>${node.name}</strong> · ${node.problems} Missions Total`);
+          }
+        });
+
+        // Charts
+        Charts.createProgressTimeline('chart-timeline', MockData.weeklyProgress);
+        Charts.createSuccessRate('chart-success', MockData.student.successRate);
+
+        // Skills Gauges
+        const grid = document.getElementById('progress-skills-grid');
+        grid.innerHTML = '';
+        skills.forEach((s, idx) => {
+          const el = document.createElement('div');
+          el.className = 'skill-bar';
+          el.innerHTML = `
+            <div class="skill-bar-header">
+              <span class="skill-bar-name" style="font-size: 13px;">${s.name}</span>
+              <span class="skill-bar-value" style="color: var(--neon-cyan);">${s.percentage}%</span>
+            </div>
+            <div class="progress-bar" style="height: 6px;">
+              <div class="progress-bar-fill" id="p-skill-${idx}" style="width: 0%;
+                background: ${s.percentage >= 80 ? 'linear-gradient(90deg, #059669, #00f5d4)' :
+                              s.percentage >= 60 ? 'linear-gradient(90deg, #6366f1, #00f2fe)' :
+                              'linear-gradient(90deg, #d97706, #ffb703)'};">
+              </div>
+            </div>
+          `;
+          grid.appendChild(el);
+
+          setTimeout(() => {
+            Animations.animateProgressBar(document.getElementById(`p-skill-${idx}`), s.percentage, { delay: 0.1 });
+          }, 300 + idx * 60);
+        });
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      ThreeScenes.destroyAll();
+    });
+  </script>
+</body>
+</html>
