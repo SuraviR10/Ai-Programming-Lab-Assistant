@@ -358,6 +358,121 @@ def init_db_and_seed():
                         {"input": "3", "expected": "Factorial = 6", "is_hidden": True},
                         {"input": "6", "expected": "Factorial = 720", "is_hidden": True}
                     ]
+                },
+                {
+                    "id": 6,
+                    "title": "Prime Number Checker",
+                    "description": "Write a C program that reads an integer N and prints \"Prime\" if it is a prime number, or \"Not Prime\" otherwise.",
+                    "difficulty": "medium",
+                    "concepts": ["loops", "conditions", "prime"],
+                    "starter_code": '#include <stdio.h>\n\nint main() {\n    int n;\n    if (scanf("%d", &n) == 1) {\n        if (n <= 1) { printf("Not Prime\\n"); return 0; }\n        int is_prime = 1;\n        for (int i = 2; i * i <= n; i++) {\n            if (n % i == 0) { is_prime = 0; break; }\n        }\n        if (is_prime) printf("Prime\\n");\n        else printf("Not Prime\\n");\n    }\n    return 0;\n}\n',
+                    "expected_output": "Prime",
+                    "sample_input": "7",
+                    "sample_output": "Prime",
+                    "xp_reward": 150,
+                    "hints": ["Check divisibility from 2 up to sqrt(N)", "Numbers <= 1 are Not Prime"],
+                    "progressive_hints": [
+                        {"tier": 1, "title": "Divisibility", "text": "A number is prime if it has no divisors other than 1 and itself."},
+                        {"tier": 2, "title": "Loop Limit", "text": "You only need to loop up to sqrt(N) to test divisors."},
+                        {"tier": 3, "title": "Flag Variable", "text": "Use a flag variable is_prime initialized to 1."}
+                    ],
+                    "test_cases": [
+                        {"input": "7", "expected": "Prime", "is_hidden": False},
+                        {"input": "12", "expected": "Not Prime", "is_hidden": True},
+                        {"input": "13", "expected": "Prime", "is_hidden": True}
+                    ]
+                },
+                {
+                    "id": 7,
+                    "title": "Fibonacci Generator",
+                    "description": "Write a C program that reads N and prints the first N Fibonacci numbers separated by spaces.",
+                    "difficulty": "medium",
+                    "concepts": ["loops", "sequence", "variables"],
+                    "starter_code": '#include <stdio.h>\n\nint main() {\n    int n;\n    if (scanf("%d", &n) == 1) {\n        long long a = 0, b = 1;\n        for (int i = 0; i < n; i++) {\n            printf("%lld%s", a, (i == n - 1) ? "" : " ");\n            long long next = a + b;\n            a = b;\n            b = next;\n        }\n        printf("\\n");\n    }\n    return 0;\n}\n',
+                    "expected_output": "0 1 1 2 3",
+                    "sample_input": "5",
+                    "sample_output": "0 1 1 2 3",
+                    "xp_reward": 150,
+                    "hints": ["Start with a = 0, b = 1", "Compute next = a + b and shift variables"],
+                    "progressive_hints": [
+                        {"tier": 1, "title": "Base Values", "text": "Fibonacci starts with 0 and 1."},
+                        {"tier": 2, "title": "Shift Operation", "text": "In each step: next = a + b; a = b; b = next;"},
+                        {"tier": 3, "title": "Formatting", "text": "Print numbers separated by single spaces."}
+                    ],
+                    "test_cases": [
+                        {"input": "5", "expected": "0 1 1 2 3", "is_hidden": False},
+                        {"input": "3", "expected": "0 1 1", "is_hidden": True},
+                        {"input": "7", "expected": "0 1 1 2 3 5 8", "is_hidden": True}
+                    ]
+                },
+                {
+                    "id": 8,
+                    "title": "Reverse an Integer",
+                    "description": "Write a C program that reads an integer and prints its reverse in the format: Reversed = X",
+                    "difficulty": "medium",
+                    "concepts": ["while loop", "modulus", "division"],
+                    "starter_code": '#include <stdio.h>\n\nint main() {\n    int n;\n    if (scanf("%d", &n) == 1) {\n        int rev = 0;\n        while (n != 0) {\n            rev = rev * 10 + n % 10;\n            n /= 10;\n        }\n        printf("Reversed = %d\\n", rev);\n    }\n    return 0;\n}\n',
+                    "expected_output": "Reversed = 4321",
+                    "sample_input": "1234",
+                    "sample_output": "Reversed = 4321",
+                    "xp_reward": 150,
+                    "hints": ["Extract last digit using n % 10", "Accumulate rev = rev * 10 + digit"],
+                    "progressive_hints": [
+                        {"tier": 1, "title": "Last Digit", "text": "n % 10 gives the last digit of n."},
+                        {"tier": 2, "title": "Truncate", "text": "n /= 10 removes the last digit."},
+                        {"tier": 3, "title": "Accumulator", "text": "Multiply existing reversed result by 10 and add last digit."}
+                    ],
+                    "test_cases": [
+                        {"input": "1234", "expected": "Reversed = 4321", "is_hidden": False},
+                        {"input": "987", "expected": "Reversed = 789", "is_hidden": True},
+                        {"input": "100", "expected": "Reversed = 1", "is_hidden": True}
+                    ]
+                },
+                {
+                    "id": 9,
+                    "title": "Swap Numbers Using Pointers",
+                    "description": "Write a C program that reads two integers, passes their memory addresses to a swap function, and prints: After Swap: a = X, b = Y",
+                    "difficulty": "medium",
+                    "concepts": ["pointers", "functions", "pass-by-reference"],
+                    "starter_code": '#include <stdio.h>\n\nvoid swap(int *x, int *y) {\n    int temp = *x;\n    *x = *y;\n    *y = temp;\n}\n\nint main() {\n    int a, b;\n    if (scanf("%d %d", &a, &b) == 2) {\n        swap(&a, &b);\n        printf("After Swap: a = %d, b = %d\\n", a, b);\n    }\n    return 0;\n}\n',
+                    "expected_output": "After Swap: a = 20, b = 10",
+                    "sample_input": "10 20",
+                    "sample_output": "After Swap: a = 20, b = 10",
+                    "xp_reward": 175,
+                    "hints": ["Pass address &a and &b to function", "Use dereference operator * to swap values"],
+                    "progressive_hints": [
+                        {"tier": 1, "title": "Pointer Parameters", "text": "Function signature should accept int *x, int *y."},
+                        {"tier": 2, "title": "Address Passing", "text": "Call swap(&a, &b) from main()."},
+                        {"tier": 3, "title": "Dereferencing", "text": "int temp = *x; *x = *y; *y = temp;"}
+                    ],
+                    "test_cases": [
+                        {"input": "10 20", "expected": "After Swap: a = 20, b = 10", "is_hidden": False},
+                        {"input": "5 100", "expected": "After Swap: a = 100, b = 5", "is_hidden": True},
+                        {"input": "-1 1", "expected": "After Swap: a = 1, b = -1", "is_hidden": True}
+                    ]
+                },
+                {
+                    "id": 10,
+                    "title": "Palindrome String Check",
+                    "description": "Write a C program that reads a single word string and prints \"Palindrome\" if it reads the same backward, or \"Not Palindrome\".",
+                    "difficulty": "hard",
+                    "concepts": ["strings", "pointers", "string.h"],
+                    "starter_code": '#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char str[100];\n    if (scanf("%99s", str) == 1) {\n        int len = strlen(str);\n        int is_pal = 1;\n        for (int i = 0; i < len / 2; i++) {\n            if (str[i] != str[len - 1 - i]) { is_pal = 0; break; }\n        }\n        if (is_pal) printf("Palindrome\\n");\n        else printf("Not Palindrome\\n");\n    }\n    return 0;\n}\n',
+                    "expected_output": "Palindrome",
+                    "sample_input": "racecar",
+                    "sample_output": "Palindrome",
+                    "xp_reward": 200,
+                    "hints": ["Compare characters from front and back", "Include <string.h> for strlen()"],
+                    "progressive_hints": [
+                        {"tier": 1, "title": "String Length", "text": "Use strlen(str) to find length."},
+                        {"tier": 2, "title": "Two-Pointer Strategy", "text": "Compare str[i] with str[len - 1 - i]."},
+                        {"tier": 3, "title": "Early Exit", "text": "If characters mismatch, set flag = 0 and break."}
+                    ],
+                    "test_cases": [
+                        {"input": "racecar", "expected": "Palindrome", "is_hidden": False},
+                        {"input": "hello", "expected": "Not Palindrome", "is_hidden": True},
+                        {"input": "madam", "expected": "Palindrome", "is_hidden": True}
+                    ]
                 }
             ]
 
