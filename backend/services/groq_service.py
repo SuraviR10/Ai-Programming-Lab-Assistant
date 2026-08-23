@@ -44,7 +44,12 @@ Return ONLY valid JSON in this format:
 }}"""
 
 
-GROQ_MODELS = ["groq/compound-mini", "qwen/qwen3.6-27b", "groq/compound"]
+GROQ_MODELS = [
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "mixtral-8x7b-32768",
+    "gemma2-9b-it"
+]
 
 
 def analyze_compiler_error(student_code: str, compiler_error: str, line_number: int | None, mode: str = "practice") -> dict:

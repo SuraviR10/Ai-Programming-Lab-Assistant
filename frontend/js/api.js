@@ -197,6 +197,23 @@ const API = (() => {
     });
   }
 
+  // ── AI Practice Mode & Activity Logging API ──
+  async function generateChallenge(concept = 'Arrays', difficulty = 'medium') {
+    const studentId = getStudentId();
+    return await request('/api/practice/challenge', {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId, concept, difficulty })
+    });
+  }
+
+  async function logActivity(action, details = '') {
+    const studentId = getStudentId();
+    return await request('/api/student/activity', {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId, action, details })
+    });
+  }
+
   return {
     getStudentId,
     getRole,
@@ -220,6 +237,9 @@ const API = (() => {
     createWriteup,
     createExam,
     getSuspiciousSubmissions,
-    reviewSubmission
+    reviewSubmission,
+    generateChallenge,
+    logActivity
   };
 })();
+

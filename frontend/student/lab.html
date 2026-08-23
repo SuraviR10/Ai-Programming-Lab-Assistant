@@ -295,9 +295,13 @@
         <div class="hint-decryptor" id="hint-decryptor-container"></div>
       </div>
 
-      <button class="btn btn-submit" id="btn-submit" style="width: 100%;" data-magnetic>
+      <button class="btn btn-submit" id="btn-submit" style="width: 100%; margin-bottom: 10px;" data-magnetic>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 4 12 14.01 9 11.01"/></svg>
         SUBMIT SOLUTION (+100 XP)
+      </button>
+
+      <button class="btn btn-secondary" onclick="triggerAIChallenge()" style="width: 100%; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fbbf24; font-weight: 700;">
+        ⚡ PRACTICE RELATED PROBLEM (AI MODE)
       </button>
     </aside>
 
@@ -394,8 +398,9 @@
 
       <div style="font-size: 14px; font-weight: 700; color: var(--neon-emerald); margin: 20px 0;" id="result-encourage"></div>
 
-      <div style="display: flex; gap: 12px; justify-content: center;">
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
         <button class="btn btn-secondary" onclick="closeResult()">Refactor Code</button>
+        <button class="btn btn-amber" onclick="triggerAIChallenge()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 700; border: none;">⚡ Challenge Me (AI Practice)</button>
         <a href="problems.html" class="btn btn-primary" data-magnetic>Next Mission →</a>
       </div>
     </div>
@@ -611,6 +616,28 @@
       });
 
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
+
+      // 🔒 Strict Learning Environment: Intercept & Block Copy/Pasting
+      editor.onKeyDown(function (e) {
+        if ((e.ctrlKey || e.metaKey) && (e.keyCode === monaco.KeyCode.KeyV || e.keyCode === monaco.KeyCode.KeyC || e.keyCode === monaco.KeyCode.KeyX)) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof Toast !== 'undefined') {
+            Toast.warning('📋 Copy/Pasting is disabled in this learning environment. Please write your code manually!');
+          }
+        }
+      });
+
+      const wrapEl = document.getElementById('editor-wrap');
+      if (wrapEl) {
+        wrapEl.addEventListener('paste', function (e) {
+          e.preventDefault();
+          if (typeof Toast !== 'undefined') {
+            Toast.warning('📋 Copy/Pasting is disabled in this learning environment. Please write your code manually!');
+          }
+        });
+      }
+
       loadProblem(problemId);
     });
 
@@ -790,6 +817,46 @@
 
     function closeResult() {
       document.getElementById('result-overlay').classList.remove('show');
+    }
+
+    // 🔒 Strict Environment: Tab Switch & Focus Loss Monitoring
+    let focusLossCount = 0;
+    function logFocusLoss() {
+      focusLossCount++;
+      if (typeof Toast !== 'undefined') {
+        Toast.error(`⚠️ Warning: Tab switch / Window focus loss detected (${focusLossCount}x)! Focus loss is logged to Faculty.`);
+      }
+      if (typeof API !== 'undefined' && API.logActivity) {
+        API.logActivity('tab_switch', `Window blur / tab switch detected during lab session (Total: ${focusLossCount})`);
+      }
+    }
+
+    window.addEventListener('blur', logFocusLoss);
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) logFocusLoss();
+    });
+
+    async function triggerAIChallenge() {
+      closeResult();
+      if (typeof Toast !== 'undefined') {
+        Toast.info('⚡ Groq AI is generating an adaptive C challenge tailored to your level...');
+      }
+      try {
+        const concept = (currentProblem && currentProblem.concepts && currentProblem.concepts[0]) || 'Arrays';
+        const res = await API.generateChallenge(concept, 'medium');
+        if (res.success && res.problem_id) {
+          if (typeof Toast !== 'undefined') {
+            Toast.success('🎉 New AI Practice Challenge Generated! Opening challenge editor...');
+          }
+          setTimeout(() => {
+            window.location.href = `lab.html?problem=${res.problem_id}`;
+          }, 800);
+        } else {
+          if (typeof Toast !== 'undefined') Toast.error('Could not generate challenge. Retrying...');
+        }
+      } catch (err) {
+        if (typeof Toast !== 'undefined') Toast.error('Challenge generator error: ' + err.message);
+      }
     }
   </script>
 </body>

@@ -2,8 +2,9 @@ import subprocess
 import os
 import uuid
 import time
+import tempfile
 
-TEMP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "temp"))
+TEMP_DIR = os.path.join(tempfile.gettempdir(), "ai_lab_compiler")
 
 
 def compile_and_run(code: str, input_data: str | None = None, timeout_sec: int = 10) -> dict:

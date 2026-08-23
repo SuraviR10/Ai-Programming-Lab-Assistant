@@ -85,9 +85,23 @@ def test_faculty_suspicious_review():
     print("PASSED: Faculty telemetry loaded suspicious submissions.")
 
 
+def test_ai_practice_and_activity_logging():
+    print("\n--- 5. Testing AI Practice Mode Challenge & Activity Telemetry ---")
+    r_chal = client.post("/api/practice/challenge", json={"student_id": "STU2024001", "concept": "Arrays", "difficulty": "medium"}).json()
+    assert r_chal.get("success") is True
+    assert "problem_id" in r_chal
+    print("Generated Challenge Problem ID:", r_chal.get("problem_id"))
+
+    r_act = client.post("/api/student/activity", json={"student_id": "STU2024001", "action": "tab_switch", "details": "Window blur detected"}).json()
+    assert r_act.get("success") is True
+    print("PASSED: AI Practice challenge generator and tab switch activity logging verified.")
+
+
 if __name__ == "__main__":
     test_clean_compilation_no_groq()
     test_syntax_error_groq_instructions()
     test_anti_hardcoding_and_creativity()
     test_faculty_suspicious_review()
+    test_ai_practice_and_activity_logging()
     print("\nALL SYSTEM INTEGRATION TESTS COMPLETED SUCCESSFULLY WITH ZERO ERRORS!")
+

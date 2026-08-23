@@ -38,6 +38,18 @@ class FeedbackRequest(BaseModel):
     comment: str | None = None
 
 
+class ChallengeRequest(BaseModel):
+    student_id: str = "STU2024001"
+    concept: str = "Arrays"
+    difficulty: str = "medium"
+
+
+class ActivityRequest(BaseModel):
+    student_id: str = "STU2024001"
+    action: str
+    details: str | None = None
+
+
 @router.post("/api/compiler/run")
 def run_code(request: RunRequest, db: Session = Depends(get_db)):
     # 1. Determine input data from problem sample if not provided
@@ -102,3 +114,28 @@ def submit_feedback(request: FeedbackRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {"success": True, "message": "Feedback recorded successfully."}
+
+
+@router.post("/api/practice/challenge")
+def generate_challenge(request: ChallengeRequest):
+    from services.practice_service import generate_challenge_problem
+    result = generate_challenge_problem(
+        concept=request.concept,
+        student_id=request.student_id,
+        difficulty=request.difficulty
+    )
+    return result
+
+
+@router.post("/api/student/activity")
+def log_student_activity(request: ActivityRequest, db: Session = Depends(get_db)):
+    act = LabActivity(
+        student_id=request.student_id,
+        action=request.action,
+        details=request.details
+    )
+    db.add(act)
+    db.commit()
+
+    return {"success": True, "message": "Activity logged."}
+
