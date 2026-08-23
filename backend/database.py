@@ -17,10 +17,22 @@ load_dotenv()
 
 # Determine Database URL (Supabase PostgreSQL or Local SQLite fallback)
 DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL or "postgresql" not in DATABASE_URL:
-    DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
-    os.makedirs(DATA_DIR, exist_ok=True)
-    DB_PATH = os.path.join(DATA_DIR, "ailab.db")
+if not DATABASE_URL or ("postgresql" not in DATABASE_URL and "sqlite" not in DATABASE_URL):
+    try:
+        DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
+        os.makedirs(DATA_DIR, exist_ok=True)
+        DB_PATH = os.path.join(DATA_DIR, "ailab.db")
+        # Test write access to ensure non-read-only filesystem
+        test_file = os.path.join(DATA_DIR, ".write_test")
+        with open(test_file, "w") as f:
+            f.write("ok")
+        os.remove(test_file)
+    except (OSError, PermissionError):
+        import tempfile
+        DATA_DIR = os.path.join(tempfile.gettempdir(), "ailab_data")
+        os.makedirs(DATA_DIR, exist_ok=True)
+        DB_PATH = os.path.join(DATA_DIR, "ailab.db")
+
     DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 # Connect Engine
