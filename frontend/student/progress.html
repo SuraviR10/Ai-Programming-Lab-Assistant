@@ -161,9 +161,10 @@
         ThreeScenes.createJourneyMapScene('journey-canvas', MockData.journeyNodes, (node) => {
           if (typeof SoundFX !== 'undefined') SoundFX.playClick();
           if (typeof Toast !== 'undefined') {
-            Toast.info(`<strong>${node.name}</strong> · ${node.problems} Missions Total`);
+            Toast.info(`<strong>${node.name}</strong> · ${node.problems} Total Lab Programs`);
           }
         });
+
 
         // Charts
         Charts.createProgressTimeline('chart-timeline', MockData.weeklyProgress);

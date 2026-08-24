@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Faculty Command Console — CODEVERSE</title>
-  <meta name="description" content="Instructor telemetry and student progress command console for CODEVERSE." />
+  <title>Faculty Dashboard — AI Lab Assistant</title>
+  <meta name="description" content="Instructor analytics and student progress dashboard for AI Lab Assistant." />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -98,7 +98,7 @@
     <div class="page-header anim-init anim-fade-up" style="display: flex; justify-content: space-between; align-items: center;">
       <div>
         <div class="label" style="color: var(--neon-cyan); margin-bottom: 4px;">FACULTY DASHBOARD</div>
-        <h1 style="font-size: var(--text-3xl); font-weight: 900;">Faculty Command Console</h1>
+        <h1 style="font-size: var(--text-3xl); font-weight: 900;">Faculty Dashboard</h1>
         <p style="font-size: var(--text-sm); color: var(--text-faint);">Class performance metrics, difficult concept analysis, and student lab progress.</p>
       </div>
       <div>
@@ -107,6 +107,7 @@
         </a>
       </div>
     </div>
+
 
 
     <!-- Stats -->
@@ -306,8 +307,9 @@
                 }
               </td>
               <td>
-                <button class="view-btn" onclick="Toast.info('Cadet ${s.id} telemetry loaded')">Inspect →</button>
+                <button class="view-btn" onclick="Toast.info('Student ${s.id} performance logs loaded')">Inspect →</button>
               </td>
+
             </tr>
           `;
         });
@@ -414,8 +416,9 @@
           `;
         });
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-ghost);">Telemetry active. Monitoring live lab sessions...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-ghost);">Live laboratory session monitoring active...</td></tr>';
       }
+
     }
   </script>
 </body>
