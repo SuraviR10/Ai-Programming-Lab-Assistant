@@ -430,8 +430,9 @@ const ThreeScenes = (() => {
           tooltip.innerHTML = `
             <div style="font-family: var(--font-cyber); font-size: 11px; color: var(--neon-cyan);">${node.name}</div>
             <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
-              Missions: ${node.problems} · Status: <span style="text-transform: uppercase; font-weight: 700; color: #fff;">${node.status}</span>
+              Programs: ${node.problems} · Status: <span style="text-transform: uppercase; font-weight: 700; color: #fff;">${node.status}</span>
             </div>
+
           `;
         }
       } else {

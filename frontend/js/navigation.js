@@ -61,7 +61,7 @@ const Navigation = (() => {
 
       <nav class="sidebar-nav" aria-label="Main navigation">
         <div style="padding: 0 12px 8px; font-size: 10px; font-weight: 700; color: var(--text-ghost); letter-spacing: 0.08em; text-transform: uppercase;">
-          ${role === 'faculty' ? 'INSTRUCTOR CONSOLE' : 'MISSION TERMINAL'}
+          ${role === 'faculty' ? 'FACULTY PORTAL' : 'STUDENT PORTAL'}
         </div>
         ${menu.map(item => `
           <a href="${resolveHref(item.href)}"
@@ -79,7 +79,7 @@ const Navigation = (() => {
           <div style="margin-bottom: 14px; padding: 10px; background: var(--bg-deepest); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
               <span style="font-size: 10px; font-family: var(--font-cyber); color: var(--neon-cyan);" data-hud-level>LEVEL 08</span>
-              <span style="font-size: 10px; font-family: var(--font-mono); color: var(--xp-gold);" data-hud-xp>2,840 XP</span>
+              <span style="font-size: 10px; font-family: var(--font-mono); color: var(--xp-gold);" data-hud-xp>2,840 Points</span>
             </div>
             <div class="xp-bar-container" style="height: 4px;">
               <div class="xp-bar-fill" data-hud-xp-fill style="width: 78%;"></div>
@@ -104,9 +104,10 @@ const Navigation = (() => {
 
         <a href="${resolveHref('login.html')}" class="nav-item" style="color: var(--text-faint); margin-bottom: 0;">
           ${icons.logout}
-          <span>Disconnect</span>
+          <span>Sign Out</span>
         </a>
       </div>
+
     `;
 
     return sidebar;

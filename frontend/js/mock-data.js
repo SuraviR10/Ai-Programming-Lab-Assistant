@@ -32,15 +32,16 @@ const MockData = (() => {
 
   // ── Daily Motivational Messages ─────────────────────────────
   const dailyMessages = [
-    { quote: "Every compiler error is a clue in the digital realm.", sub: "Keep experimenting. Keep debugging. Level up." },
+    { quote: "Every compiler error is a learning step towards mastery.", sub: "Keep experimenting. Keep debugging. Build skills." },
     { quote: "The best debugger is a curious mind.", sub: "Question everything your code executes." },
-    { quote: "Great programmers write code. Code Architects master debugging.", sub: "Every error squashed is XP earned." },
+    { quote: "Great programmers write clear code and master debugging.", sub: "Every error solved builds confidence." },
     { quote: "Functions are the building blocks of algorithms.", sub: "Build clean, reusable logic." },
-    { quote: "Syntax errors are simply typos in logic.", sub: "Fix them and conquer the mission." },
-    { quote: "Code does not judge. It only calculates.", sub: "Stay persistent in the Codeverse." },
+    { quote: "Syntax errors are simply typos in logic.", sub: "Fix them to master programming logic." },
+    { quote: "Code does not judge. It only calculates.", sub: "Stay persistent in your practice." },
     { quote: "Alternative approaches show true mastery.", sub: "Experiment with creative solutions." },
-    { quote: "Pointers control raw memory. Harness their power.", sub: "Complex missions build legendary skills." }
+    { quote: "Pointers control raw memory. Harness their power.", sub: "Complex programs build strong problem-solving skills." }
   ];
+
 
   // ── 3D Learning Journey Map Hierarchy ───────────────────────
   const journeyNodes = [
@@ -338,13 +339,13 @@ const MockData = (() => {
 
   // ── Achievements Definition ─────────────────────────────────
   const achievements = [
-    { id: "first_run", title: "First Transmission", description: "Successfully executed your first C program.", icon: "🚀", xp: 100, earned: true, earnedDate: "2026-07-16", category: "milestone" },
-    { id: "debugger", title: "Bug Assassin", description: "Resolved 10 compiler errors through independent debugging.", icon: "🛠", xp: 200, earned: true, earnedDate: "2026-07-25", category: "skill" },
-    { id: "week_streak", title: "Cyber Streak", description: "Maintained a 5-day continuous coding mission streak.", icon: "🔥", xp: 250, earned: true, earnedDate: "2026-08-02", category: "consistency" },
-    { id: "explorer", title: "Code Explorer", description: "Solved missions using alternative creative algorithms.", icon: "✦", xp: 175, earned: true, earnedDate: "2026-08-10", category: "creativity" },
-    { id: "perfect_ten", title: "Flawless Execution", description: "Scored a perfect 10/10 on an algorithm mission.", icon: "💯", xp: 300, earned: true, earnedDate: "2026-07-16", category: "excellence" },
-    { id: "memory_master", title: "Pointer Pioneer", description: "Conquered your first complex Pointer & Memory mission.", icon: "🧠", xp: 250, earned: true, earnedDate: "2026-08-18", category: "milestone" },
-    { id: "master_architect", title: "Code Architect", description: "Reach Level 10 in the Codeverse ladder.", icon: "👑", xp: 500, earned: false, earnedDate: null, category: "excellence" }
+    { id: "first_run", title: "First Program Executed", description: "Successfully compiled and executed your first C program.", icon: "🚀", xp: 100, earned: true, earnedDate: "2026-07-16", category: "milestone" },
+    { id: "debugger", title: "Effective Debugger", description: "Resolved 10 compiler errors through independent debugging.", icon: "🛠", xp: 200, earned: true, earnedDate: "2026-07-25", category: "skill" },
+    { id: "week_streak", title: "Study Streak", description: "Maintained a 5-day continuous coding practice streak.", icon: "🔥", xp: 250, earned: true, earnedDate: "2026-08-02", category: "consistency" },
+    { id: "explorer", title: "Code Explorer", description: "Solved problems using alternative efficient algorithms.", icon: "✦", xp: 175, earned: true, earnedDate: "2026-08-10", category: "creativity" },
+    { id: "perfect_ten", title: "Flawless Execution", description: "Scored a perfect 10/10 on a laboratory program.", icon: "💯", xp: 300, earned: true, earnedDate: "2026-07-16", category: "excellence" },
+    { id: "memory_master", title: "Pointer Pioneer", description: "Completed your first Pointer & Memory management program.", icon: "🧠", xp: 250, earned: true, earnedDate: "2026-08-18", category: "milestone" },
+    { id: "master_architect", title: "Advanced Programmer", description: "Reach Level 10 in laboratory progress.", icon: "👑", xp: 500, earned: false, earnedDate: null, category: "excellence" }
   ];
 
   // ── AI Feedback Mock Scenarios ──────────────────────────────
@@ -364,9 +365,10 @@ const MockData = (() => {
       approach: { value: 1.8, max: 2 },
       codeQuality: { value: 0.9, max: 1 },
       creativity: { value: 0.7, max: 1 },
-      feedback: "Mission complete! Your algorithm executes efficiently and adheres to C standards.",
+      feedback: "Program solved successfully! Your algorithm executes efficiently and adheres to C standards.",
       isCreative: false,
     },
+
     evaluationCreative: {
       score: 9.8,
       xpEarned: 175,

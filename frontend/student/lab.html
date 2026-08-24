@@ -66,14 +66,14 @@
 
     .lab-body {
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 380px 1fr;
       height: calc(100vh - 48px);
     }
 
     /* Problem Panel */
     .problem-panel {
       overflow-y: auto;
-      padding: 20px;
+      padding: 22px;
       border-right: 1px solid var(--border-cyan);
       background: #090f22;
       position: relative;
@@ -119,7 +119,7 @@
     .code-editor-container {
       flex: 1;
       display: flex;
-      min-height: 320px;
+      min-height: 300px;
       background: #02050e;
       position: relative;
       overflow: hidden;
@@ -127,7 +127,7 @@
     }
 
     .line-numbers-gutter {
-      width: 44px;
+      width: 46px;
       background: #060a17;
       color: #475569;
       font-family: 'JetBrains Mono', monospace;
@@ -148,7 +148,7 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 14px;
       line-height: 1.6;
-      padding: 16px 16px 16px 12px;
+      padding: 16px 16px 16px 14px;
       border: none;
       outline: none;
       resize: none;
@@ -161,10 +161,32 @@
       caret-color: #00f2fe;
     }
 
+    /* Standard Input Area */
+    .stdin-panel {
+      display: none;
+      background: #060a17;
+      border-top: 1px solid var(--border-subtle);
+      padding: 10px 18px;
+    }
+
+    .stdin-input {
+      width: 100%;
+      height: 48px;
+      background: #02050e;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 8px 12px;
+      outline: none;
+      resize: none;
+    }
+
     /* Output Terminal Area */
     .output-area {
       border-top: 1px solid var(--border-cyan);
-      max-height: 40vh;
+      max-height: 42vh;
       overflow-y: auto;
       background: #090f22;
       flex-shrink: 0;
@@ -188,6 +210,7 @@
       border-bottom: 2px solid transparent;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+      transition: all 0.2s ease;
     }
 
     .output-tab.active {
@@ -278,9 +301,10 @@
       border: 1px solid var(--border-cyan);
       border-radius: var(--radius-lg);
       padding: 32px;
-      max-width: 480px;
+      max-width: 520px;
       width: 90%;
       text-align: center;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
     }
 
     .score-row {
@@ -290,6 +314,29 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       font-size: 13px;
     }
+
+    .practice-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .practice-btn:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: #6366f1;
+      transform: translateX(4px);
+    }
   </style>
 </head>
 
@@ -298,7 +345,7 @@
   <header class="lab-header">
     <div class="lab-header-left">
       <button class="lab-back-btn" onclick="window.location.href='/student/problems.html'">
-        <span>←</span> Back to Problems
+        <span>←</span> Back to Lab Programs
       </button>
       <div class="lab-title-hud" id="lab-title">
         <span>C Programming Lab Assistant</span>
@@ -319,7 +366,7 @@
     <!-- Left Panel: Problem Statement & Hints -->
     <aside class="problem-panel" id="problem-panel">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <span class="label" style="color: var(--neon-cyan);">PROBLEM STATEMENT</span>
+        <span class="label" style="color: var(--neon-cyan);">LAB PROGRAM</span>
         <span class="mission-xp-badge" id="mission-xp-tag" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px;">★ +100 Points</span>
       </div>
 
@@ -329,8 +376,8 @@
       <div style="margin-bottom: 20px;">
         <div class="label" style="margin-bottom: 8px;">CONCEPTS</div>
         <div class="problem-concepts" id="prob-concepts">
-          <span class="concept-tag">printf</span>
-          <span class="concept-tag">basics</span>
+          <span class="concept-tag" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 4px 10px; border-radius: 6px; font-size: 12px;">printf</span>
+          <span class="concept-tag" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 4px 10px; border-radius: 6px; font-size: 12px; margin-left: 6px;">basics</span>
         </div>
       </div>
 
@@ -354,8 +401,8 @@
         Submit Solution (+100 Points)
       </button>
 
-      <button class="btn btn-secondary" onclick="triggerAIChallenge()" style="width: 100%; padding: 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fbbf24; font-weight: 700; border-radius: 8px; cursor: pointer;">
-        ⚡ Practice Related Problem
+      <button class="btn btn-secondary" onclick="openPracticeModal()" style="width: 100%; padding: 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fbbf24; font-weight: 700; border-radius: 8px; cursor: pointer;">
+        ⚡ AI Practice Mode
       </button>
     </aside>
 
@@ -372,6 +419,7 @@
             <span class="status-dot" id="run-dot"></span>
             <span id="run-status">READY</span>
           </div>
+          <button class="btn btn-secondary btn-sm" id="btn-toggle-stdin" onclick="toggleStdin()" style="padding: 4px 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 4px; font-size: 11px; cursor: pointer;">⌨ Custom Input</button>
           <button class="btn btn-secondary btn-sm" id="btn-clear" style="padding: 4px 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 4px; font-size: 11px; cursor: pointer;">CLEAR</button>
           <button class="btn-run" id="btn-run" style="padding: 6px 18px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 6px; color: #fff; font-weight: 700; cursor: pointer;">
             ▶ Run Code
@@ -385,16 +433,33 @@
         <textarea id="code-textarea" class="code-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="// Type or paste your C program code here...&#10;#include <stdio.h>&#10;&#10;int main() {&#10;    printf(&quot;Hello, World!\\n&quot;);&#10;    return 0;&#10;}"></textarea>
       </div>
 
+      <!-- Optional Standard Input Box -->
+      <div class="stdin-panel" id="stdin-panel">
+        <div style="font-size: 11px; font-family: var(--font-display); font-weight: 700; color: #a5b4fc; margin-bottom: 4px;">STANDARD INPUT (STDIN) FOR SCANF:</div>
+        <textarea id="stdin-input" class="stdin-input" placeholder="Enter input values separated by space or newline (e.g., 5 10)..."></textarea>
+      </div>
+
       <!-- Output / Terminal Area -->
       <div class="output-area" id="output-area">
         <div class="output-tabs">
           <button class="output-tab active" data-tab="output">Program Output</button>
-          <button class="output-tab" data-tab="ai" id="ai-tab" style="display: none;">AI Helper Guidance</button>
+          <button class="output-tab" data-tab="testcases">Test Cases</button>
+          <button class="output-tab" data-tab="ai" id="ai-tab" style="display: none;">AI Tutor Guidance</button>
         </div>
 
         <!-- Output Box Tab -->
         <div style="padding: 16px 20px;" id="tab-output">
           <div class="output-box" id="output-box">Program output will appear here after clicking Run Code...</div>
+        </div>
+
+        <!-- Test Cases Tab -->
+        <div style="display: none; padding: 16px 20px;" id="tab-testcases">
+          <div id="testcases-list" style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="ai-card">
+              <div style="font-weight: 700; font-size: 13px; color: #fff; margin-bottom: 4px;">Sample Test Case #1</div>
+              <div style="font-size: 12px; color: var(--text-ghost);">Click 'Submit Solution' to evaluate all standard and hidden test cases.</div>
+            </div>
+          </div>
         </div>
 
         <!-- AI Tutor Guidance Tab -->
@@ -435,19 +500,42 @@
   <!-- Result Evaluation Modal -->
   <div class="modal-overlay" id="result-overlay">
     <div class="modal-box">
-      <div style="font-size: 48px; margin-bottom: 12px;">🎉</div>
+      <div style="font-size: 44px; margin-bottom: 10px;">🎉</div>
       <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px;">Evaluation Complete</h3>
-      <div id="result-encourage" style="color: #38bdf8; font-size: 14px; font-weight: 600; margin-bottom: 20px;">Score Received</div>
+      <div id="result-encourage" style="color: #38bdf8; font-size: 14px; font-weight: 600; margin-bottom: 16px;">Score Received</div>
 
-      <div style="font-size: 36px; font-weight: 900; font-family: var(--font-display); color: #10b981; margin-bottom: 20px;">
+      <div style="font-size: 36px; font-weight: 900; font-family: var(--font-display); color: #10b981; margin-bottom: 18px;">
         <span id="result-score-value">10.0</span> / 10.0
       </div>
 
-      <div id="result-breakdown" style="margin-bottom: 24px; text-align: left;"></div>
+      <div id="result-breakdown" style="margin-bottom: 20px; text-align: left;"></div>
 
-      <div style="display: flex; gap: 12px;">
-        <button class="btn" onclick="closeResult()" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 6px; font-weight: 700; cursor: pointer;">Close</button>
-        <button class="btn" onclick="triggerAIChallenge()" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; color: #fff; border-radius: 6px; font-weight: 700; cursor: pointer;">Next Practice Problem →</button>
+      <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); text-align: left;">
+        <div style="font-size: 12px; font-weight: 700; color: #fbbf24; margin-bottom: 8px;">YOU COMPLETED THIS LAB PROGRAM. READY FOR EXTRA PRACTICE?</div>
+        <button class="practice-btn" onclick="triggerAIChallenge('easy')"><span>⚡ Practice a Similar Problem</span><span>→</span></button>
+        <button class="practice-btn" onclick="triggerAIChallenge('hard')"><span>🚀 Challenge Me (Try a Harder Problem)</span><span>→</span></button>
+        <button class="practice-btn" onclick="triggerAIChallenge('medium')"><span>🎯 Practice Weak Area Challenge</span><span>→</span></button>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <button class="btn" onclick="closeResult()" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 6px; font-weight: 700; cursor: pointer;">Close & Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dedicated AI Practice Mode Modal -->
+  <div class="modal-overlay" id="practice-modal">
+    <div class="modal-box">
+      <div style="font-size: 40px; margin-bottom: 10px;">⚡</div>
+      <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 6px;">AI Adaptive Practice Mode</h3>
+      <p style="font-size: 13px; color: var(--text-ghost); margin-bottom: 20px;">Generate tailored C programming practice challenges scoped to your current lab topic.</p>
+
+      <button class="practice-btn" onclick="triggerAIChallenge('easy')"><span>🌱 Quick Practice Challenge (Introductory)</span><span>→</span></button>
+      <button class="practice-btn" onclick="triggerAIChallenge('medium')"><span>⚡ Practice Similar Problem (Standard)</span><span>→</span></button>
+      <button class="practice-btn" onclick="triggerAIChallenge('hard')"><span>🔥 Challenge Me (Advanced Logic)</span><span>→</span></button>
+
+      <div style="margin-top: 16px;">
+        <button class="btn" onclick="closePracticeModal()" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 6px; font-weight: 700; cursor: pointer;">Close</button>
       </div>
     </div>
   </div>
@@ -493,6 +581,16 @@
       }
     }
 
+    function toggleStdin() {
+      const panel = document.getElementById('stdin-panel');
+      if (panel.style.display === 'block') {
+        panel.style.display = 'none';
+      } else {
+        panel.style.display = 'block';
+        document.getElementById('stdin-input').focus();
+      }
+    }
+
     // ── Keyboard Enhancements (Tab key, Auto-pairs, Ctrl+Enter) ──
     if (textarea) {
       textarea.addEventListener('input', updateLineNumbers);
@@ -524,7 +622,6 @@
         if (pairs[e.key]) {
           const start = this.selectionStart;
           const end = this.selectionEnd;
-          // Only auto-pair if no text is selected or wrapping
           if (start === end) {
             e.preventDefault();
             const closeChar = pairs[e.key];
@@ -539,7 +636,7 @@
     // Load problem data
     async function loadProblem(id) {
       try {
-        const res = await API.getProblemDetail(id);
+        const res = await API.getProblemDetail ? await API.getProblemDetail(id) : await API.getProblem(id);
         if (res.success && res.problem) {
           currentProblem = res.problem;
           renderProblem(res.problem);
@@ -559,6 +656,7 @@
       if (prob.sample_input) {
         document.getElementById('sample-input-section').style.display = 'block';
         document.getElementById('prob-input').textContent = prob.sample_input;
+        document.getElementById('stdin-input').value = prob.sample_input;
       }
 
       const conceptsContainer = document.getElementById('prob-concepts');
@@ -601,6 +699,7 @@
     const aiTab = document.getElementById('ai-tab');
     const tabOutput = document.getElementById('tab-output');
     const tabAI = document.getElementById('tab-ai');
+    const tabTestcases = document.getElementById('tab-testcases');
 
     // Tabs
     document.querySelectorAll('.output-tab').forEach(tab => {
@@ -608,6 +707,7 @@
         document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         tabOutput.style.display = tab.dataset.tab === 'output' ? 'block' : 'none';
+        tabTestcases.style.display = tab.dataset.tab === 'testcases' ? 'block' : 'none';
         tabAI.style.display = tab.dataset.tab === 'ai' ? 'block' : 'none';
       });
     });
@@ -631,6 +731,8 @@
         return;
       }
 
+      const inputData = document.getElementById('stdin-input').value || null;
+
       runDot.className = 'status-dot warning';
       runStatus.textContent = 'COMPILING C CODE...';
       runStatus.style.color = '#f59e0b';
@@ -643,9 +745,10 @@
       document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
       document.querySelector('[data-tab="output"]').classList.add('active');
       tabOutput.style.display = 'block';
+      tabTestcases.style.display = 'none';
 
       try {
-        const res = await API.runCode(code, currentProblem ? currentProblem.id : problemId, null, mode);
+        const res = await API.runCode(code, currentProblem ? currentProblem.id : problemId, inputData, mode);
 
         if (res.success) {
           runDot.className = 'status-dot online';
@@ -665,6 +768,7 @@
             document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
             aiTab.classList.add('active');
             tabOutput.style.display = 'none';
+            tabTestcases.style.display = 'none';
             tabAI.style.display = 'block';
 
             document.getElementById('ai-explanation').textContent = res.ai_feedback.explanation;
@@ -692,6 +796,9 @@
         const evalData = await API.submitSolution(currentProblem ? currentProblem.id : problemId, code, mode);
         if (evalData.success) {
           showResultModal(evalData);
+          if (evalData.test_case_results) {
+            renderTestCaseResults(evalData.test_case_results);
+          }
         } else {
           alert('Submission failed: ' + (evalData.compiler_error || 'Error'));
         }
@@ -703,6 +810,25 @@
       }
     });
 
+    function renderTestCaseResults(results) {
+      const list = document.getElementById('testcases-list');
+      if (!list || !Array.isArray(results)) return;
+      list.innerHTML = results.map((tc, idx) => `
+        <div class="ai-card" style="border-left: 4px solid ${tc.passed ? '#10b981' : '#f43f5e'};">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-weight: 700; font-size: 13px; color: #fff;">Test Case #${idx+1} ${tc.hidden ? '(Hidden)' : ''}</span>
+            <span style="font-size: 12px; font-weight: 700; color: ${tc.passed ? '#10b981' : '#f43f5e'};">${tc.passed ? '✓ PASSED' : '✗ FAILED'}</span>
+          </div>
+          ${!tc.hidden ? `
+            <div style="font-size: 12px; color: var(--text-ghost); font-family: var(--font-mono);">
+              <div>Expected: <span style="color: #34d399;">${tc.expected}</span></div>
+              <div>Actual: <span style="color: #38bdf8;">${tc.actual}</span></div>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
     function showResultModal(evalData) {
       const overlay = document.getElementById('result-overlay');
       const scoreVal = document.getElementById('result-score-value');
@@ -710,13 +836,13 @@
 
       scoreVal.textContent = evalData.score;
       scoreVal.style.color = evalData.is_hardcoded ? '#f59e0b' : '#10b981';
-      encourageEl.textContent = evalData.is_hardcoded ? '⚠️ Please write full logic instead of printing fixed output' : '★ Solved Successfully! +' + evalData.xp_earned + ' Points';
+      encourageEl.textContent = evalData.is_hardcoded ? '⚠️ Please write full program logic instead of printing fixed output' : '★ Solved Successfully! +' + (evalData.xp_earned || 100) + ' Points';
 
       document.getElementById('result-breakdown').innerHTML = `
-        <div class="score-row"><span>Test Cases Passed</span><span>${evalData.passed_test_cases} / ${evalData.total_test_cases}</span></div>
-        <div class="score-row"><span>Correctness Score</span><span>${evalData.correctness_value} / 6.0</span></div>
-        <div class="score-row"><span>Code Quality</span><span>${evalData.approach_value} / 2.0</span></div>
-        <div class="score-row"><span>Creativity Bonus</span><span>${evalData.creativity_value} / 1.0</span></div>
+        <div class="score-row"><span>Test Cases Passed</span><span>${evalData.passed_test_cases || 0} / ${evalData.total_test_cases || 0}</span></div>
+        <div class="score-row"><span>Correctness Score</span><span>${evalData.correctness || evalData.correctness_value || 6.0} / 6.0</span></div>
+        <div class="score-row"><span>Code Quality</span><span>${evalData.codeQuality || evalData.approach_value || 2.0} / 2.0</span></div>
+        <div class="score-row"><span>Creativity & Efficiency</span><span>${evalData.creativity || evalData.creativity_value || 1.0} / 1.0</span></div>
       `;
       overlay.classList.add('show');
     }
@@ -725,15 +851,24 @@
       document.getElementById('result-overlay').classList.remove('show');
     }
 
-    async function triggerAIChallenge() {
+    function openPracticeModal() {
+      document.getElementById('practice-modal').classList.add('show');
+    }
+
+    function closePracticeModal() {
+      document.getElementById('practice-modal').classList.remove('show');
+    }
+
+    async function triggerAIChallenge(difficulty = 'medium') {
       closeResult();
+      closePracticeModal();
       try {
         const concept = (currentProblem && currentProblem.concepts && currentProblem.concepts[0]) || 'Arrays';
-        const res = await API.generateChallenge(concept, 'medium');
+        const res = await API.generateChallenge(concept, difficulty);
         if (res.success && res.problem_id) {
           window.location.href = `lab.html?problem=${res.problem_id}`;
         } else {
-          alert('Generating new practice problem...');
+          alert('Generating new adaptive practice challenge...');
         }
       } catch (err) {
         alert('Challenge generator error: ' + err.message);

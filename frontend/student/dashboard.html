@@ -272,7 +272,7 @@
         const subsToRender = recentSubs.length > 0 ? recentSubs.slice(0, 4) : MockData.submissions.slice(0, 4);
 
         subsToRender.forEach(sub => {
-          const pTitle = sub.problem_title || sub.title || 'C Mission';
+          const pTitle = sub.problem_title || sub.title || 'C Program';
           const pScore = sub.score !== undefined ? sub.score : 10.0;
           const pXp = sub.xp_earned || sub.xpEarned || 100;
           const pDate = sub.timestamp ? App.formatDate(sub.timestamp) : 'Today';
@@ -285,11 +285,12 @@
               </div>
               <div style="text-align: right;">
                 <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--neon-emerald);">${pScore} / 10</div>
-                <div style="font-family: var(--font-cyber); font-size: 10px; color: var(--xp-gold);">+${pXp} XP</div>
+                <div style="font-family: var(--font-cyber); font-size: 10px; color: var(--xp-gold);">+${pXp} Points</div>
               </div>
             </div>
           `;
         });
+
 
         // Skills Mastery Gauges
         const skillsList = document.getElementById('skills-list');
