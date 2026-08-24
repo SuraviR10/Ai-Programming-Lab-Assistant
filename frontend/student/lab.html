@@ -8,14 +8,25 @@
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="../css/base.css" />
   <link rel="stylesheet" href="../css/components.css" />
   <link rel="stylesheet" href="../css/animations.css" />
 
   <style>
-    body { overflow: hidden; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      background: #02050e;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+    }
 
     /* Header Bar */
     .lab-header {
@@ -27,7 +38,7 @@
       justify-content: space-between;
       padding: 0 20px;
       position: relative;
-      z-index: 10;
+      z-index: 20;
     }
 
     .lab-header-left, .lab-header-right {
@@ -68,6 +79,7 @@
       display: grid;
       grid-template-columns: 380px 1fr;
       height: calc(100vh - 48px);
+      overflow: hidden;
     }
 
     /* Problem Panel */
@@ -77,6 +89,7 @@
       border-right: 1px solid var(--border-cyan);
       background: #090f22;
       position: relative;
+      height: 100%;
     }
 
     .problem-desc {
@@ -87,7 +100,7 @@
     }
 
     .problem-expected {
-      font-family: var(--font-mono);
+      font-family: 'JetBrains Mono', monospace;
       font-size: var(--text-sm);
       background: #02050e;
       border: 1px solid var(--border-subtle);
@@ -97,13 +110,15 @@
       white-space: pre-wrap;
     }
 
-    /* Editor Container */
+    /* Right Side Editor Area */
     .editor-area {
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-      background: #02050e;
       height: 100%;
+      min-height: 0;
+      background: #02050e;
+      position: relative;
+      z-index: 5;
     }
 
     .editor-toolbar {
@@ -114,41 +129,54 @@
       border-bottom: 1px solid var(--border-subtle);
       background: #090f22;
       flex-shrink: 0;
+      z-index: 10;
     }
 
+    /* 100% Reliable Code Editor Container */
     .code-editor-container {
-      flex: 1;
+      flex: 1 1 auto;
       display: flex;
-      min-height: 300px;
+      min-height: 200px;
       background: #02050e;
       position: relative;
       overflow: hidden;
       cursor: text;
+      border: 1px solid transparent;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .code-editor-container.is-focused {
+      border-color: rgba(0, 242, 254, 0.4);
+      box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.05);
     }
 
     .line-numbers-gutter {
-      width: 46px;
+      width: 50px;
       background: #060a17;
-      color: #475569;
+      color: #64748b;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
+      font-size: 13.5px;
       line-height: 1.6;
-      padding: 16px 8px 16px 0;
+      padding: 14px 10px 14px 0;
       text-align: right;
       user-select: none;
-      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      -webkit-user-select: none;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
       overflow: hidden;
       flex-shrink: 0;
+      pointer-events: none;
     }
 
     .code-textarea {
-      flex: 1;
+      flex: 1 1 auto;
+      width: 100%;
+      height: 100%;
       background: transparent;
       color: #38bdf8;
       font-family: 'JetBrains Mono', monospace;
       font-size: 14px;
       line-height: 1.6;
-      padding: 16px 16px 16px 14px;
+      padding: 14px 16px;
       border: none;
       outline: none;
       resize: none;
@@ -159,6 +187,10 @@
       tab-size: 4;
       -moz-tab-size: 4;
       caret-color: #00f2fe;
+      cursor: text;
+      position: relative;
+      z-index: 5;
+      pointer-events: auto;
     }
 
     /* Standard Input Area */
@@ -166,12 +198,13 @@
       display: none;
       background: #060a17;
       border-top: 1px solid var(--border-subtle);
-      padding: 10px 18px;
+      padding: 8px 18px;
+      flex-shrink: 0;
     }
 
     .stdin-input {
       width: 100%;
-      height: 48px;
+      height: 46px;
       background: #02050e;
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
@@ -186,16 +219,21 @@
     /* Output Terminal Area */
     .output-area {
       border-top: 1px solid var(--border-cyan);
-      max-height: 42vh;
+      height: 260px;
+      min-height: 160px;
+      max-height: 45vh;
       overflow-y: auto;
       background: #090f22;
       flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
     }
 
     .output-tabs {
       display: flex;
       border-bottom: 1px solid var(--border-subtle);
       background: #060a17;
+      flex-shrink: 0;
     }
 
     .output-tab {
@@ -219,13 +257,13 @@
     }
 
     .output-box {
-      font-family: var(--font-mono);
+      font-family: 'JetBrains Mono', monospace;
       font-size: var(--text-sm);
       background: #02050e;
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 14px 16px;
-      min-height: 70px;
+      min-height: 80px;
       white-space: pre-wrap;
       word-break: break-all;
       line-height: 1.7;
@@ -234,7 +272,7 @@
 
     .ai-feedback-container {
       display: none;
-      padding: 18px 20px;
+      padding: 16px 20px;
     }
 
     .ai-card {
@@ -360,7 +398,7 @@
     </div>
   </header>
 
-  <!-- Main Body -->
+  <!-- Main Body Grid -->
   <div class="lab-body" id="lab-body">
 
     <!-- Left Panel: Problem Statement & Hints -->
@@ -407,36 +445,48 @@
     </aside>
 
     <!-- Right Panel: Code Editor & Execution Output -->
-    <div class="editor-area">
+    <div class="editor-area" id="editor-area-wrapper">
       <!-- Toolbar -->
       <div class="editor-toolbar">
         <div style="display: flex; align-items: center; gap: 10px;">
           <div style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8;"></div>
-          <span style="font-family: var(--font-mono); font-size: 12px; color: #fff; font-weight: 600;">main.c</span>
+          <span style="font-family: var(--font-mono); font-size: 13px; color: #fff; font-weight: 700; letter-spacing: 0.05em;">main.c</span>
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
           <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--font-mono); color: var(--text-faint);">
-            <span class="status-dot" id="run-dot"></span>
+            <span class="status-dot online" id="run-dot"></span>
             <span id="run-status">READY</span>
           </div>
-          <button class="btn btn-secondary btn-sm" id="btn-toggle-stdin" onclick="toggleStdin()" style="padding: 4px 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 4px; font-size: 11px; cursor: pointer;">⌨ Custom Input</button>
-          <button class="btn btn-secondary btn-sm" id="btn-clear" style="padding: 4px 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 4px; font-size: 11px; cursor: pointer;">CLEAR</button>
-          <button class="btn-run" id="btn-run" style="padding: 6px 18px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 6px; color: #fff; font-weight: 700; cursor: pointer;">
+          <button class="btn btn-secondary btn-sm" id="btn-toggle-stdin" onclick="toggleStdin()" style="padding: 5px 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 4px; font-size: 11px; cursor: pointer;">⌨ Custom Input</button>
+          <button class="btn btn-secondary btn-sm" id="btn-clear" style="padding: 5px 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 4px; font-size: 11px; cursor: pointer;">RESET</button>
+          <button class="btn-run" id="btn-run" style="padding: 7px 20px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 6px; color: #fff; font-weight: 700; cursor: pointer; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);">
             ▶ Run Code
           </button>
         </div>
       </div>
 
       <!-- 100% Reliable Code Editor Container with Line Numbers Gutter -->
-      <div class="code-editor-container" id="editor-container" onclick="focusEditor()">
-        <div class="line-numbers-gutter" id="line-numbers">1</div>
-        <textarea id="code-textarea" class="code-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="// Type or paste your C program code here...&#10;#include <stdio.h>&#10;&#10;int main() {&#10;    printf(&quot;Hello, World!\\n&quot;);&#10;    return 0;&#10;}"></textarea>
+      <div class="code-editor-container" id="editor-container" onclick="focusEditor(event)">
+        <div class="line-numbers-gutter" id="line-numbers">1<br>2<br>3<br>4<br>5<br>6</div>
+        <textarea id="code-textarea" class="code-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" autofocus placeholder="// Type your C program code here...
+#include <stdio.h>
+
+int main() {
+    printf(&quot;Hello, World!\n&quot;);
+    return 0;
+}">#include <stdio.h>
+
+int main() {
+    printf("Hello, World!\n");
+    return 0;
+}
+</textarea>
       </div>
 
       <!-- Optional Standard Input Box -->
       <div class="stdin-panel" id="stdin-panel">
         <div style="font-size: 11px; font-family: var(--font-display); font-weight: 700; color: #a5b4fc; margin-bottom: 4px;">STANDARD INPUT (STDIN) FOR SCANF:</div>
-        <textarea id="stdin-input" class="stdin-input" placeholder="Enter input values separated by space or newline (e.g., 5 10)..."></textarea>
+        <textarea id="stdin-input" class="stdin-input" placeholder="Enter input values (e.g. numbers, strings)..."></textarea>
       </div>
 
       <!-- Output / Terminal Area -->
@@ -542,7 +592,6 @@
 
   <!-- JavaScript API & Logic -->
   <script src="../js/api.js"></script>
-  <script src="../js/animations.js"></script>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
@@ -551,23 +600,32 @@
     const modeId = urlParams.get('id') || null;
 
     let currentProblem = null;
+    let userHasTyped = false;
     const textarea = document.getElementById('code-textarea');
     const gutter = document.getElementById('line-numbers');
+    const editorContainer = document.getElementById('editor-container');
 
-    // ── Editor Helper Functions ────────────────────────────────
+    // ── Update Line Numbers ────────────────────────────────────
     function updateLineNumbers() {
       if (!textarea || !gutter) return;
       const lines = textarea.value.split('\n').length || 1;
       let lineNumsHtml = '';
       for (let i = 1; i <= lines; i++) {
-        lineNumsHtml += i + '<br/>';
+        lineNumsHtml += i + '<br>';
       }
       gutter.innerHTML = lineNumsHtml;
       gutter.scrollTop = textarea.scrollTop;
     }
 
-    function focusEditor() {
-      if (textarea) textarea.focus();
+    // ── Focus Editor ───────────────────────────────────────────
+    function focusEditor(e) {
+      if (textarea) {
+        textarea.focus();
+        if (e && e.target === editorContainer) {
+          // Move cursor to end if clicked on empty container area
+          textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+        }
+      }
     }
 
     function getCodeValue() {
@@ -591,13 +649,27 @@
       }
     }
 
-    // ── Keyboard Enhancements (Tab key, Auto-pairs, Ctrl+Enter) ──
+    // ── Editor Event Bindings ──────────────────────────────────
     if (textarea) {
-      textarea.addEventListener('input', updateLineNumbers);
+      // Focus visual indicator
+      textarea.addEventListener('focus', () => {
+        if (editorContainer) editorContainer.classList.add('is-focused');
+      });
+      textarea.addEventListener('blur', () => {
+        if (editorContainer) editorContainer.classList.remove('is-focused');
+      });
+
+      // Synchronize input and gutter
+      textarea.addEventListener('input', () => {
+        userHasTyped = true;
+        updateLineNumbers();
+      });
+
       textarea.addEventListener('scroll', () => {
         if (gutter) gutter.scrollTop = textarea.scrollTop;
       });
 
+      // Keyboard shortcuts
       textarea.addEventListener('keydown', function (e) {
         // Run Code on Ctrl+Enter or Cmd+Enter
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -614,29 +686,16 @@
           const spaces = '    ';
           this.value = this.value.substring(0, start) + spaces + this.value.substring(end);
           this.selectionStart = this.selectionEnd = start + spaces.length;
+          userHasTyped = true;
           updateLineNumbers();
-        }
-
-        // Auto-close brackets & quotes
-        const pairs = { '(': ')', '{': '}', '[': ']', '"': '"', "'": "'" };
-        if (pairs[e.key]) {
-          const start = this.selectionStart;
-          const end = this.selectionEnd;
-          if (start === end) {
-            e.preventDefault();
-            const closeChar = pairs[e.key];
-            this.value = this.value.substring(0, start) + e.key + closeChar + this.value.substring(end);
-            this.selectionStart = this.selectionEnd = start + 1;
-            updateLineNumbers();
-          }
         }
       });
     }
 
-    // Load problem data
+    // ── Load Problem Data ──────────────────────────────────────
     async function loadProblem(id) {
       try {
-        const res = await API.getProblemDetail ? await API.getProblemDetail(id) : await API.getProblem(id);
+        const res = await API.getProblem(id);
         if (res.success && res.problem) {
           currentProblem = res.problem;
           renderProblem(res.problem);
@@ -656,7 +715,10 @@
       if (prob.sample_input) {
         document.getElementById('sample-input-section').style.display = 'block';
         document.getElementById('prob-input').textContent = prob.sample_input;
-        document.getElementById('stdin-input').value = prob.sample_input;
+        const stdinEl = document.getElementById('stdin-input');
+        if (stdinEl && !stdinEl.value.trim()) {
+          stdinEl.value = prob.sample_input;
+        }
       }
 
       const conceptsContainer = document.getElementById('prob-concepts');
@@ -672,7 +734,7 @@
           <div class="hint-card">
             <div class="hint-header">
               <span class="hint-label">HINT 0${h.tier || idx+1}: ${h.title}</span>
-              ${idx > 0 ? `<button class="hint-btn-unlock" id="hint-btn-${idx}" onclick="unlockHint(${idx})">🔓 Unlock Hint</button>` : '<span style="font-size: 10px; color: #34d399;">UNLOCKED</span>'}
+              ${idx > 0 ? `<button class="hint-btn-unlock" id="hint-btn-${idx}" onclick="unlockHint(${idx})">🔓 Unlock Hint</button>` : '<span style="font-size: 10px; color: #34d399; font-weight: 700;">UNLOCKED</span>'}
             </div>
             <div class="hint-body" id="hint-body-${idx}" style="${idx > 0 ? 'display: none;' : ''}">${h.text}</div>
           </div>
@@ -681,7 +743,10 @@
         hintContainer.innerHTML = '<div style="font-size: 12px; color: var(--text-ghost);">No hints required for this basic problem.</div>';
       }
 
-      setCodeValue(prob.starter_code || prob.starterCode || '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}\n');
+      // Only set starter code if user hasn't typed custom code yet
+      if (!userHasTyped && prob.starter_code) {
+        setCodeValue(prob.starter_code);
+      }
     }
 
     function unlockHint(idx) {
@@ -701,7 +766,7 @@
     const tabAI = document.getElementById('tab-ai');
     const tabTestcases = document.getElementById('tab-testcases');
 
-    // Tabs
+    // Output Tabs
     document.querySelectorAll('.output-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
@@ -713,21 +778,28 @@
     });
 
     btnClear.addEventListener('click', () => {
-      if (currentProblem) setCodeValue(currentProblem.starter_code || currentProblem.starterCode || '');
+      userHasTyped = false;
+      if (currentProblem && currentProblem.starter_code) {
+        setCodeValue(currentProblem.starter_code);
+      } else {
+        setCodeValue('#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}\n');
+      }
       outputBox.textContent = 'Program output will appear here after clicking Run Code...';
       outputBox.style.color = 'var(--text-ghost)';
       tabAI.style.display = 'none';
       aiTab.style.display = 'none';
-      runDot.className = 'status-dot';
+      runDot.className = 'status-dot online';
       runStatus.textContent = 'READY';
       runStatus.style.color = '';
+      if (textarea) textarea.focus();
     });
 
-    // Run C Code
+    // ── Run C Code ─────────────────────────────────────────────
     async function runCode() {
       const code = getCodeValue();
       if (!code.trim()) {
         alert('Please enter your C code before running.');
+        if (textarea) textarea.focus();
         return;
       }
 
@@ -739,7 +811,7 @@
 
       tabAI.style.display = 'none';
       aiTab.style.display = 'none';
-      outputBox.textContent = 'Compiling C program with GCC compiler...';
+      outputBox.textContent = 'Compiling C program with GCC MinGW...';
       outputBox.style.color = 'var(--text-ghost)';
 
       document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
@@ -785,7 +857,7 @@
     }
     btnRun.addEventListener('click', runCode);
 
-    // Submit Solution
+    // ── Submit Solution ────────────────────────────────────────
     document.getElementById('btn-submit').addEventListener('click', async () => {
       const code = getCodeValue();
       const btn = document.getElementById('btn-submit');
@@ -875,7 +947,17 @@
       }
     }
 
+    // ── Initialize on Load ─────────────────────────────────────
+    updateLineNumbers();
     loadProblem(problemId);
+
+    // Immediate autofocus
+    window.addEventListener('DOMContentLoaded', () => {
+      if (textarea) textarea.focus();
+    });
+    window.addEventListener('load', () => {
+      if (textarea) textarea.focus();
+    });
   </script>
 </body>
 </html>
