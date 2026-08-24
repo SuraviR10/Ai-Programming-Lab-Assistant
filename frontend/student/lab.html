@@ -10,6 +10,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
+  <!-- CodeMirror 5 (Lightweight & Reliable) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css" />
+
   <link rel="stylesheet" href="../css/base.css" />
   <link rel="stylesheet" href="../css/components.css" />
   <link rel="stylesheet" href="../css/animations.css" />
@@ -26,6 +30,11 @@
       background: #02050e;
       color: #f8fafc;
       font-family: 'Inter', sans-serif;
+    }
+
+    /* Prevent any background particles or canvas from blocking clicks */
+    canvas, .particle, .cyber-grid-bg {
+      pointer-events: none !important;
     }
 
     /* Header Bar */
@@ -137,6 +146,7 @@
       flex: 1 1 auto;
       display: flex;
       min-height: 200px;
+      height: 100%;
       background: #02050e;
       position: relative;
       overflow: hidden;
@@ -150,6 +160,42 @@
       box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.05);
     }
 
+    /* CodeMirror Cyberpunk Custom Theme */
+    .CodeMirror {
+      width: 100% !important;
+      height: 100% !important;
+      background: #02050e !important;
+      color: #38bdf8 !important;
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+      padding: 0 !important;
+    }
+
+    .CodeMirror-gutters {
+      background: #060a17 !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+      width: 50px !important;
+    }
+
+    .CodeMirror-linenumber {
+      color: #64748b !important;
+      font-size: 13px !important;
+    }
+
+    .CodeMirror-cursor {
+      border-left: 2px solid #00f2fe !important;
+    }
+
+    .cm-s-material-darker .cm-keyword { color: #c084fc !important; font-weight: 700; }
+    .cm-s-material-darker .cm-def { color: #38bdf8 !important; font-weight: 700; }
+    .cm-s-material-darker .cm-variable { color: #f8fafc !important; }
+    .cm-s-material-darker .cm-string { color: #34d399 !important; }
+    .cm-s-material-darker .cm-number { color: #fbbf24 !important; }
+    .cm-s-material-darker .cm-comment { color: #64748b !important; font-style: italic; }
+    .cm-s-material-darker .cm-operator { color: #00f2fe !important; }
+
+    /* Native Textarea Fallback Styles */
     .line-numbers-gutter {
       width: 50px;
       background: #060a17;
@@ -160,7 +206,6 @@
       padding: 14px 10px 14px 0;
       text-align: right;
       user-select: none;
-      -webkit-user-select: none;
       border-right: 1px solid rgba(255, 255, 255, 0.08);
       overflow: hidden;
       flex-shrink: 0;
@@ -465,7 +510,7 @@
         </div>
       </div>
 
-      <!-- 100% Reliable Code Editor Container with Line Numbers Gutter -->
+      <!-- 100% Reliable Code Editor Container -->
       <div class="code-editor-container" id="editor-container" onclick="focusEditor(event)">
         <div class="line-numbers-gutter" id="line-numbers">1<br>2<br>3<br>4<br>5<br>6</div>
         <textarea id="code-textarea" class="code-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" autofocus placeholder="// Type your C program code here...
@@ -590,6 +635,10 @@ int main() {
     </div>
   </div>
 
+  <!-- CodeMirror Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+
   <!-- JavaScript API & Logic -->
   <script src="../js/api.js"></script>
 
@@ -601,12 +650,60 @@ int main() {
 
     let currentProblem = null;
     let userHasTyped = false;
+    let cmEditor = null;
     const textarea = document.getElementById('code-textarea');
     const gutter = document.getElementById('line-numbers');
     const editorContainer = document.getElementById('editor-container');
 
-    // ── Update Line Numbers ────────────────────────────────────
+    // ── Initialize CodeMirror if available, else native textarea fallback ──
+    try {
+      if (typeof CodeMirror !== 'undefined' && textarea) {
+        cmEditor = CodeMirror.fromTextArea(textarea, {
+          mode: 'text/x-csrc',
+          theme: 'material-darker',
+          lineNumbers: true,
+          indentUnit: 4,
+          tabSize: 4,
+          lineWrapping: false,
+          viewportMargin: Infinity,
+          autofocus: true
+        });
+
+        // Hide native gutter when CodeMirror is active
+        if (gutter) gutter.style.display = 'none';
+
+        cmEditor.on('change', () => {
+          userHasTyped = true;
+        });
+
+        cmEditor.on('focus', () => {
+          if (editorContainer) editorContainer.classList.add('is-focused');
+        });
+
+        cmEditor.on('blur', () => {
+          if (editorContainer) editorContainer.classList.remove('is-focused');
+        });
+
+        // Add Ctrl+Enter shortcut in CodeMirror
+        cmEditor.setOption('extraKeys', {
+          'Ctrl-Enter': () => runCode(),
+          'Cmd-Enter': () => runCode(),
+          'Tab': (cm) => {
+            if (cm.somethingSelected()) {
+              cm.indentSelection('add');
+            } else {
+              cm.replaceSelection('    ', 'end', '+input');
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('CodeMirror initialization error, using native textarea fallback', e);
+    }
+
+    // ── Update Line Numbers for Fallback Textarea ───────────────
     function updateLineNumbers() {
+      if (cmEditor) return;
       if (!textarea || !gutter) return;
       const lines = textarea.value.split('\n').length || 1;
       let lineNumsHtml = '';
@@ -619,21 +716,25 @@ int main() {
 
     // ── Focus Editor ───────────────────────────────────────────
     function focusEditor(e) {
-      if (textarea) {
+      if (cmEditor) {
+        cmEditor.focus();
+      } else if (textarea) {
         textarea.focus();
         if (e && e.target === editorContainer) {
-          // Move cursor to end if clicked on empty container area
           textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
         }
       }
     }
 
     function getCodeValue() {
+      if (cmEditor) return cmEditor.getValue();
       return textarea ? textarea.value : '';
     }
 
     function setCodeValue(val) {
-      if (textarea) {
+      if (cmEditor) {
+        cmEditor.setValue(val);
+      } else if (textarea) {
         textarea.value = val;
         updateLineNumbers();
       }
@@ -649,36 +750,27 @@ int main() {
       }
     }
 
-    // ── Editor Event Bindings ──────────────────────────────────
-    if (textarea) {
-      // Focus visual indicator
+    // ── Native Textarea Event Bindings (Fallback) ──────────────
+    if (textarea && !cmEditor) {
       textarea.addEventListener('focus', () => {
         if (editorContainer) editorContainer.classList.add('is-focused');
       });
       textarea.addEventListener('blur', () => {
         if (editorContainer) editorContainer.classList.remove('is-focused');
       });
-
-      // Synchronize input and gutter
       textarea.addEventListener('input', () => {
         userHasTyped = true;
         updateLineNumbers();
       });
-
       textarea.addEventListener('scroll', () => {
         if (gutter) gutter.scrollTop = textarea.scrollTop;
       });
-
-      // Keyboard shortcuts
       textarea.addEventListener('keydown', function (e) {
-        // Run Code on Ctrl+Enter or Cmd+Enter
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
           e.preventDefault();
           runCode();
           return;
         }
-
-        // Tab indentation (inserts 4 spaces without losing focus)
         if (e.key === 'Tab') {
           e.preventDefault();
           const start = this.selectionStart;
@@ -791,7 +883,7 @@ int main() {
       runDot.className = 'status-dot online';
       runStatus.textContent = 'READY';
       runStatus.style.color = '';
-      if (textarea) textarea.focus();
+      focusEditor();
     });
 
     // ── Run C Code ─────────────────────────────────────────────
@@ -799,7 +891,7 @@ int main() {
       const code = getCodeValue();
       if (!code.trim()) {
         alert('Please enter your C code before running.');
-        if (textarea) textarea.focus();
+        focusEditor();
         return;
       }
 
@@ -953,10 +1045,10 @@ int main() {
 
     // Immediate autofocus
     window.addEventListener('DOMContentLoaded', () => {
-      if (textarea) textarea.focus();
+      focusEditor();
     });
     window.addEventListener('load', () => {
-      if (textarea) textarea.focus();
+      focusEditor();
     });
   </script>
 </body>
