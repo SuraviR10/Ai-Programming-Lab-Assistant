@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mission Control — CODEVERSE</title>
-  <meta name="description" content="Select your next C programming mission in the CODEVERSE laboratory." />
+  <title>C Lab Problems — AI Lab Assistant</title>
+  <meta name="description" content="Select a C programming problem to practice in the laboratory." />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="../css/base.css" />
   <link rel="stylesheet" href="../css/components.css" />
@@ -55,41 +55,42 @@
     <!-- Header -->
     <div class="page-header anim-init anim-fade-up">
       <div>
-        <div class="label" style="color: var(--neon-cyan); margin-bottom: 4px;">ACTIVE BOUNTIES</div>
-        <h1 style="font-size: var(--text-3xl); font-weight: 900;">Mission Control</h1>
-        <p style="font-size: var(--text-sm); color: var(--text-faint);">Select a tactical mission to deploy into the Coding Matrix.</p>
+        <div class="label" style="color: var(--neon-cyan); margin-bottom: 4px;">PRACTICE PROBLEMS</div>
+        <h1 style="font-size: var(--text-3xl); font-weight: 900;">Lab Problem Bank</h1>
+        <p style="font-size: var(--text-sm); color: var(--text-faint);">Select a C programming problem to practice and solve.</p>
       </div>
       <div style="display: flex; gap: 16px; font-family: var(--font-mono); font-size: var(--text-xs);">
-        <div><strong id="count-completed" style="color: var(--neon-emerald); font-size: 16px;">18</strong> <span style="color: var(--text-ghost);">CONQUERED</span></div>
+        <div><strong id="count-completed" style="color: var(--neon-emerald); font-size: 16px;">18</strong> <span style="color: var(--text-ghost);">COMPLETED</span></div>
         <div><strong id="count-pending" style="color: var(--xp-gold); font-size: 16px;">7</strong> <span style="color: var(--text-ghost);">AVAILABLE</span></div>
       </div>
     </div>
 
     <!-- Filters Bar -->
     <div class="filters-bar anim-init anim-fade-up anim-delay-1">
-      <button class="filter-btn active" data-filter="all">ALL BOUNTIES</button>
-      <button class="filter-btn" data-filter="easy">EASY (+100 XP)</button>
-      <button class="filter-btn" data-filter="medium">MEDIUM (+120 XP)</button>
-      <button class="filter-btn" data-filter="hard">HARD (+150 XP)</button>
+      <button class="filter-btn active" data-filter="all">ALL PROBLEMS</button>
+      <button class="filter-btn" data-filter="easy">EASY (+100 Points)</button>
+      <button class="filter-btn" data-filter="medium">MEDIUM (+120 Points)</button>
+      <button class="filter-btn" data-filter="hard">HARD (+150 Points)</button>
       <span style="width: 1px; height: 28px; background: var(--border-subtle); margin: 0 4px;"></span>
-      <button class="filter-btn" data-filter="completed">CONQUERED</button>
+      <button class="filter-btn" data-filter="completed">COMPLETED</button>
       <button class="filter-btn" data-filter="attempted">IN PROGRESS</button>
-      <button class="filter-btn" data-filter="pending">UNCLAIMED</button>
+      <button class="filter-btn" data-filter="pending">NOT STARTED</button>
     </div>
 
     <!-- Missions Grid -->
     <div class="missions-grid" id="missions-grid"></div>
   </div>
 
-  <!-- ═══ MISSION LAUNCH TRANSITION MODAL ═══ -->
+  <!-- ═══ PROBLEM OPENING TRANSITION MODAL ═══ -->
   <div class="mission-launch-modal" id="mission-launch-modal">
-    <div class="launch-telemetry" id="launch-telemetry">INITIALIZING MISSION MATRIX...</div>
-    <div class="launch-mission-title" id="launch-title">MISSION 03: LARGEST OF THREE</div>
+    <div class="launch-telemetry" id="launch-telemetry">LOADING PROBLEM...</div>
+    <div class="launch-mission-title" id="launch-title">PROBLEM 03: LARGEST OF THREE</div>
     <div class="launch-progress-bar">
       <div class="launch-progress-fill" id="launch-progress-fill"></div>
     </div>
-    <button class="launch-skip-btn" onclick="skipLaunchTransition()">[ SKIP LAUNCH SEQUENCE ]</button>
+    <button class="launch-skip-btn" onclick="skipLaunchTransition()">[ OPEN PROBLEM ]</button>
   </div>
+
 
   <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>

@@ -18,17 +18,17 @@ const Navigation = (() => {
   };
 
   const studentMenu = [
-    { id: 'dashboard',    label: 'Command Center', icon: 'dashboard',    href: 'student/dashboard.html' },
-    { id: 'problems',     label: 'Mission Control',icon: 'problems',     href: 'student/problems.html' },
-    { id: 'lab',          label: 'Coding Matrix',  icon: 'lab',          href: 'student/lab.html' },
-    { id: 'progress',     label: 'Journey Map',    icon: 'progress',     href: 'student/progress.html' },
-    { id: 'achievements', label: 'Trophies',       icon: 'achievements', href: 'student/achievements.html' },
+    { id: 'dashboard',    label: 'Dashboard',      icon: 'dashboard',    href: 'student/dashboard.html' },
+    { id: 'problems',     label: 'Lab Problems',   icon: 'problems',     href: 'student/problems.html' },
+    { id: 'lab',          label: 'C Code Editor',  icon: 'lab',          href: 'student/lab.html' },
+    { id: 'progress',     label: 'My Progress',    icon: 'progress',     href: 'student/progress.html' },
+    { id: 'achievements', label: 'Milestones',     icon: 'achievements', href: 'student/achievements.html' },
   ];
 
   const facultyMenu = [
-    { id: 'dashboard',   label: 'Command Console',icon: 'dashboard',    href: 'faculty/dashboard.html' },
-    { id: 'students',    label: 'Cadet Roster',   icon: 'students',     href: 'faculty/students.html' },
-    { id: 'analytics',   label: 'Telemetry',      icon: 'analytics',    href: 'faculty/analytics.html' },
+    { id: 'dashboard',   label: 'Faculty Dashboard', icon: 'dashboard', href: 'faculty/dashboard.html' },
+    { id: 'manual',      label: 'Lab Manual Upload',  icon: 'problems',  href: 'faculty/manual.html' },
+    { id: 'students',    label: 'Student Roster',    icon: 'students',  href: 'faculty/students.html' },
   ];
 
   function resolveHref(href) {
@@ -42,7 +42,7 @@ const Navigation = (() => {
   function renderSidebar(role = 'student', activeId = '') {
     const menu = role === 'faculty' ? facultyMenu : studentMenu;
     const userName = role === 'faculty' ? MockData.faculty.name : MockData.student.name;
-    const userRole = role === 'faculty' ? 'Instructor' : (typeof Gamification !== 'undefined' ? Gamification.getProgress().rank.title : 'Code Architect');
+    const userRole = role === 'faculty' ? 'Instructor' : 'C Student';
     const isMuted = typeof SoundFX !== 'undefined' ? SoundFX.getMuted() : false;
 
     const sidebar = document.createElement('aside');
@@ -51,12 +51,13 @@ const Navigation = (() => {
 
     sidebar.innerHTML = `
       <div class="sidebar-logo">
-        <div class="sidebar-logo-icon" style="background: linear-gradient(135deg, #00f2fe, #7c3aed); box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);">◈</div>
+        <div class="sidebar-logo-icon" style="background: linear-gradient(135deg, #00f2fe, #7c3aed); box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);">⚡</div>
         <div>
-          <div style="font-family: var(--font-cyber); font-weight: 800; font-size: 14px; color: #fff; letter-spacing: 0.1em;">CODEVERSE</div>
-          <div style="font-size: 10px; font-family: var(--font-mono); color: var(--neon-cyan);">C-LAB MATRIX v2.0</div>
+          <div style="font-family: var(--font-cyber); font-weight: 800; font-size: 14px; color: #fff; letter-spacing: 0.1em;">AI LAB ASSISTANT</div>
+          <div style="font-size: 10px; font-family: var(--font-mono); color: var(--neon-cyan);">C Programming Lab</div>
         </div>
       </div>
+
 
       <nav class="sidebar-nav" aria-label="Main navigation">
         <div style="padding: 0 12px 8px; font-size: 10px; font-weight: 700; color: var(--text-ghost); letter-spacing: 0.08em; text-transform: uppercase;">

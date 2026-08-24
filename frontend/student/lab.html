@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>C Code Editor — AI Lab Assistant</title>
-  <meta name="description" content="AI C Programming Laboratory with Code Editor, Focus Mode, and Helpful Guidance." />
+  <meta name="description" content="AI-Powered C Programming Laboratory for Students." />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,17 +14,16 @@
   <link rel="stylesheet" href="../css/components.css" />
   <link rel="stylesheet" href="../css/animations.css" />
 
-  <!-- Monaco Editor AMD Loader Script -->
+  <!-- Monaco Editor Script -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.js"></script>
 
   <style>
-
     body { overflow: hidden; }
 
-    /* Lab Cyber HUD Header */
+    /* Header Navigation */
     .lab-header {
       height: 48px;
-      background: rgba(6, 10, 23, 0.95);
+      background: #060a17;
       border-bottom: 1px solid var(--border-cyan);
       display: flex;
       align-items: center;
@@ -34,13 +33,7 @@
       z-index: 10;
     }
 
-    .lab-header-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .lab-header-right {
+    .lab-header-left, .lab-header-right {
       display: flex;
       align-items: center;
       gap: 14px;
@@ -58,7 +51,6 @@
       background: none;
       border: none;
       letter-spacing: 0.05em;
-      transition: color var(--duration-fast);
     }
 
     .lab-back-btn:hover {
@@ -79,15 +71,14 @@
       display: grid;
       grid-template-columns: 360px 1fr;
       height: calc(100vh - 48px);
-      transition: all 0.3s ease;
     }
 
-    /* Problem Briefing Panel */
+    /* Problem Description Panel */
     .problem-panel {
       overflow-y: auto;
       padding: 20px;
       border-right: 1px solid var(--border-cyan);
-      background: rgba(9, 15, 34, 0.95);
+      background: #090f22;
       position: relative;
     }
 
@@ -101,7 +92,7 @@
     .problem-expected {
       font-family: var(--font-mono);
       font-size: var(--text-sm);
-      background: var(--bg-deepest);
+      background: #02050e;
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 12px 14px;
@@ -109,12 +100,12 @@
       white-space: pre-wrap;
     }
 
-    /* Editor Area */
+    /* Editor Container */
     .editor-area {
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      background: var(--bg-deepest);
+      background: #02050e;
     }
 
     .editor-toolbar {
@@ -123,26 +114,44 @@
       justify-content: space-between;
       padding: 8px 18px;
       border-bottom: 1px solid var(--border-subtle);
-      background: var(--bg-deep);
+      background: #090f22;
     }
 
     #editor-wrap {
       flex: 1;
-      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 320px;
+      position: relative;
     }
 
-    /* Bottom Output / Terminal Tabs */
+    #code-textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 320px;
+      background: #040714;
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      padding: 16px;
+      border: none;
+      outline: none;
+      resize: none;
+      line-height: 1.6;
+    }
+
+    /* Output Terminal Area */
     .output-area {
       border-top: 1px solid var(--border-cyan);
-      max-height: 48vh;
+      max-height: 40vh;
       overflow-y: auto;
-      background: var(--bg-deep);
+      background: #090f22;
     }
 
     .output-tabs {
       display: flex;
       border-bottom: 1px solid var(--border-subtle);
-      background: var(--bg-base);
+      background: #060a17;
     }
 
     .output-tab {
@@ -152,26 +161,22 @@
       font-weight: 700;
       color: var(--text-faint);
       cursor: pointer;
-      border-bottom: 2px solid transparent;
+      border: none;
       background: none;
-      border-top: none;
-      border-left: none;
-      border-right: none;
+      border-bottom: 2px solid transparent;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      transition: all var(--duration-fast);
     }
 
     .output-tab.active {
       color: var(--neon-cyan);
       border-bottom-color: var(--neon-cyan);
-      text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
     }
 
     .output-box {
       font-family: var(--font-mono);
       font-size: var(--text-sm);
-      background: var(--bg-deepest);
+      background: #02050e;
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 14px 16px;
@@ -187,103 +192,127 @@
       padding: 18px 20px;
     }
 
-    .ai-orb-core {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--gradient-primary);
+    .ai-card {
+      background: #0d152e;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+    }
+
+    .hint-card {
+      background: rgba(13, 21, 46, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    .hint-header {
       display: flex;
       align-items: center;
-      justify-content: center;
-      position: relative;
+      justify-content: space-between;
+      margin-bottom: 6px;
     }
 
-    .ai-orb-core::after {
-      content: '';
-      position: absolute;
-      inset: -4px;
-      border-radius: 50%;
-      border: 2px dashed var(--neon-cyan);
-      animation: rotate 10s linear infinite;
+    .hint-label {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--text-ghost);
     }
 
-    /* Victory Result Modal */
-    .result-overlay {
+    .hint-body {
+      font-size: var(--text-sm);
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    .hint-btn-unlock {
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid #6366f1;
+      color: #a5b4fc;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(2, 5, 14, 0.85);
-      backdrop-filter: blur(16px);
+      background: rgba(4, 7, 20, 0.85);
+      backdrop-filter: blur(8px);
       z-index: 1000;
       align-items: center;
       justify-content: center;
     }
 
-    .result-overlay.show { display: flex; }
+    .modal-overlay.show { display: flex; }
 
-    .result-card {
-      background: linear-gradient(135deg, rgba(13, 21, 46, 0.95), rgba(24, 38, 78, 0.9));
-      border: 2px solid var(--neon-cyan);
-      border-radius: var(--radius-xl);
-      padding: 40px;
-      max-width: 460px;
+    .modal-box {
+      background: #090f22;
+      border: 1px solid var(--border-cyan);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      max-width: 480px;
       width: 90%;
       text-align: center;
-      box-shadow: 0 0 60px rgba(0, 242, 254, 0.35);
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
     }
   </style>
 </head>
-<body>
 
-  <!-- ═══ LAB HUD HEADER ═══ -->
+<body class="theme-cyberpunk">
+  <!-- Header Bar -->
   <header class="lab-header">
     <div class="lab-header-left">
-      <button class="lab-back-btn" onclick="window.location.href='problems.html'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        MISSION CONTROL
+      <button class="lab-back-btn" onclick="window.location.href='/student/problems.html'">
+        <span>←</span> Back to Problems
       </button>
-      <span style="width: 1px; height: 18px; background: var(--border-subtle);"></span>
-      <div class="lab-title-hud">
-        <span id="lab-title" style="color: var(--neon-cyan);">MISSION 01: HELLO WORLD</span>
-        <span class="difficulty-badge difficulty-easy" id="prob-difficulty">EASY</span>
+      <div class="lab-title-hud" id="lab-title">
+        <span>C Programming Lab Assistant</span>
       </div>
     </div>
 
     <div class="lab-header-right">
-      <button class="btn-focus-mode" id="btn-focus-toggle" onclick="toggleFocusMode()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-        FOCUS MODE
-      </button>
-      <button class="btn-audio-toggle" onclick="SoundFX.toggleMute()">🔊 SFX</button>
       <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; color: var(--neon-emerald);">
         <span class="status-dot online"></span>
-        MATRIX ACTIVE
+        System Active
       </div>
     </div>
   </header>
 
-  <!-- ═══ LAB BODY ═══ -->
+  <!-- Main Body -->
   <div class="lab-body" id="lab-body">
 
-    <!-- Problem / Mission Panel -->
-    <aside class="problem-panel corner-brackets" id="problem-panel">
+    <!-- Left Panel: Problem Statement & Hints -->
+    <aside class="problem-panel" id="problem-panel">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <span class="label" style="color: var(--neon-cyan);">PROBLEM STATEMENT</span>
-        <span class="mission-xp-badge" id="mission-xp-tag">★ +100 Points</span>
+        <span class="mission-xp-badge" id="mission-xp-tag" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px;">★ +100 Points</span>
       </div>
 
       <h2 id="prob-title" style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px;">Hello World</h2>
       <p class="problem-desc" id="prob-desc">Write a C program that prints "Hello, World!" to the console.</p>
 
       <div style="margin-bottom: 20px;">
-        <div class="label" style="margin-bottom: 8px;">CONCEPTS INVOLVED</div>
+        <div class="label" style="margin-bottom: 8px;">CONCEPTS</div>
         <div class="problem-concepts" id="prob-concepts">
           <span class="concept-tag">printf</span>
           <span class="concept-tag">basics</span>
         </div>
       </div>
 
-      <div style="margin-bottom: 20px;" id="sample-input-section" style="display: none;">
+      <div style="margin-bottom: 20px; display: none;" id="sample-input-section">
         <div class="label" style="margin-bottom: 8px;">SAMPLE INPUT</div>
         <div class="problem-expected" id="prob-input" style="color: var(--text-secondary);"></div>
       </div>
@@ -295,97 +324,84 @@
 
       <!-- Step-by-Step Hints -->
       <div style="margin-bottom: 24px;">
-        <div class="label" style="color: var(--xp-gold); margin-bottom: 8px;">HELPFUL HINTS</div>
+        <div class="label" style="color: #fbbf24; margin-bottom: 8px;">HELPFUL HINTS</div>
         <div class="hint-decryptor" id="hint-decryptor-container"></div>
       </div>
 
-      <button class="btn btn-submit" id="btn-submit" style="width: 100%; margin-bottom: 10px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        SUBMIT SOLUTION (+100 Points)
+      <button class="btn btn-submit" id="btn-submit" style="width: 100%; margin-bottom: 10px; padding: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 8px; color: #fff; font-weight: 700; cursor: pointer;">
+        Submit Solution (+100 Points)
       </button>
 
-      <button class="btn btn-secondary" onclick="triggerAIChallenge()" style="width: 100%; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fbbf24; font-weight: 700;">
-        ⚡ PRACTICE RELATED PROBLEM
+      <button class="btn btn-secondary" onclick="triggerAIChallenge()" style="width: 100%; padding: 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fbbf24; font-weight: 700; border-radius: 8px; cursor: pointer;">
+        ⚡ Practice Related Problem
       </button>
     </aside>
 
-    <!-- Editor Area -->
+    <!-- Right Panel: Code Editor & Execution Output -->
     <div class="editor-area">
       <!-- Toolbar -->
       <div class="editor-toolbar">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--neon-cyan);"></div>
-          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-faint);">main.c</span>
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8;"></div>
+          <span style="font-family: var(--font-mono); font-size: 12px; color: #fff; font-weight: 600;">main.c</span>
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
           <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--font-mono); color: var(--text-faint);">
             <span class="status-dot" id="run-dot"></span>
             <span id="run-status">READY</span>
           </div>
-          <button class="btn btn-secondary btn-sm" id="btn-clear">CLEAR</button>
-          <button class="btn-run" id="btn-run">
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5l9 4.5-9 4.5V1.5z"/></svg>
-            RUN CODE
+          <button class="btn btn-secondary btn-sm" id="btn-clear" style="padding: 4px 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 4px; font-size: 11px; cursor: pointer;">CLEAR</button>
+          <button class="btn-run" id="btn-run" style="padding: 6px 18px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 6px; color: #fff; font-weight: 700; cursor: pointer;">
+            ▶ Run Code
           </button>
         </div>
       </div>
 
-      <!-- Code Editor with Instant Fallback Textarea -->
-      <div id="editor-wrap" style="position: relative; min-height: 380px;">
-        <textarea id="editor-fallback-textarea" spellcheck="false" style="width: 100%; height: 380px; background: #02050e; color: #f8fafc; font-family: 'JetBrains Mono', monospace; font-size: 14px; padding: 16px; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 6px; outline: none; resize: vertical; line-height: 1.5;" placeholder="// Write your C program here..."></textarea>
+      <!-- 100% Reliable Code Textarea / Monaco Container -->
+      <div id="editor-wrap">
+        <textarea id="code-textarea" spellcheck="false" placeholder="// Write your C program code here...&#10;#include <stdio.h>&#10;&#10;int main() {&#10;    printf(&quot;Hello, World!\\n&quot;);&#10;    return 0;&#10;}"></textarea>
       </div>
 
-      <!-- Output / Terminal HUD -->
+      <!-- Output / Terminal Area -->
       <div class="output-area" id="output-area">
         <div class="output-tabs">
           <button class="output-tab active" data-tab="output">Program Output</button>
           <button class="output-tab" data-tab="ai" id="ai-tab" style="display: none;">AI Helper Guidance</button>
         </div>
 
-        <!-- Terminal Output Tab -->
+        <!-- Output Box Tab -->
         <div style="padding: 16px 20px;" id="tab-output">
           <div class="output-box" id="output-box">Program output will appear here after clicking Run Code...</div>
         </div>
 
-        <!-- AI Neural Debugger Tab -->
+        <!-- AI Tutor Guidance Tab -->
         <div class="ai-feedback-container" id="tab-ai">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div class="ai-orb-core">💡</div>
+            <div style="font-size: 24px;">💡</div>
             <div>
               <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: 800; color: #fff;">AI Tutor Guidance</div>
-              <div style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-cyan);" id="ai-status-text">HELPFUL SUGGESTION</div>
+              <div style="font-size: 11px; font-family: var(--font-mono); color: #38bdf8;" id="ai-status-text">HELPFUL SUGGESTIONS FOR YOUR CODE</div>
             </div>
           </div>
-
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div class="ai-card">
-              <div class="label" style="color: var(--accent-400); margin-bottom: 6px;">📘 DIAGNOSTIC FINDING</div>
-              <div style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6;" id="ai-explanation">—</div>
+              <div class="label" style="color: #a5b4fc; margin-bottom: 6px;">📘 WHAT HAPPENED</div>
+              <div id="ai-explanation" style="font-size: 13px; color: #fff; line-height: 1.6;">-</div>
             </div>
-            <div class="ai-card amber">
-              <div class="label" style="color: var(--warning-400); margin-bottom: 6px;">⚠️ ROOT CAUSE</div>
-              <div style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6;" id="ai-reason">—</div>
-            </div>
-            <div class="ai-card emerald">
-              <div class="label" style="color: var(--success-400); margin-bottom: 6px;">💡 TACTICAL HINT</div>
-              <div style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6;" id="ai-hint">—</div>
-            </div>
-            <div class="ai-card purple">
-              <div class="label" style="color: var(--primary-300); margin-bottom: 6px;">📚 C LANGUAGE CONCEPT</div>
-              <div style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6;" id="ai-concept">—</div>
+            <div class="ai-card">
+              <div class="label" style="color: #f43f5e; margin-bottom: 6px;">🔍 REASON FOR ERROR</div>
+              <div id="ai-reason" style="font-size: 13px; color: #fff; line-height: 1.6;">-</div>
             </div>
           </div>
 
-          <!-- Raw GCC Diagnostics Toggle -->
-          <div style="margin-top: 14px;">
-            <button class="collapsible-trigger" id="gcc-toggle">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-              View raw GCC compiler telemetry
-            </button>
-            <div class="collapsible-content" id="gcc-content">
-              <div class="output-box" id="gcc-raw-output" style="margin-top: 8px; color: var(--neon-crimson); font-size: 11px;"></div>
-            </div>
+          <div class="ai-card" style="margin-top: 12px;">
+            <div class="label" style="color: #34d399; margin-bottom: 6px;">💡 STEP-BY-STEP HINT TO FIX YOUR CODE</div>
+            <div id="ai-hint" style="font-size: 13px; color: #fff; line-height: 1.6; font-weight: 600;">-</div>
+          </div>
+
+          <div style="margin-top: 10px; font-size: 11px; color: var(--text-ghost);">
+            C Concept Involved: <span id="ai-concept" style="color: #38bdf8; font-weight: 700;">Syntax</span>
           </div>
         </div>
       </div>
@@ -393,269 +409,148 @@
 
   </div>
 
-  <!-- ═══ MISSION COMPLETE VICTORY OVERLAY ═══ -->
-  <div class="result-overlay" id="result-overlay">
-    <div class="result-card corner-brackets">
-      <div style="font-family: var(--font-cyber); font-size: 11px; color: var(--neon-emerald); letter-spacing: 0.15em; margin-bottom: 12px;">MISSION CONQUERED</div>
-      <div style="font-family: var(--font-cyber); font-size: 64px; font-weight: 900; line-height: 1;" class="gradient-text-cyan" id="result-score-value">9.4</div>
-      <div style="font-size: 14px; font-family: var(--font-mono); color: var(--text-faint); margin-bottom: 24px;">ACCURACY RATING / 10</div>
+  <!-- Result Evaluation Modal -->
+  <div class="modal-overlay" id="result-overlay">
+    <div class="modal-box">
+      <div style="font-size: 48px; margin-bottom: 12px;">🎉</div>
+      <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px;">Evaluation Complete</h3>
+      <div id="result-encourage" style="color: #38bdf8; font-size: 14px; font-weight: 600; margin-bottom: 20px;">Score Received</div>
 
-      <div class="score-breakdown" id="result-breakdown"></div>
-      <div id="creative-section"></div>
+      <div style="font-size: 36px; font-weight: 900; font-family: var(--font-display); color: #10b981; margin-bottom: 20px;">
+        <span id="result-score-value">10.0</span> / 10.0
+      </div>
 
-      <div style="font-size: 14px; font-weight: 700; color: var(--neon-emerald); margin: 20px 0;" id="result-encourage"></div>
+      <div id="result-breakdown" style="margin-bottom: 24px; text-align: left;"></div>
 
-      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-secondary" onclick="closeResult()">Refactor Code</button>
-        <button class="btn btn-amber" onclick="triggerAIChallenge()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 700; border: none;">⚡ Challenge Me (AI Practice)</button>
-        <a href="problems.html" class="btn btn-primary" data-magnetic>Next Mission →</a>
+      <div style="display: flex; gap: 12px;">
+        <button class="btn" onclick="closeResult()" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 6px; font-weight: 700; cursor: pointer;">Close</button>
+        <button class="btn" onclick="triggerAIChallenge()" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; color: #fff; border-radius: 6px; font-weight: 700; cursor: pointer;">Next Practice Problem →</button>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-
-  <script src="../js/mock-data.js"></script>
+  <!-- JavaScript API & Logic -->
   <script src="../js/api.js"></script>
-  <script src="../js/audio.js"></script>
-  <script src="../js/gamification.js"></script>
-  <script src="../js/cursor.js"></script>
-  <script src="../js/encouragement.js"></script>
-  <script src="../js/toast.js"></script>
   <script src="../js/animations.js"></script>
-  <script src="../js/app.js"></script>
 
   <script>
-    let editor = null;
-    let currentProblem = null;
-    let attemptCount = 0;
-    let hadErrorLastRun = false;
-    let isFocusMode = false;
-    let mode = 'practice'; // practice | writeup | exam
-    let modeId = null;
-    let timerInterval = null;
-    let autosaveInterval = null;
-    let selectedRating = 3;
-
     const urlParams = new URLSearchParams(window.location.search);
     const problemId = parseInt(urlParams.get('problem')) || 1;
-    if (urlParams.get('mode')) mode = urlParams.get('mode');
-    if (urlParams.get('id')) modeId = parseInt(urlParams.get('id'));
+    const mode = urlParams.get('mode') || 'practice';
+    const modeId = urlParams.get('id') || null;
 
-    function toggleFocusMode() {
-      isFocusMode = !isFocusMode;
-      document.body.classList.toggle('focus-mode-active', isFocusMode);
-      document.getElementById('btn-focus-toggle').classList.toggle('active', isFocusMode);
+    let currentProblem = null;
+    let editor = null;
+    let attemptCount = 0;
+    let hadErrorLastRun = false;
 
-      if (editor) {
-        setTimeout(() => editor.layout(), 300);
-      }
-
-      if (typeof SoundFX !== 'undefined') SoundFX.playClick();
-      if (typeof Toast !== 'undefined') {
-        Toast.info(isFocusMode ? '⛶ Focus Mode Active — Minimal Distractions' : '◈ Normal HUD Restored');
-      }
-    }
-
-    async function loadProblem(id) {
-      try {
-        const res = await API.getProblem(id);
-        if (res.success && res.problem) {
-          currentProblem = res.problem;
-        } else {
-          currentProblem = MockData.getProblem(id);
-        }
-      } catch (err) {
-        console.warn('Falling back to mock problem', err);
-        currentProblem = MockData.getProblem(id);
-      }
-
-      document.getElementById('lab-title').textContent = `${mode.toUpperCase()} MATRIX: ${currentProblem.title.toUpperCase()}`;
-      document.getElementById('prob-title').textContent = currentProblem.title;
-      document.getElementById('prob-desc').textContent = currentProblem.description;
-      document.getElementById('prob-output').textContent = currentProblem.expected_output || currentProblem.expectedOutput;
-
-      const diffEl = document.getElementById('prob-difficulty');
-      diffEl.textContent = currentProblem.difficulty.toUpperCase();
-      diffEl.className = `difficulty-badge difficulty-${currentProblem.difficulty}`;
-
-      const xp = currentProblem.xp_reward || currentProblem.xpReward || 100;
-      document.getElementById('mission-xp-tag').textContent = `★ +${xp} XP`;
-      document.getElementById('btn-submit').textContent = `SUBMIT SOLUTION (+${xp} XP)`;
-
-      const concepts = currentProblem.concepts || [];
-      document.getElementById('prob-concepts').innerHTML =
-        concepts.map(c => `<span class="concept-tag">${c}</span>`).join('');
-
-      // Progressive Hints Setup
-      const hintContainer = document.getElementById('hint-decryptor-container');
-      hintContainer.innerHTML = '';
-      const progHints = currentProblem.progressive_hints || currentProblem.progressiveHints || [];
-
-      progHints.forEach((h, idx) => {
-        const tierDiv = document.createElement('div');
-        tierDiv.className = `hint-tier ${idx === 0 ? 'unlocked' : 'locked'}`;
-        tierDiv.id = `hint-tier-${idx}`;
-
-        tierDiv.innerHTML = `
-          <div class="hint-header">
-            <span class="hint-label">HINT 0${h.tier || idx+1}: ${h.title}</span>
-            ${idx > 0 ? `<button class="hint-btn-unlock" id="hint-unlock-btn-${idx}" onclick="unlockHint(${idx})">🔓 UNLOCK HINT</button>` : '<span style="font-size: 10px; color: var(--neon-emerald);">UNLOCKED</span>'}
-          </div>
-          <div class="hint-body" id="hint-body-${idx}" style="${idx > 0 ? 'display: none;' : ''}">${h.text}</div>
-        `;
-        hintContainer.appendChild(tierDiv);
-      });
-
-      setCodeValue(currentProblem.starter_code || currentProblem.starterCode || '');
-
-      // Check mode specific settings (Writeup / Exam timer & restrictions)
-      setupModeEnvironment();
-    }
-
-    async function setupModeEnvironment() {
-      if (mode === 'exam') {
-        // Exam mode: AI guidance disabled
-        document.getElementById('ai-tab').style.display = 'none';
-        Toast.warning('EXAM MODE ACTIVE: AI Guidance is disabled for formal evaluation.');
-      }
-
-      if ((mode === 'writeup' || mode === 'exam') && modeId) {
-        try {
-          const res = (mode === 'writeup') ? await API.startWriteup(modeId) : await API.startExam(modeId);
-          const data = res.writeup || res.exam;
-          if (data && data.remaining_seconds) {
-            startTimer(data.remaining_seconds);
-          }
-        } catch (e) {
-          startTimer(1800); // 30 minutes fallback timer
-        }
-
-        // Set autosave every 15 seconds
-        autosaveInterval = setInterval(async () => {
-          const code = getCodeValue();
-          const codeMap = {};
-          codeMap[currentProblem.id] = code;
-          if (mode === 'writeup') await API.autosaveWriteup(modeId, codeMap);
-          else if (mode === 'exam') await API.autosaveExam(modeId, codeMap);
-          Toast.info('Draft auto-saved.');
-        }, 15000);
-      }
-    }
-
-
-    function startTimer(seconds) {
-      let remaining = seconds;
-      const titleHud = document.getElementById('lab-title');
-
-      timerInterval = setInterval(() => {
-        remaining--;
-        const mins = Math.floor(remaining / 60);
-        const secs = remaining % 60;
-        const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
-        if (titleHud) {
-          titleHud.innerHTML = `<span style="color: var(--neon-crimson); font-weight: 800;">⏱ ${timeStr} REMAINING</span> · ${currentProblem.title}`;
-        }
-
-        if (remaining <= 0) {
-          clearInterval(timerInterval);
-          Toast.error('TIME UP! Auto-submitting solution...');
-          document.getElementById('btn-submit').click();
-        }
-      }, 1000);
-    }
-
-    function unlockHint(tierIdx) {
-      if (typeof SoundFX !== 'undefined') SoundFX.playHintUnlock();
-      const tierEl = document.getElementById(`hint-tier-${tierIdx}`);
-      const bodyEl = document.getElementById(`hint-body-${tierIdx}`);
-      const btnEl = document.getElementById(`hint-unlock-btn-${tierIdx}`);
-
-      if (tierEl) {
-        tierEl.classList.remove('locked');
-        tierEl.classList.add('unlocked');
-      }
-      if (bodyEl) bodyEl.style.display = 'block';
-      if (btnEl) btnEl.outerHTML = '<span style="font-size: 10px; color: var(--neon-emerald); font-weight: 700;">UNLOCKED</span>';
-    }
-
-    // Helper functions for code value reading/writing
+    // Helper functions for reading and writing code safely
     function getCodeValue() {
       if (editor && typeof editor.getValue === 'function') {
         return editor.getValue();
       }
-      const fallback = document.getElementById('editor-fallback-textarea');
-      return fallback ? fallback.value : '';
+      const el = document.getElementById('code-textarea');
+      return el ? el.value : '';
     }
 
     function setCodeValue(val) {
+      const el = document.getElementById('code-textarea');
+      if (el) el.value = val;
       if (editor && typeof editor.setValue === 'function') {
         editor.setValue(val);
       }
-      const fallback = document.getElementById('editor-fallback-textarea');
-      if (fallback) fallback.value = val;
     }
 
-    // Monaco Setup with Fallback Textarea Support
+    // Attempt Monaco Editor initialization if CDN is available, otherwise keep textarea
     if (typeof require !== 'undefined') {
       try {
         require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
-
         require(['vs/editor/editor.main'], function () {
           try {
-            monaco.editor.defineTheme('cyber-dark', {
-              base: 'vs-dark',
-              inherit: true,
-              rules: [
-                { token: 'keyword', foreground: '00f2fe', fontStyle: 'bold' },
-                { token: 'string', foreground: '00f5d4' },
-                { token: 'number', foreground: 'ffd166' },
-                { token: 'comment', foreground: '475569', fontStyle: 'italic' },
-                { token: 'type', foreground: 'a855f7' }
-              ],
-              colors: {
-                'editor.background': '#02050e',
-                'editor.foreground': '#f8fafc',
-                'editor.lineHighlightBackground': '#0d152e',
-                'editorLineNumber.foreground': '#334155',
-                'editorLineNumber.activeForeground': '#00f2fe',
-                'editorCursor.foreground': '#00f2fe',
-                'editor.selectionBackground': '#00f2fe30'
-              }
-            });
-
-            const fallbackTextarea = document.getElementById('editor-fallback-textarea');
-            const initialCode = fallbackTextarea ? fallbackTextarea.value : '';
+            const txtArea = document.getElementById('code-textarea');
+            const initialVal = txtArea ? txtArea.value : '';
 
             editor = monaco.editor.create(document.getElementById('editor-wrap'), {
-              value: initialCode,
+              value: initialVal,
               language: 'c',
-              theme: 'cyber-dark',
+              theme: 'vs-dark',
               fontSize: 14,
               fontFamily: "'JetBrains Mono', monospace",
               lineNumbers: 'on',
               minimap: { enabled: false },
               automaticLayout: true,
-              padding: { top: 14, bottom: 14 },
               tabSize: 4
             });
 
-            if (fallbackTextarea) fallbackTextarea.style.display = 'none';
+            if (txtArea) txtArea.style.display = 'none';
+
+            editor.onDidChangeModelContent(function () {
+              if (txtArea) txtArea.value = editor.getValue();
+            });
 
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
           } catch (e) {
-            console.log('Monaco initialization fallback to standard textarea');
+            console.log('Monaco loading fallback active');
           }
-          loadProblem(problemId);
         });
-      } catch (e) {
-        loadProblem(problemId);
+      } catch (e) {}
+    }
+
+    // Load problem data
+    async function loadProblem(id) {
+      try {
+        const res = await API.getProblemDetail(id);
+        if (res.success && res.problem) {
+          currentProblem = res.problem;
+          renderProblem(res.problem);
+        } else {
+          document.getElementById('prob-title').textContent = 'Problem #' + id;
+        }
+      } catch (err) {
+        console.error('Error loading problem', err);
       }
-    } else {
-      loadProblem(problemId);
+    }
+
+    function renderProblem(prob) {
+      document.getElementById('prob-title').textContent = prob.title;
+      document.getElementById('prob-desc').textContent = prob.description;
+      document.getElementById('prob-output').textContent = prob.expected_output || prob.expectedOutput || 'Output';
+
+      if (prob.sample_input) {
+        document.getElementById('sample-input-section').style.display = 'block';
+        document.getElementById('prob-input').textContent = prob.sample_input;
+      }
+
+      const conceptsContainer = document.getElementById('prob-concepts');
+      const concepts = Array.isArray(prob.concepts) ? prob.concepts : JSON.parse(prob.concepts || '[]');
+      conceptsContainer.innerHTML = concepts.map(c => `<span class="concept-tag" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 4px 10px; border-radius: 6px; font-size: 12px; margin-right: 6px;">${c}</span>`).join('');
+
+      // Hints
+      const hintContainer = document.getElementById('hint-decryptor-container');
+      const hints = Array.isArray(prob.progressive_hints) ? prob.progressive_hints : JSON.parse(prob.progressive_hints || '[]');
+
+      if (hints.length > 0) {
+        hintContainer.innerHTML = hints.map((h, idx) => `
+          <div class="hint-card">
+            <div class="hint-header">
+              <span class="hint-label">HINT 0${h.tier || idx+1}: ${h.title}</span>
+              ${idx > 0 ? `<button class="hint-btn-unlock" id="hint-btn-${idx}" onclick="unlockHint(${idx})">🔓 Unlock Hint</button>` : '<span style="font-size: 10px; color: #34d399;">UNLOCKED</span>'}
+            </div>
+            <div class="hint-body" id="hint-body-${idx}" style="${idx > 0 ? 'display: none;' : ''}">${h.text}</div>
+          </div>
+        `).join('');
+      } else {
+        hintContainer.innerHTML = '<div style="font-size: 12px; color: var(--text-ghost);">No hints required for this basic problem.</div>';
+      }
+
+      setCodeValue(prob.starter_code || prob.starterCode || '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}\n');
+    }
+
+    function unlockHint(idx) {
+      const bodyEl = document.getElementById(`hint-body-${idx}`);
+      const btnEl = document.getElementById(`hint-btn-${idx}`);
+      if (bodyEl) bodyEl.style.display = 'block';
+      if (btnEl) btnEl.outerHTML = '<span style="font-size: 10px; color: #34d399; font-weight: 700;">UNLOCKED</span>';
     }
 
     const btnRun = document.getElementById('btn-run');
@@ -688,24 +583,21 @@
       runStatus.style.color = '';
     });
 
-    // ── RUN CODE (GCC Execution) ──────────────────────────────
+    // Run C Code
     async function runCode() {
       const code = getCodeValue();
       if (!code.trim()) {
-        Toast.warning('Editor is empty. Please enter your C code.');
+        alert('Please enter your C code before running.');
         return;
       }
 
-      attemptCount++;
-
-      Animations.runButtonState(btnRun, 'compiling');
       runDot.className = 'status-dot warning';
       runStatus.textContent = 'COMPILING C CODE...';
-      runStatus.style.color = 'var(--neon-amber)';
+      runStatus.style.color = '#f59e0b';
 
       tabAI.style.display = 'none';
       aiTab.style.display = 'none';
-      outputBox.textContent = 'Compiling C source with GCC compiler...';
+      outputBox.textContent = 'Compiling C program with GCC compiler...';
       outputBox.style.color = 'var(--text-ghost)';
 
       document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
@@ -716,30 +608,19 @@
         const res = await API.runCode(code, currentProblem ? currentProblem.id : problemId, null, mode);
 
         if (res.success) {
-          Animations.runButtonState(btnRun, 'success');
           runDot.className = 'status-dot online';
           runStatus.textContent = 'EXECUTION SUCCESSFUL';
-          runStatus.style.color = 'var(--neon-emerald)';
-
-          if (hadErrorLastRun) {
-            hadErrorLastRun = false;
-            Gamification.awardXP(40, 'Code Compiled Successfully!', btnRun);
-          }
-
+          runStatus.style.color = '#10b981';
           outputBox.textContent = res.output || '[Program executed with no output]';
           outputBox.style.color = '#fff';
-
         } else {
-          hadErrorLastRun = true;
-          Animations.runButtonState(btnRun, 'error');
           runDot.className = 'status-dot offline';
-          runStatus.textContent = 'CHECK ERRORS';
-          runStatus.style.color = 'var(--neon-crimson)';
-
+          runStatus.textContent = 'COMPILATION ERROR';
+          runStatus.style.color = '#f43f5e';
           outputBox.textContent = res.compiler_error || 'Compilation Error';
-          outputBox.style.color = 'var(--neon-crimson)';
+          outputBox.style.color = '#f43f5e';
 
-          if (mode !== 'exam' && res.ai_feedback && !res.ai_feedback.ai_disabled) {
+          if (res.ai_feedback && !res.ai_feedback.ai_disabled) {
             aiTab.style.display = 'block';
             document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
             aiTab.classList.add('active');
@@ -750,119 +631,76 @@
             document.getElementById('ai-reason').textContent = res.ai_feedback.reason;
             document.getElementById('ai-hint').textContent = res.ai_feedback.hint;
             document.getElementById('ai-concept').textContent = res.ai_feedback.concept;
-
-            Animations.revealAIPanel(tabAI);
           }
         }
       } catch (err) {
-        Animations.runButtonState(btnRun, 'error');
         runDot.className = 'status-dot offline';
         runStatus.textContent = 'SERVER ERROR';
-        outputBox.textContent = `Compilation service error: ${err.message}`;
+        outputBox.textContent = 'Compilation service error: ' + err.message;
       }
     }
     btnRun.addEventListener('click', runCode);
 
-    // ── SUBMIT SOLUTION ───────────────────────────────────────
+    // Submit Solution
     document.getElementById('btn-submit').addEventListener('click', async () => {
       const code = getCodeValue();
       const btn = document.getElementById('btn-submit');
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> EVALUATING TEST CASES...';
+      btn.textContent = 'Evaluating Solution...';
 
       try {
-        const evalData = await API.submitSolution(currentProblem.id, code, mode);
-
+        const evalData = await API.submitSolution(currentProblem ? currentProblem.id : problemId, code, mode);
         if (evalData.success) {
-          Gamification.awardXP(evalData.xp_earned, evalData.feedback, btn);
           showResultModal(evalData);
         } else {
-          Toast.error(evalData.compiler_error || 'Submission failed');
+          alert('Submission failed: ' + (evalData.compiler_error || 'Error'));
         }
       } catch (err) {
-        Toast.error('Submission service error: ' + err.message);
+        alert('Submission error: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = `SUBMIT SOLUTION (+${currentProblem.xp_reward || 100} Points)`;
+        btn.textContent = 'Submit Solution (+100 Points)';
       }
     });
 
-
     function showResultModal(evalData) {
-      if (typeof SoundFX !== 'undefined') {
-        if (evalData.is_hardcoded) SoundFX.playError();
-        else SoundFX.playSuccess();
-      }
       const overlay = document.getElementById('result-overlay');
       const scoreVal = document.getElementById('result-score-value');
       const encourageEl = document.getElementById('result-encourage');
 
       scoreVal.textContent = evalData.score;
-      if (evalData.is_hardcoded) {
-        scoreVal.style.color = 'var(--neon-amber)';
-        encourageEl.innerHTML = `<span style="color: var(--neon-amber); font-weight: 700;">⚠️ SOLUTION NEEDS DYNAMIC LOGIC</span><br/><span style="font-size: 13px; color: var(--text-muted);">${evalData.feedback}</span>`;
-      } else {
-        scoreVal.style.color = 'var(--neon-cyan)';
-        encourageEl.textContent = `★ +${evalData.xp_earned} XP AWARDED · ${evalData.feedback}`;
-      }
+      scoreVal.style.color = evalData.is_hardcoded ? '#f59e0b' : '#10b981';
+      encourageEl.textContent = evalData.is_hardcoded ? '⚠️ Please write full logic instead of printing fixed output' : '★ Solved Successfully! +' + evalData.xp_earned + ' Points';
 
       document.getElementById('result-breakdown').innerHTML = `
         <div class="score-row"><span>Test Cases Passed</span><span>${evalData.passed_test_cases} / ${evalData.total_test_cases}</span></div>
         <div class="score-row"><span>Correctness Score</span><span>${evalData.correctness_value} / 6.0</span></div>
-        <div class="score-row"><span>Approach Quality</span><span>${evalData.approach_value} / 2.0</span></div>
-        <div class="score-row"><span>Algorithmic Creativity</span><span>${evalData.creativity_value} / 1.0 ${evalData.is_creative ? '✨ (★ BONUS +50 XP)' : ''}</span></div>
-        ${evalData.is_hardcoded ? '<div class="score-row" style="color: var(--neon-amber);"><span>Hardcoding Detection</span><span>⚠ Input Processing Missing</span></div>' : ''}
+        <div class="score-row"><span>Code Quality</span><span>${evalData.approach_value} / 2.0</span></div>
+        <div class="score-row"><span>Creativity Bonus</span><span>${evalData.creativity_value} / 1.0</span></div>
       `;
-
       overlay.classList.add('show');
-      if (!evalData.is_hardcoded) {
-        Animations.confetti(window.innerWidth / 2, window.innerHeight / 2 - 80, { count: 30 });
-      }
     }
 
     function closeResult() {
       document.getElementById('result-overlay').classList.remove('show');
     }
 
-    // 🔒 Strict Environment: Tab Switch & Focus Loss Monitoring
-    let focusLossCount = 0;
-    function logFocusLoss() {
-      focusLossCount++;
-      if (typeof Toast !== 'undefined') {
-        Toast.error(`⚠️ Warning: Tab switch / Window focus loss detected (${focusLossCount}x)! Focus loss is logged to Faculty.`);
-      }
-      if (typeof API !== 'undefined' && API.logActivity) {
-        API.logActivity('tab_switch', `Window blur / tab switch detected during lab session (Total: ${focusLossCount})`);
-      }
-    }
-
-    window.addEventListener('blur', logFocusLoss);
-    document.addEventListener('visibilitychange', function () {
-      if (document.hidden) logFocusLoss();
-    });
-
     async function triggerAIChallenge() {
       closeResult();
-      if (typeof Toast !== 'undefined') {
-        Toast.info('⚡ Groq AI is generating an adaptive C challenge tailored to your level...');
-      }
       try {
         const concept = (currentProblem && currentProblem.concepts && currentProblem.concepts[0]) || 'Arrays';
         const res = await API.generateChallenge(concept, 'medium');
         if (res.success && res.problem_id) {
-          if (typeof Toast !== 'undefined') {
-            Toast.success('🎉 New AI Practice Challenge Generated! Opening challenge editor...');
-          }
-          setTimeout(() => {
-            window.location.href = `lab.html?problem=${res.problem_id}`;
-          }, 800);
+          window.location.href = `lab.html?problem=${res.problem_id}`;
         } else {
-          if (typeof Toast !== 'undefined') Toast.error('Could not generate challenge. Retrying...');
+          alert('Generating new practice problem...');
         }
       } catch (err) {
-        if (typeof Toast !== 'undefined') Toast.error('Challenge generator error: ' + err.message);
+        alert('Challenge generator error: ' + err.message);
       }
     }
+
+    loadProblem(problemId);
   </script>
 </body>
 </html>

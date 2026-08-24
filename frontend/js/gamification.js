@@ -89,8 +89,9 @@ const Gamification = (() => {
 
     // 3. Show Toast Notice
     if (typeof Toast !== 'undefined') {
-      Toast.info(`<strong>+${amount} XP</strong> · ${reason}`);
+      Toast.info(`<strong>+${amount} Points</strong> · ${reason}`);
     }
+
 
     // 4. Update HUD elements on page
     updateHUDDisplays(prevProgress, newProgress);
