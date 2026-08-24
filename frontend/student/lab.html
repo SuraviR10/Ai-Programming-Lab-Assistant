@@ -3,18 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coding Matrix — CODEVERSE</title>
-  <meta name="description" content="Cyberpunk C Programming Laboratory with Monaco Editor, Focus Mode, and Progressive AI Debug Core." />
+  <title>C Code Editor — AI Lab Assistant</title>
+  <meta name="description" content="AI C Programming Laboratory with Code Editor, Focus Mode, and Helpful Guidance." />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="../css/base.css" />
   <link rel="stylesheet" href="../css/components.css" />
   <link rel="stylesheet" href="../css/animations.css" />
 
+  <!-- Monaco Editor AMD Loader Script -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.js"></script>
+
   <style>
+
     body { overflow: hidden; }
 
     /* Lab Cyber HUD Header */
@@ -264,8 +268,8 @@
     <!-- Problem / Mission Panel -->
     <aside class="problem-panel corner-brackets" id="problem-panel">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <span class="label" style="color: var(--neon-cyan);">MISSION OBJECTIVE</span>
-        <span class="mission-xp-badge" id="mission-xp-tag">★ +100 XP</span>
+        <span class="label" style="color: var(--neon-cyan);">PROBLEM STATEMENT</span>
+        <span class="mission-xp-badge" id="mission-xp-tag">★ +100 Points</span>
       </div>
 
       <h2 id="prob-title" style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px;">Hello World</h2>
@@ -289,19 +293,19 @@
         <div class="problem-expected" id="prob-output">Hello, World!</div>
       </div>
 
-      <!-- Progressive 3-Tier Hint Decryptor -->
+      <!-- Step-by-Step Hints -->
       <div style="margin-bottom: 24px;">
-        <div class="label" style="color: var(--xp-gold); margin-bottom: 8px;">PROGRESSIVE HINT DECRYPTOR</div>
+        <div class="label" style="color: var(--xp-gold); margin-bottom: 8px;">HELPFUL HINTS</div>
         <div class="hint-decryptor" id="hint-decryptor-container"></div>
       </div>
 
-      <button class="btn btn-submit" id="btn-submit" style="width: 100%; margin-bottom: 10px;" data-magnetic>
+      <button class="btn btn-submit" id="btn-submit" style="width: 100%; margin-bottom: 10px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        SUBMIT SOLUTION (+100 XP)
+        SUBMIT SOLUTION (+100 Points)
       </button>
 
       <button class="btn btn-secondary" onclick="triggerAIChallenge()" style="width: 100%; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fbbf24; font-weight: 700;">
-        ⚡ PRACTICE RELATED PROBLEM (AI MODE)
+        ⚡ PRACTICE RELATED PROBLEM
       </button>
     </aside>
 
@@ -319,37 +323,40 @@
             <span id="run-status">READY</span>
           </div>
           <button class="btn btn-secondary btn-sm" id="btn-clear">CLEAR</button>
-          <button class="btn-run" id="btn-run" data-magnetic>
+          <button class="btn-run" id="btn-run">
             <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5l9 4.5-9 4.5V1.5z"/></svg>
-            EXECUTE CODE
+            RUN CODE
           </button>
         </div>
       </div>
 
-      <!-- Monaco Editor -->
-      <div id="editor-wrap"></div>
+      <!-- Code Editor with Instant Fallback Textarea -->
+      <div id="editor-wrap" style="position: relative; min-height: 380px;">
+        <textarea id="editor-fallback-textarea" spellcheck="false" style="width: 100%; height: 380px; background: #02050e; color: #f8fafc; font-family: 'JetBrains Mono', monospace; font-size: 14px; padding: 16px; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 6px; outline: none; resize: vertical; line-height: 1.5;" placeholder="// Write your C program here..."></textarea>
+      </div>
 
       <!-- Output / Terminal HUD -->
       <div class="output-area" id="output-area">
         <div class="output-tabs">
-          <button class="output-tab active" data-tab="output">Terminal Output</button>
-          <button class="output-tab" data-tab="ai" id="ai-tab" style="display: none;">AI Neural Debugger</button>
+          <button class="output-tab active" data-tab="output">Program Output</button>
+          <button class="output-tab" data-tab="ai" id="ai-tab" style="display: none;">AI Helper Guidance</button>
         </div>
 
         <!-- Terminal Output Tab -->
         <div style="padding: 16px 20px;" id="tab-output">
-          <div class="output-box" id="output-box">Terminal output will appear after execution...</div>
+          <div class="output-box" id="output-box">Program output will appear here after clicking Run Code...</div>
         </div>
 
         <!-- AI Neural Debugger Tab -->
         <div class="ai-feedback-container" id="tab-ai">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div class="ai-orb-core">◈</div>
+            <div class="ai-orb-core">💡</div>
             <div>
-              <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: 800; color: #fff;">AI Neural Diagnostic Core</div>
-              <div style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-cyan);" id="ai-status-text">ANALYSIS READY</div>
+              <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: 800; color: #fff;">AI Tutor Guidance</div>
+              <div style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-cyan);" id="ai-status-text">HELPFUL SUGGESTION</div>
             </div>
           </div>
+
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div class="ai-card">
@@ -494,17 +501,15 @@
 
         tierDiv.innerHTML = `
           <div class="hint-header">
-            <span class="hint-label">TIER 0${h.tier || idx+1}: ${h.title}</span>
-            ${idx > 0 ? `<button class="hint-btn-unlock" id="hint-unlock-btn-${idx}" onclick="unlockHint(${idx})">🔓 DECRYPT HINT</button>` : '<span style="font-size: 10px; color: var(--neon-emerald);">UNLOCKED</span>'}
+            <span class="hint-label">HINT 0${h.tier || idx+1}: ${h.title}</span>
+            ${idx > 0 ? `<button class="hint-btn-unlock" id="hint-unlock-btn-${idx}" onclick="unlockHint(${idx})">🔓 UNLOCK HINT</button>` : '<span style="font-size: 10px; color: var(--neon-emerald);">UNLOCKED</span>'}
           </div>
           <div class="hint-body" id="hint-body-${idx}" style="${idx > 0 ? 'display: none;' : ''}">${h.text}</div>
         `;
         hintContainer.appendChild(tierDiv);
       });
 
-      if (editor) {
-        editor.setValue(currentProblem.starter_code || currentProblem.starterCode);
-      }
+      setCodeValue(currentProblem.starter_code || currentProblem.starterCode || '');
 
       // Check mode specific settings (Writeup / Exam timer & restrictions)
       setupModeEnvironment();
@@ -512,9 +517,9 @@
 
     async function setupModeEnvironment() {
       if (mode === 'exam') {
-        // Exam mode: AI guidance strictly disabled
+        // Exam mode: AI guidance disabled
         document.getElementById('ai-tab').style.display = 'none';
-        Toast.warning('EXAM MODE ACTIVE: AI Guidance is strictly disabled.');
+        Toast.warning('EXAM MODE ACTIVE: AI Guidance is disabled for formal evaluation.');
       }
 
       if ((mode === 'writeup' || mode === 'exam') && modeId) {
@@ -530,16 +535,16 @@
 
         // Set autosave every 15 seconds
         autosaveInterval = setInterval(async () => {
-          if (!editor) return;
-          const code = editor.getValue();
+          const code = getCodeValue();
           const codeMap = {};
           codeMap[currentProblem.id] = code;
           if (mode === 'writeup') await API.autosaveWriteup(modeId, codeMap);
           else if (mode === 'exam') await API.autosaveExam(modeId, codeMap);
-          Toast.info('Draft auto-saved to matrix server.');
+          Toast.info('Draft auto-saved.');
         }, 15000);
       }
     }
+
 
     function startTimer(seconds) {
       let remaining = seconds;
@@ -574,72 +579,84 @@
         tierEl.classList.add('unlocked');
       }
       if (bodyEl) bodyEl.style.display = 'block';
-      if (btnEl) btnEl.outerHTML = '<span style="font-size: 10px; color: var(--neon-emerald); font-weight: 700;">DECRYPTED</span>';
+      if (btnEl) btnEl.outerHTML = '<span style="font-size: 10px; color: var(--neon-emerald); font-weight: 700;">UNLOCKED</span>';
     }
 
-    // Monaco Setup
-    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js' } });
-
-    require(['vs/editor/editor.main'], function () {
-      monaco.editor.defineTheme('cyber-dark', {
-        base: 'vs-dark',
-        inherit: true,
-        rules: [
-          { token: 'keyword', foreground: '00f2fe', fontStyle: 'bold' },
-          { token: 'string', foreground: '00f5d4' },
-          { token: 'number', foreground: 'ffd166' },
-          { token: 'comment', foreground: '475569', fontStyle: 'italic' },
-          { token: 'type', foreground: 'a855f7' }
-        ],
-        colors: {
-          'editor.background': '#02050e',
-          'editor.foreground': '#f8fafc',
-          'editor.lineHighlightBackground': '#0d152e',
-          'editorLineNumber.foreground': '#334155',
-          'editorLineNumber.activeForeground': '#00f2fe',
-          'editorCursor.foreground': '#00f2fe',
-          'editor.selectionBackground': '#00f2fe30'
-        }
-      });
-
-      editor = monaco.editor.create(document.getElementById('editor-wrap'), {
-        value: '',
-        language: 'c',
-        theme: 'cyber-dark',
-        fontSize: 14,
-        fontFamily: "'JetBrains Mono', monospace",
-        lineNumbers: 'on',
-        minimap: { enabled: false },
-        automaticLayout: true,
-        padding: { top: 14, bottom: 14 },
-        tabSize: 4
-      });
-
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
-
-      // 🔒 Strict Learning Environment: Intercept & Block Copy/Pasting
-      editor.onKeyDown(function (e) {
-        if ((e.ctrlKey || e.metaKey) && (e.keyCode === monaco.KeyCode.KeyV || e.keyCode === monaco.KeyCode.KeyC || e.keyCode === monaco.KeyCode.KeyX)) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (typeof Toast !== 'undefined') {
-            Toast.warning('📋 Copy/Pasting is disabled in this learning environment. Please write your code manually!');
-          }
-        }
-      });
-
-      const wrapEl = document.getElementById('editor-wrap');
-      if (wrapEl) {
-        wrapEl.addEventListener('paste', function (e) {
-          e.preventDefault();
-          if (typeof Toast !== 'undefined') {
-            Toast.warning('📋 Copy/Pasting is disabled in this learning environment. Please write your code manually!');
-          }
-        });
+    // Helper functions for code value reading/writing
+    function getCodeValue() {
+      if (editor && typeof editor.getValue === 'function') {
+        return editor.getValue();
       }
+      const fallback = document.getElementById('editor-fallback-textarea');
+      return fallback ? fallback.value : '';
+    }
 
+    function setCodeValue(val) {
+      if (editor && typeof editor.setValue === 'function') {
+        editor.setValue(val);
+      }
+      const fallback = document.getElementById('editor-fallback-textarea');
+      if (fallback) fallback.value = val;
+    }
+
+    // Monaco Setup with Fallback Textarea Support
+    if (typeof require !== 'undefined') {
+      try {
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+
+        require(['vs/editor/editor.main'], function () {
+          try {
+            monaco.editor.defineTheme('cyber-dark', {
+              base: 'vs-dark',
+              inherit: true,
+              rules: [
+                { token: 'keyword', foreground: '00f2fe', fontStyle: 'bold' },
+                { token: 'string', foreground: '00f5d4' },
+                { token: 'number', foreground: 'ffd166' },
+                { token: 'comment', foreground: '475569', fontStyle: 'italic' },
+                { token: 'type', foreground: 'a855f7' }
+              ],
+              colors: {
+                'editor.background': '#02050e',
+                'editor.foreground': '#f8fafc',
+                'editor.lineHighlightBackground': '#0d152e',
+                'editorLineNumber.foreground': '#334155',
+                'editorLineNumber.activeForeground': '#00f2fe',
+                'editorCursor.foreground': '#00f2fe',
+                'editor.selectionBackground': '#00f2fe30'
+              }
+            });
+
+            const fallbackTextarea = document.getElementById('editor-fallback-textarea');
+            const initialCode = fallbackTextarea ? fallbackTextarea.value : '';
+
+            editor = monaco.editor.create(document.getElementById('editor-wrap'), {
+              value: initialCode,
+              language: 'c',
+              theme: 'cyber-dark',
+              fontSize: 14,
+              fontFamily: "'JetBrains Mono', monospace",
+              lineNumbers: 'on',
+              minimap: { enabled: false },
+              automaticLayout: true,
+              padding: { top: 14, bottom: 14 },
+              tabSize: 4
+            });
+
+            if (fallbackTextarea) fallbackTextarea.style.display = 'none';
+
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
+          } catch (e) {
+            console.log('Monaco initialization fallback to standard textarea');
+          }
+          loadProblem(problemId);
+        });
+      } catch (e) {
+        loadProblem(problemId);
+      }
+    } else {
       loadProblem(problemId);
-    });
+    }
 
     const btnRun = document.getElementById('btn-run');
     const btnClear = document.getElementById('btn-clear');
@@ -660,15 +677,9 @@
       });
     });
 
-    // GCC toggle
-    document.getElementById('gcc-toggle').addEventListener('click', function() {
-      this.classList.toggle('open');
-      document.getElementById('gcc-content').classList.toggle('open');
-    });
-
     btnClear.addEventListener('click', () => {
-      if (editor && currentProblem) editor.setValue(currentProblem.starter_code || currentProblem.starterCode);
-      outputBox.textContent = 'Terminal output will appear after execution...';
+      if (currentProblem) setCodeValue(currentProblem.starter_code || currentProblem.starterCode || '');
+      outputBox.textContent = 'Program output will appear here after clicking Run Code...';
       outputBox.style.color = 'var(--text-ghost)';
       tabAI.style.display = 'none';
       aiTab.style.display = 'none';
@@ -677,26 +688,24 @@
       runStatus.style.color = '';
     });
 
-    // ── RUN CODE (GCC + Groq Integration) ─────────────────────
+    // ── RUN CODE (GCC Execution) ──────────────────────────────
     async function runCode() {
-      if (!editor) return;
-      const code = editor.getValue();
+      const code = getCodeValue();
       if (!code.trim()) {
-        Toast.warning('Editor empty. Input your algorithm.');
+        Toast.warning('Editor is empty. Please enter your C code.');
         return;
       }
 
       attemptCount++;
-      if (typeof SoundFX !== 'undefined') SoundFX.playExecute();
 
       Animations.runButtonState(btnRun, 'compiling');
       runDot.className = 'status-dot warning';
-      runStatus.textContent = 'COMPILING WITH GCC...';
+      runStatus.textContent = 'COMPILING C CODE...';
       runStatus.style.color = 'var(--neon-amber)';
 
       tabAI.style.display = 'none';
       aiTab.style.display = 'none';
-      outputBox.textContent = 'Compiling C source with GCC / MinGW toolchain...';
+      outputBox.textContent = 'Compiling C source with GCC compiler...';
       outputBox.style.color = 'var(--text-ghost)';
 
       document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
@@ -709,13 +718,12 @@
         if (res.success) {
           Animations.runButtonState(btnRun, 'success');
           runDot.className = 'status-dot online';
-          runStatus.textContent = 'EXECUTION SUCCESS';
+          runStatus.textContent = 'EXECUTION SUCCESSFUL';
           runStatus.style.color = 'var(--neon-emerald)';
-          if (typeof SoundFX !== 'undefined') SoundFX.playSuccess();
 
           if (hadErrorLastRun) {
             hadErrorLastRun = false;
-            Gamification.awardXP(40, 'Compiler Bug Resolved!', btnRun);
+            Gamification.awardXP(40, 'Code Compiled Successfully!', btnRun);
           }
 
           outputBox.textContent = res.output || '[Program executed with no output]';
@@ -725,13 +733,11 @@
           hadErrorLastRun = true;
           Animations.runButtonState(btnRun, 'error');
           runDot.className = 'status-dot offline';
-          runStatus.textContent = 'DEBUG REQUIRED';
+          runStatus.textContent = 'CHECK ERRORS';
           runStatus.style.color = 'var(--neon-crimson)';
-          if (typeof SoundFX !== 'undefined') SoundFX.playError();
 
           outputBox.textContent = res.compiler_error || 'Compilation Error';
           outputBox.style.color = 'var(--neon-crimson)';
-          document.getElementById('gcc-raw-output').textContent = res.compiler_error;
 
           if (mode !== 'exam' && res.ai_feedback && !res.ai_feedback.ai_disabled) {
             aiTab.style.display = 'block';
@@ -752,19 +758,17 @@
         Animations.runButtonState(btnRun, 'error');
         runDot.className = 'status-dot offline';
         runStatus.textContent = 'SERVER ERROR';
-        outputBox.textContent = `Backend compilation service error: ${err.message}`;
+        outputBox.textContent = `Compilation service error: ${err.message}`;
       }
     }
     btnRun.addEventListener('click', runCode);
 
     // ── SUBMIT SOLUTION ───────────────────────────────────────
     document.getElementById('btn-submit').addEventListener('click', async () => {
-      if (!editor) return;
-      const code = editor.getValue();
+      const code = getCodeValue();
       const btn = document.getElementById('btn-submit');
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> EVALUATING TEST SUITE...';
-      if (typeof SoundFX !== 'undefined') SoundFX.playExecute();
+      btn.innerHTML = '<span class="spinner"></span> EVALUATING TEST CASES...';
 
       try {
         const evalData = await API.submitSolution(currentProblem.id, code, mode);
@@ -779,9 +783,10 @@
         Toast.error('Submission service error: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = `SUBMIT SOLUTION (+${currentProblem.xp_reward || 100} XP)`;
+        btn.textContent = `SUBMIT SOLUTION (+${currentProblem.xp_reward || 100} Points)`;
       }
     });
+
 
     function showResultModal(evalData) {
       if (typeof SoundFX !== 'undefined') {
