@@ -1,7 +1,9 @@
 """
 Groq AI Service
 Provides progressive C compiler error guidance & AI diagnostics.
-Respects exam policy (disabled in exams) and never raises errors.
+Includes intelligent line-offset detection (previous line vs reported line),
+beginner-friendly explanations, tactical debugging hints, and memorable concepts.
+Respects exam policy (disabled in exams) and never raises unhandled errors.
 """
 
 import os
@@ -25,22 +27,27 @@ Student Code:
 Compiler Error:
 {compiler_error}
 
-Compiler Line Number: {line_number}
+Compiler Reported Line Number: {line_number}
 Mode: {mode}
 
-Rules:
-1. Do NOT provide complete corrected C code.
-2. Do NOT solve the problem directly for the student.
-3. Explain the error in simple, beginner-friendly terms.
-4. Provide a single tactical debugging hint to guide self-correction.
-5. Identify the C language concept involved.
+Special Teaching Guidelines for C Compilation Errors:
+1. LINE OFFSET AWARENESS:
+   - In C compilers (like GCC/Clang), syntax errors such as missing semicolons (';'), unclosed parentheses (')'), unmatched brackets, or unclosed string quotes are very frequently reported on the NEXT line or the subsequent statement rather than where the typo occurred.
+   - Analyze whether the true mistake is on the line immediately preceding the reported line (e.g. line {line_number} vs line {prev_line}).
+   - If the previous line is missing a semicolon or delimiter, explicitly tell the student to inspect the previous line!
+2. Do NOT provide complete corrected C code or solve the program for the student.
+3. Explain the error in simple, beginner-friendly terms without overwhelming jargon.
+4. Provide a tactical step-by-step hint to guide self-correction.
+5. Provide a "remember_tip" ("Key Information to Remember"): A memorable, concise rule of thumb that helps the student remember this concept in future C programming (e.g. "Rule of Thumb: In C, statements end with a semicolon ';'. When GCC reports 'expected ; before...', always check the line right ABOVE the reported line!").
+6. Identify the core C language concept involved.
 
-Return ONLY valid JSON in this format:
+Return ONLY valid JSON in this exact structure:
 {{
-  "explanation": "What went wrong in simple terms",
-  "reason": "Why the compiler reported this error",
-  "hint": "Tactical hint to help the student debug independently",
-  "concept": "C concept (e.g. Semicolon termination, Variable scope)"
+  "explanation": "Simple explanation of what went wrong, explicitly noting if the mistake is on the previous line",
+  "reason": "Why the compiler reported this line (e.g. compiler only realizes a semicolon is missing when reaching the next statement)",
+  "hint": "Actionable hint to guide the student to fix the error independently",
+  "remember_tip": "Concise key information / rule of thumb for students to remember",
+  "concept": "C concept (e.g. Statement Semicolon Termination, Bracket Matching, Variable Declaration)"
 }}"""
 
 
@@ -54,9 +61,12 @@ GROQ_MODELS = [
 
 def analyze_compiler_error(student_code: str, compiler_error: str, line_number: int | None, mode: str = "practice") -> dict:
     """
-    Sends compiler error to Groq LLM and returns structured JSON guidance.
+    Sends compiler error to Groq LLM and returns structured JSON guidance with
+    previous line offset detection and memorable rules of thumb.
     Enforces mode policy: 'exam' mode strictly returns disabled AI status.
     """
+    prev_line = max(1, line_number - 1) if (line_number and line_number > 1) else 1
+
     # Exam mode policy check — AI disabled
     if mode == "exam":
         return {
@@ -64,15 +74,17 @@ def analyze_compiler_error(student_code: str, compiler_error: str, line_number: 
             "explanation": "AI Guidance is disabled during official examination sessions.",
             "reason": "Exam policy in effect.",
             "hint": "Inspect the technical compiler error above to debug your code.",
+            "remember_tip": "During examinations, verify syntax independently.",
             "concept": "Examination Policy"
         }
 
     fallback = {
         "ai_disabled": False,
-        "explanation": f"Compiler syntax error detected near line {line_number if line_number else 'unknown'}.",
-        "reason": "The GCC compiler could not parse the C source syntax.",
-        "hint": "Inspect the line indicated above for missing semicolons, unmatched braces, or uninitialized variables.",
-        "concept": "C Syntax / Statement Termination"
+        "explanation": f"Compiler syntax error detected near line {line_number if line_number else 'unknown'}. In C, if a semicolon (;) or bracket is missing, the compiler often flags the NEXT line.",
+        "reason": f"The GCC compiler encountered an unexpected token. When a semicolon or closing brace is omitted on line {prev_line}, the compiler only detects the error on line {line_number if line_number else 'unknown'}.",
+        "hint": f"Inspect line {line_number} and the line directly above it (line {prev_line}) for missing semicolons ';', unclosed braces '}}', or unmatched parentheses ')'.",
+        "remember_tip": "Rule of Thumb: In C, whenever you see 'expected ; before...', the missing semicolon is almost always on the line immediately ABOVE the reported line!",
+        "concept": "C Statement Termination & Delimiters"
     }
 
     if not _client:
@@ -82,6 +94,7 @@ def analyze_compiler_error(student_code: str, compiler_error: str, line_number: 
         student_code=student_code,
         compiler_error=compiler_error,
         line_number=line_number if line_number else "unknown",
+        prev_line=prev_line,
         mode=mode
     )
 
@@ -90,8 +103,8 @@ def analyze_compiler_error(student_code: str, compiler_error: str, line_number: 
             response = _client.chat.completions.create(
                 model=model_name,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.3,
-                max_tokens=500,
+                temperature=0.25,
+                max_tokens=600,
             )
 
             raw_text = response.choices[0].message.content.strip()
@@ -105,9 +118,10 @@ def analyze_compiler_error(student_code: str, compiler_error: str, line_number: 
                 "explanation": parsed.get("explanation", fallback["explanation"]),
                 "reason": parsed.get("reason", fallback["reason"]),
                 "hint": parsed.get("hint", fallback["hint"]),
+                "remember_tip": parsed.get("remember_tip", fallback["remember_tip"]),
                 "concept": parsed.get("concept", fallback["concept"])
             }
-        except Exception as e:
+        except Exception:
             continue
 
     return fallback
@@ -192,4 +206,3 @@ def analyze_solution_semantics(student_code: str, problem_title: str, problem_de
             continue
 
     return fallback
-
