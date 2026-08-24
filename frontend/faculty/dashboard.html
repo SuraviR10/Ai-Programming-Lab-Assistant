@@ -147,21 +147,21 @@
 
     </div>
 
-    <!-- Cadets Roster -->
+    <!-- Students Roster -->
     <div class="chart-card-cyber" data-reveal style="margin-bottom: 24px;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-        <h3 style="margin-bottom: 0; color: #fff;">👥 Cadet Laboratory Roster</h3>
-        <span style="font-size: var(--text-xs); font-family: var(--font-mono); color: var(--text-ghost);">SHOWING ACTIVE CADETS</span>
+        <h3 style="margin-bottom: 0; color: #fff;">👥 Student Laboratory Roster</h3>
+        <span style="font-size: var(--text-xs); font-family: var(--font-mono); color: var(--text-ghost);">SHOWING ENROLLED STUDENTS</span>
       </div>
 
       <div style="overflow-x: auto;">
         <table class="student-table">
           <thead>
             <tr>
-              <th>Cadet</th>
+              <th>Student</th>
               <th>Accuracy</th>
               <th>First-Run Rate</th>
-              <th>Missions</th>
+              <th>Completed Programs</th>
               <th>Current Status</th>
               <th></th>
             </tr>
@@ -174,18 +174,18 @@
     <!-- Potentially Hardcoded Submissions Panel -->
     <div class="chart-card-cyber" data-reveal>
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-        <h3 style="margin-bottom: 0; color: var(--neon-amber);">⚠️ Potentially Hardcoded Submissions (Faculty Review)</h3>
-        <span style="font-size: var(--text-xs); font-family: var(--font-mono); color: var(--text-ghost);">AUTOMATED ANTI-HARDCODING TELEMETRY</span>
+        <h3 style="margin-bottom: 0; color: var(--neon-amber);">⚠️ Output Matching Submissions (Faculty Review)</h3>
+        <span style="font-size: var(--text-xs); font-family: var(--font-mono); color: var(--text-ghost);">AUTOMATED LOGIC VERIFICATION</span>
       </div>
 
       <div style="overflow-x: auto;">
         <table class="student-table">
           <thead>
             <tr>
-              <th>Cadet</th>
+              <th>Student</th>
               <th>Problem</th>
-              <th>Risk Score</th>
-              <th>Evidence Summary</th>
+              <th>Check Score</th>
+              <th>Analysis Summary</th>
               <th>Review Status</th>
               <th>Action</th>
             </tr>
@@ -198,7 +198,7 @@
     <!-- Live Lab Activity & Anti-Cheat Focus Loss Telemetry Panel -->
     <div class="chart-card-cyber" data-reveal style="margin-top: 24px;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-        <h3 style="margin-bottom: 0; color: var(--neon-cyan);">📡 Live Laboratory Session & Security Monitoring</h3>
+        <h3 style="margin-bottom: 0; color: var(--neon-cyan);">📡 Live Laboratory Session & Activity Monitoring</h3>
         <span style="font-size: var(--text-xs); font-family: var(--font-mono); color: var(--neon-emerald);">● REAL-TIME LOGGING ACTIVE</span>
       </div>
 
@@ -207,9 +207,9 @@
           <thead>
             <tr>
               <th>Time</th>
-              <th>Cadet</th>
+              <th>Student</th>
               <th>Action</th>
-              <th>Event Telemetry & Focus Logs</th>
+              <th>Activity & Focus Event Logs</th>
             </tr>
           </thead>
           <tbody id="activity-tbody"></tbody>
@@ -217,6 +217,7 @@
       </div>
     </div>
   </div>
+
 
   <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>

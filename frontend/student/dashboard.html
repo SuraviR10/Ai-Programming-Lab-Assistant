@@ -124,12 +124,12 @@
       </div>
     </div>
 
-    <!-- ═══ TELEMETRY STATS ROW ═══ -->
+    <!-- ═══ STUDENT METRICS ROW ═══ -->
     <div class="stats-row">
       <div class="stat-card-cyber anim-init anim-fade-up anim-delay-1">
-        <div class="label" style="color: var(--text-faint);">MISSIONS CONQUERED</div>
+        <div class="label" style="color: var(--text-faint);">LAB PROBLEMS COMPLETED</div>
         <div class="stat-value" id="stat-problems" style="font-family: var(--font-cyber); color: var(--neon-cyan);">18</div>
-        <div style="font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-top: 4px;">7 BOUNTIES REMAINING</div>
+        <div style="font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-top: 4px;">7 PROBLEMS REMAINING</div>
       </div>
 
       <div class="stat-card-cyber anim-init anim-fade-up anim-delay-2">
@@ -141,7 +141,7 @@
       <div class="stat-card-cyber anim-init anim-fade-up anim-delay-3">
         <div class="label" style="color: var(--text-faint);">FIRST-RUN SUCCESS</div>
         <div class="stat-value" id="stat-success" style="font-family: var(--font-cyber); color: var(--primary-glow);">82%</div>
-        <div style="font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-top: 4px;">TOP 10% CADET TIER</div>
+        <div style="font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-top: 4px;">TOP 10% CLASS TIER</div>
       </div>
 
       <div class="stat-card-cyber anim-init anim-fade-up anim-delay-4">
@@ -155,39 +155,39 @@
     <div class="dashboard-grid">
       <!-- Left Column -->
       <div class="dashboard-col">
-        <!-- Daily Motivation Mission -->
+        <!-- Daily Motivation Tip -->
         <div class="card-cyber anim-init anim-fade-up anim-delay-5" data-reveal>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div class="label" style="color: var(--neon-cyan);">TRANSMISSION OF THE DAY</div>
-            <span class="mission-xp-badge">+25 DAILY XP</span>
+            <div class="label" style="color: var(--neon-cyan);">TIP OF THE DAY</div>
+            <span class="mission-xp-badge" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px;">+25 Study Points</span>
           </div>
-          <div class="motivation-quote" id="daily-quote">"Every compiler error is a clue in the digital realm."</div>
-          <div class="motivation-subtext" id="daily-sub">Keep experimenting. Keep debugging. Level up.</div>
+          <div class="motivation-quote" id="daily-quote">"Every compiler error is a learning step towards mastery."</div>
+          <div class="motivation-subtext" id="daily-sub">Practice consistently. Debug methodically. Build skills.</div>
         </div>
 
-        <!-- Next Recommended Challenge -->
+        <!-- Next Recommended Problem -->
         <div class="card-cyber" data-reveal>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <div class="label" style="color: var(--xp-gold);">TACTICAL RECOMMENDATION</div>
-            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-emerald);">BOUNTY ACTIVE</span>
+            <div class="label" style="color: var(--xp-gold);">RECOMMENDED PRACTICE PROBLEM</div>
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-emerald);">READY TO PRACTICE</span>
           </div>
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; background: rgba(0, 242, 254, 0.04); border: 1px solid var(--border-cyan); border-radius: var(--radius-md); padding: 18px;">
             <div>
-              <div style="font-size: 11px; font-family: var(--font-cyber); color: var(--neon-cyan);">MISSION 19 · HARD</div>
+              <div style="font-size: 11px; font-family: var(--font-cyber); color: var(--neon-cyan);">PROBLEM 19 · HARD</div>
               <div style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin: 4px 0;">Dynamic Memory Allocation</div>
               <div style="font-size: 12px; color: var(--text-muted);">Pointers · malloc · free · Heap Management</div>
             </div>
             <a href="lab.html?problem=19" class="btn btn-primary btn-sm" data-magnetic>
-              ENTER MISSION (+150 XP) →
+              START PROBLEM (+150 Points) →
             </a>
           </div>
         </div>
 
-        <!-- Quest Log (Recent Activity) -->
+        <!-- Recent Submissions -->
         <div class="card-cyber" data-reveal>
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <div class="label" style="color: var(--text-faint);">MISSION LOGBOOK</div>
-            <a href="progress.html" style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-cyan);">VIEW JOURNEY →</a>
+            <div class="label" style="color: var(--text-faint);">RECENT SUBMISSIONS</div>
+            <a href="progress.html" style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-cyan);">VIEW PROGRESS →</a>
           </div>
           <div id="recent-list"></div>
         </div>
@@ -198,25 +198,26 @@
         <!-- 3D Interactive Core -->
         <div class="card-cyber" style="padding-bottom: 6px;" data-reveal>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div class="label" style="color: var(--neon-cyan);">CODEVERSE QUANTUM CORE</div>
+            <div class="label" style="color: var(--neon-cyan);">AI ASSISTANT SYSTEM CORE</div>
             <span class="status-dot cyan"></span>
           </div>
           <div class="sphere-box" id="dashboard-sphere"></div>
           <div style="text-align: center; font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-bottom: 8px;">
-            INTERACTIVE CORE · HOVER TO ENGAGE
+            INTERACTIVE 3D SYSTEM DISPLAY
           </div>
         </div>
 
-        <!-- Competency Radar -->
+        <!-- Competency / Skills -->
         <div class="card-cyber" data-reveal>
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <div class="label" style="color: var(--text-faint);">SKILL MASTERY GAUGES</div>
-            <a href="progress.html" style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-cyan);">MAP →</a>
+            <div class="label" style="color: var(--text-faint);">C CONCEPT MASTERY</div>
+            <a href="progress.html" style="font-size: 11px; font-family: var(--font-mono); color: var(--neon-cyan);">DETAILS →</a>
           </div>
           <div id="skills-list" style="display: grid; gap: 14px;"></div>
         </div>
       </div>
     </div>
+
 
   </div>
 

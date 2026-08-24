@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Journey Map — CODEVERSE</title>
-  <meta name="description" content="3D Interactive Learning Journey Constellation and Telemetry in CODEVERSE." />
+  <title>Student Progress — AI Lab Assistant</title>
+  <meta name="description" content="Interactive Learning Progress Roadmap and Analytics for C Programming." />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="../css/base.css" />
   <link rel="stylesheet" href="../css/components.css" />
@@ -77,9 +77,9 @@
   <div class="main-content" id="page-content">
     <div class="page-header anim-init anim-fade-up">
       <div>
-        <div class="label" style="color: var(--neon-cyan); margin-bottom: 4px;">CONSTELLATION TELEMETRY</div>
-        <h1 style="font-size: var(--text-3xl); font-weight: 900;">3D Learning Journey</h1>
-        <p style="font-size: var(--text-sm); color: var(--text-faint);">Explore your progression nodes across the C Programming language architecture.</p>
+        <div class="label" style="color: var(--neon-cyan); margin-bottom: 4px;">LEARNING PROGRESS & ANALYTICS</div>
+        <h1 style="font-size: var(--text-3xl); font-weight: 900;">Interactive Learning Roadmap</h1>
+        <p style="font-size: var(--text-sm); color: var(--text-faint);">Explore your completed and upcoming concepts across the C programming curriculum.</p>
       </div>
     </div>
 
@@ -88,14 +88,14 @@
       <div id="journey-canvas"></div>
       <div class="journey-tooltip" id="journey-map-tooltip"></div>
       <div style="position: absolute; bottom: 14px; left: 20px; font-family: var(--font-mono); font-size: 11px; color: var(--text-ghost); z-index: 10;">
-        ROTATE / HOVER NODES TO INSPECT CONCEPT MASTERY
+        ROTATE / HOVER NODES TO INSPECT CONCEPT DETAILS
       </div>
     </div>
 
-    <!-- ═══ TELEMETRY CHARTS ═══ -->
+    <!-- ═══ PROGRESS CHARTS ═══ -->
     <div class="progress-grid">
       <div class="chart-card-cyber" data-reveal>
-        <h3 style="font-size: var(--text-base); margin-bottom: 18px; color: #fff;">📈 Mastery Trajectory</h3>
+        <h3 style="font-size: var(--text-base); margin-bottom: 18px; color: #fff;">📈 Weekly Learning Progress</h3>
         <div style="height: 220px;">
           <canvas id="chart-timeline"></canvas>
         </div>
@@ -117,10 +117,11 @@
 
     <!-- Skill Matrices -->
     <div class="chart-card-cyber" data-reveal>
-      <h3 style="font-size: var(--text-base); margin-bottom: 20px; color: #fff;">🧠 Concept Mastery Gauges</h3>
+      <h3 style="font-size: var(--text-base); margin-bottom: 20px; color: #fff;">🧠 C Concept Competencies</h3>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" id="progress-skills-grid"></div>
     </div>
   </div>
+
 
   <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

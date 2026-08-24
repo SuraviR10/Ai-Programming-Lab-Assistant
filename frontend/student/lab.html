@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>C Code Editor — AI Lab Assistant</title>
-  <meta name="description" content="AI-Powered C Programming Laboratory for Students." />
+  <meta name="description" content="Modern AI-Powered C Programming Laboratory for College Students." />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,13 +14,10 @@
   <link rel="stylesheet" href="../css/components.css" />
   <link rel="stylesheet" href="../css/animations.css" />
 
-  <!-- Monaco Editor Script -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.js"></script>
-
   <style>
     body { overflow: hidden; }
 
-    /* Header Navigation */
+    /* Header Bar */
     .lab-header {
       height: 48px;
       background: #060a17;
@@ -73,7 +70,7 @@
       height: calc(100vh - 48px);
     }
 
-    /* Problem Description Panel */
+    /* Problem Panel */
     .problem-panel {
       overflow-y: auto;
       padding: 20px;
@@ -106,6 +103,7 @@
       flex-direction: column;
       overflow: hidden;
       background: #02050e;
+      height: 100%;
     }
 
     .editor-toolbar {
@@ -115,29 +113,52 @@
       padding: 8px 18px;
       border-bottom: 1px solid var(--border-subtle);
       background: #090f22;
+      flex-shrink: 0;
     }
 
-    #editor-wrap {
+    .code-editor-container {
       flex: 1;
       display: flex;
-      flex-direction: column;
       min-height: 320px;
+      background: #02050e;
       position: relative;
+      overflow: hidden;
+      cursor: text;
     }
 
-    #code-textarea {
+    .line-numbers-gutter {
+      width: 44px;
+      background: #060a17;
+      color: #475569;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 16px 8px 16px 0;
+      text-align: right;
+      user-select: none;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .code-textarea {
       flex: 1;
-      width: 100%;
-      min-height: 320px;
-      background: #040714;
+      background: transparent;
       color: #38bdf8;
       font-family: 'JetBrains Mono', monospace;
       font-size: 14px;
-      padding: 16px;
+      line-height: 1.6;
+      padding: 16px 16px 16px 12px;
       border: none;
       outline: none;
       resize: none;
-      line-height: 1.6;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+      overflow-y: auto;
+      tab-size: 4;
+      -moz-tab-size: 4;
+      caret-color: #00f2fe;
     }
 
     /* Output Terminal Area */
@@ -146,6 +167,7 @@
       max-height: 40vh;
       overflow-y: auto;
       background: #090f22;
+      flex-shrink: 0;
     }
 
     .output-tabs {
@@ -357,9 +379,10 @@
         </div>
       </div>
 
-      <!-- 100% Reliable Code Textarea / Monaco Container -->
-      <div id="editor-wrap">
-        <textarea id="code-textarea" spellcheck="false" placeholder="// Write your C program code here...&#10;#include <stdio.h>&#10;&#10;int main() {&#10;    printf(&quot;Hello, World!\\n&quot;);&#10;    return 0;&#10;}"></textarea>
+      <!-- 100% Reliable Code Editor Container with Line Numbers Gutter -->
+      <div class="code-editor-container" id="editor-container" onclick="focusEditor()">
+        <div class="line-numbers-gutter" id="line-numbers">1</div>
+        <textarea id="code-textarea" class="code-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="// Type or paste your C program code here...&#10;#include <stdio.h>&#10;&#10;int main() {&#10;    printf(&quot;Hello, World!\\n&quot;);&#10;    return 0;&#10;}"></textarea>
       </div>
 
       <!-- Output / Terminal Area -->
@@ -440,60 +463,77 @@
     const modeId = urlParams.get('id') || null;
 
     let currentProblem = null;
-    let editor = null;
-    let attemptCount = 0;
-    let hadErrorLastRun = false;
+    const textarea = document.getElementById('code-textarea');
+    const gutter = document.getElementById('line-numbers');
 
-    // Helper functions for reading and writing code safely
-    function getCodeValue() {
-      if (editor && typeof editor.getValue === 'function') {
-        return editor.getValue();
+    // ── Editor Helper Functions ────────────────────────────────
+    function updateLineNumbers() {
+      if (!textarea || !gutter) return;
+      const lines = textarea.value.split('\n').length || 1;
+      let lineNumsHtml = '';
+      for (let i = 1; i <= lines; i++) {
+        lineNumsHtml += i + '<br/>';
       }
-      const el = document.getElementById('code-textarea');
-      return el ? el.value : '';
+      gutter.innerHTML = lineNumsHtml;
+      gutter.scrollTop = textarea.scrollTop;
+    }
+
+    function focusEditor() {
+      if (textarea) textarea.focus();
+    }
+
+    function getCodeValue() {
+      return textarea ? textarea.value : '';
     }
 
     function setCodeValue(val) {
-      const el = document.getElementById('code-textarea');
-      if (el) el.value = val;
-      if (editor && typeof editor.setValue === 'function') {
-        editor.setValue(val);
+      if (textarea) {
+        textarea.value = val;
+        updateLineNumbers();
       }
     }
 
-    // Attempt Monaco Editor initialization if CDN is available, otherwise keep textarea
-    if (typeof require !== 'undefined') {
-      try {
-        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
-        require(['vs/editor/editor.main'], function () {
-          try {
-            const txtArea = document.getElementById('code-textarea');
-            const initialVal = txtArea ? txtArea.value : '';
+    // ── Keyboard Enhancements (Tab key, Auto-pairs, Ctrl+Enter) ──
+    if (textarea) {
+      textarea.addEventListener('input', updateLineNumbers);
+      textarea.addEventListener('scroll', () => {
+        if (gutter) gutter.scrollTop = textarea.scrollTop;
+      });
 
-            editor = monaco.editor.create(document.getElementById('editor-wrap'), {
-              value: initialVal,
-              language: 'c',
-              theme: 'vs-dark',
-              fontSize: 14,
-              fontFamily: "'JetBrains Mono', monospace",
-              lineNumbers: 'on',
-              minimap: { enabled: false },
-              automaticLayout: true,
-              tabSize: 4
-            });
+      textarea.addEventListener('keydown', function (e) {
+        // Run Code on Ctrl+Enter or Cmd+Enter
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          runCode();
+          return;
+        }
 
-            if (txtArea) txtArea.style.display = 'none';
+        // Tab indentation (inserts 4 spaces without losing focus)
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+          const spaces = '    ';
+          this.value = this.value.substring(0, start) + spaces + this.value.substring(end);
+          this.selectionStart = this.selectionEnd = start + spaces.length;
+          updateLineNumbers();
+        }
 
-            editor.onDidChangeModelContent(function () {
-              if (txtArea) txtArea.value = editor.getValue();
-            });
-
-            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
-          } catch (e) {
-            console.log('Monaco loading fallback active');
+        // Auto-close brackets & quotes
+        const pairs = { '(': ')', '{': '}', '[': ']', '"': '"', "'": "'" };
+        if (pairs[e.key]) {
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+          // Only auto-pair if no text is selected or wrapping
+          if (start === end) {
+            e.preventDefault();
+            const closeChar = pairs[e.key];
+            this.value = this.value.substring(0, start) + e.key + closeChar + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 1;
+            updateLineNumbers();
           }
-        });
-      } catch (e) {}
+        }
+      });
     }
 
     // Load problem data

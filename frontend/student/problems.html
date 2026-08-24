@@ -154,7 +154,7 @@
           <div class="mission-number">${String(p.id).padStart(2, '0')}</div>
           <div class="mission-header">
             <span class="difficulty-badge difficulty-${p.difficulty}">${p.difficulty.toUpperCase()}</span>
-            <span class="mission-xp-badge">★ +${xp} XP</span>
+            <span class="mission-xp-badge">★ +${xp} Points</span>
           </div>
           <div class="mission-title">${p.title}</div>
           <div class="mission-concepts">
@@ -162,10 +162,10 @@
           </div>
           <div class="mission-footer">
             <div style="font-family: var(--font-mono); font-size: 12px; color: ${p.status === 'completed' ? 'var(--neon-emerald)' : 'var(--text-ghost)'};">
-              ${p.status === 'completed' ? '✓ CONQUERED' : (p.status === 'attempted' ? '◌ IN PROGRESS' : '○ UNCLAIMED')}
+              ${p.status === 'completed' ? '✓ COMPLETED' : (p.status === 'attempted' ? '◌ IN PROGRESS' : '○ NOT STARTED')}
             </div>
             <div class="mission-cta">
-              ENGAGE MISSION →
+              START PROBLEM →
             </div>
           </div>
         `;
@@ -199,7 +199,7 @@
       });
     }
 
-    // ── Mission Launch Cinematic Sequence ─────────────────────
+    // ── Problem Launch Transition Sequence ─────────────────────
     function launchMission(problem) {
       if (typeof SoundFX !== 'undefined') SoundFX.playExecute();
 
@@ -209,26 +209,27 @@
       const telemetryEl = document.getElementById('launch-telemetry');
       const fillEl = document.getElementById('launch-progress-fill');
 
-      titleEl.textContent = `MISSION ${String(problem.id).padStart(2, '0')}: ${problem.title.toUpperCase()}`;
-      telemetryEl.textContent = 'INITIALIZING MATRIX ENVIRONMENT...';
+      titleEl.textContent = `PROBLEM ${String(problem.id).padStart(2, '0')}: ${problem.title.toUpperCase()}`;
+      telemetryEl.textContent = 'PREPARING CODE ENVIRONMENT...';
       fillEl.style.width = '0%';
 
       modal.classList.add('active');
 
       setTimeout(() => {
         fillEl.style.width = '60%';
-        telemetryEl.textContent = 'COMPILING MISSION BRIEFING & HEURISTICS...';
+        telemetryEl.textContent = 'LOADING PROBLEM DETAILS & TEST CASES...';
       }, 300);
 
       setTimeout(() => {
         fillEl.style.width = '100%';
-        telemetryEl.textContent = 'MISSION READY. DEPLOYING CADET...';
+        telemetryEl.textContent = 'PROBLEM READY. OPENING LAB...';
       }, 700);
 
       setTimeout(() => {
         window.location.href = pendingLaunchUrl;
       }, 1000);
     }
+
 
     function skipLaunchTransition() {
       if (pendingLaunchUrl) window.location.href = pendingLaunchUrl;

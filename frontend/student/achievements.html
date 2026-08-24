@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trophies & Badges — CODEVERSE</title>
-  <meta name="description" content="View unlocked cyber trophies and accolades in the CODEVERSE laboratory." />
+  <title>Milestones & Badges — AI Lab Assistant</title>
+  <meta name="description" content="View earned lab milestones and recognition in the AI C Programming Laboratory." />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="../css/base.css" />
   <link rel="stylesheet" href="../css/components.css" />
@@ -77,12 +77,12 @@
   <div class="main-content" id="page-content">
     <div class="page-header anim-init anim-fade-up">
       <div>
-        <div class="label" style="color: var(--neon-cyan); margin-bottom: 4px;">HONOR MATRIX</div>
-        <h1 style="font-size: var(--text-3xl); font-weight: 900;">Trophies & Accolades</h1>
-        <p style="font-size: var(--text-sm); color: var(--text-faint);">Earn recognition and massive XP bonuses by mastering laboratory objectives.</p>
+        <div class="label" style="color: var(--neon-cyan); margin-bottom: 4px;">STUDENT ACHIEVEMENTS</div>
+        <h1 style="font-size: var(--text-3xl); font-weight: 900;">Lab Milestones & Badges</h1>
+        <p style="font-size: var(--text-sm); color: var(--text-faint);">Earn recognition and bonus points by completing laboratory programs and challenges.</p>
       </div>
       <div style="display: flex; gap: 16px; font-family: var(--font-mono); font-size: var(--text-xs);">
-        <div><strong style="color: var(--xp-gold); font-size: 16px;">6 / 7</strong> <span style="color: var(--text-ghost);">UNLOCKED</span></div>
+        <div><strong style="color: var(--xp-gold); font-size: 16px;">6 / 7</strong> <span style="color: var(--text-ghost);">COMPLETED</span></div>
       </div>
     </div>
 
@@ -118,11 +118,11 @@
             <div>
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
                 <h4 style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: #fff;">${ach.title}</h4>
-                <span class="mission-xp-badge">+${ach.xp} XP</span>
+                <span class="mission-xp-badge" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px;">+${ach.xp} Points</span>
               </div>
               <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 8px;">${ach.description}</p>
               <div style="font-size: 10px; font-family: var(--font-mono); color: ${ach.earned ? 'var(--neon-emerald)' : 'var(--text-ghost)'};">
-                ${ach.earned ? `✓ UNLOCKED ${App.formatDate(ach.earnedDate)}` : '🔒 LOCKED'}
+                ${ach.earned ? `✓ COMPLETED ${App.formatDate(ach.earnedDate)}` : '🔒 LOCKED'}
               </div>
             </div>
           `;
@@ -136,3 +136,4 @@
   </script>
 </body>
 </html>
+

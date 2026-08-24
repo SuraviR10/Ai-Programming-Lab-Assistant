@@ -124,34 +124,34 @@
         </div>
       </div>
 
-      <h1 style="font-size: var(--text-2xl); font-weight: 800; margin-bottom: 6px;">Identify Programmer</h1>
-      <p style="font-size: var(--text-sm); color: var(--text-faint); margin-bottom: 24px;">Enter your credentials to enter the laboratory matrix.</p>
+      <h1 style="font-size: var(--text-2xl); font-weight: 800; margin-bottom: 6px;">Student & Faculty Login</h1>
+      <p style="font-size: var(--text-sm); color: var(--text-faint); margin-bottom: 24px;">Enter your college credentials to access the AI C Programming Laboratory.</p>
 
       <!-- Role Selector -->
       <div class="role-toggle-bar" role="tablist">
-        <button class="role-btn active" data-role="student" role="tab" id="btn-role-student">Student Cadet</button>
-        <button class="role-btn" data-role="faculty" role="tab" id="btn-role-faculty">Faculty Officer</button>
+        <button class="role-btn active" data-role="student" role="tab" id="btn-role-student">Student</button>
+        <button class="role-btn" data-role="faculty" role="tab" id="btn-role-faculty">Faculty</button>
       </div>
 
       <!-- Login Form -->
       <form id="terminal-login-form">
         <div class="input-group">
-          <label class="input-label" id="label-user-id" for="input-user-id">Student Cadet ID</label>
+          <label class="input-label" id="label-user-id" for="input-user-id">Student College ID</label>
           <input class="login-input" type="text" id="input-user-id" placeholder="e.g. STU2024001" autocomplete="username" required value="STU2024001" />
         </div>
 
         <div class="input-group" style="margin-bottom: 28px;">
-          <label class="input-label" for="input-password">Security Passcode</label>
+          <label class="input-label" for="input-password">Password</label>
           <input class="login-input" type="password" id="input-password" placeholder="••••••••" autocomplete="current-password" required value="password123" />
         </div>
 
         <button type="submit" class="btn btn-primary btn-lg" id="btn-submit-login" style="width: 100%;" data-magnetic>
-          <span style="font-family: var(--font-cyber); letter-spacing: 0.05em;">INITIALIZE SESSION →</span>
+          <span style="font-family: var(--font-cyber); letter-spacing: 0.05em;">SIGN IN →</span>
         </button>
       </form>
 
       <div style="text-align: center; margin-top: 24px; font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono);">
-        ENCRYPTED TELEMETRY ACTIVE · ALL PROGRESS SAVED
+        SECURE CLOUD SYNC · ALL LAB PROGRESS SAVED
       </div>
     </div>
   </div>
@@ -178,11 +178,11 @@
         if (typeof SoundFX !== 'undefined') SoundFX.playClick();
 
         if (selectedRole === 'faculty') {
-          labelUserId.textContent = 'Faculty Officer ID';
+          labelUserId.textContent = 'Faculty ID';
           inputUserId.placeholder = 'e.g. FAC2024001';
           inputUserId.value = 'FAC2024001';
         } else {
-          labelUserId.textContent = 'Student Cadet ID';
+          labelUserId.textContent = 'Student College ID';
           inputUserId.placeholder = 'e.g. STU2024001';
           inputUserId.value = 'STU2024001';
         }
@@ -194,7 +194,8 @@
       if (typeof SoundFX !== 'undefined') SoundFX.playExecute();
 
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner"></span> CONNECTING TO MATRIX...';
+      submitBtn.innerHTML = '<span class="spinner"></span> AUTHENTICATING...';
+
 
       const userId = inputUserId.value.trim() || (selectedRole === 'faculty' ? 'FAC2024001' : 'STU2024001');
 
