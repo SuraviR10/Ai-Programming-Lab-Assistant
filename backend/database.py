@@ -215,7 +215,66 @@ class SubmissionAnalysis(Base):
     timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+class LabManual(Base):
+    __tablename__ = "lab_manuals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    faculty_id = Column(String(64), index=True, nullable=False, default="FAC2024001")
+    file_name = Column(String(256), nullable=False)
+    file_path = Column(String(512), nullable=False)
+    uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    processing_status = Column(String(32), default="processing") # processing, completed, failed, scanned_pdf
+    total_detected_programs = Column(Integer, default=0)
+    verified_programs = Column(Integer, default=0)
+
+    programs = relationship("ManualProgram", back_populates="manual", cascade="all, delete-orphan")
+
+
+class ManualProgram(Base):
+    __tablename__ = "manual_programs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    manual_id = Column(Integer, ForeignKey("lab_manuals.id"), nullable=False)
+    program_number = Column(Integer, default=1)
+    title = Column(String(256), nullable=False)
+    problem_statement = Column(Text, nullable=False)
+    topic = Column(String(128), default="General C")
+    input_format = Column(Text, nullable=True)
+    output_format = Column(Text, nullable=True)
+    constraints = Column(Text, nullable=True)
+    sample_input = Column(Text, nullable=True)
+    sample_output = Column(Text, nullable=True)
+    reference_code = Column(Text, nullable=True)
+    extraction_confidence = Column(Float, default=0.9)
+    faculty_verified = Column(Boolean, default=False)
+    published = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    manual = relationship("LabManual", back_populates="programs")
+
+
+class ProgramTopic(Base):
+    __tablename__ = "program_topics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    manual_id = Column(Integer, ForeignKey("lab_manuals.id"), nullable=True)
+    topic_name = Column(String(128), nullable=False)
+    unit_number = Column(String(64), default="Unit 1")
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class ProgramExtractionLog(Base):
+    __tablename__ = "program_extraction_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    manual_id = Column(Integer, ForeignKey("lab_manuals.id"), nullable=False)
+    log_level = Column(String(16), default="info") # info, warning, error
+    message = Column(Text, nullable=False)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
 def get_db():
+
     db = SessionLocal()
     try:
         yield db

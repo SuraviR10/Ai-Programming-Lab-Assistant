@@ -25,17 +25,18 @@ def test_deployment_routes():
     assert res_health.status_code == 200
     assert res_health.json()["status"] == "ok"
 
-    print("\n--- 3. Testing Clean URL HTML Fallbacks (/login, /student/lab, /faculty/dashboard) ---")
-    for clean_path in ["/login", "/student/lab", "/student/dashboard", "/faculty/dashboard"]:
+    print("\n--- 3. Testing Clean URL HTML Fallbacks (/login, /student/lab, /faculty/dashboard, /faculty/manual) ---")
+    for clean_path in ["/login", "/student/lab", "/student/dashboard", "/faculty/dashboard", "/faculty/manual"]:
         res = client.get(clean_path)
         print(f"Path: {clean_path} -> Status: {res.status_code}")
         assert res.status_code == 200
 
-    print("\n--- 4. Testing Explicit HTML Paths (/index.html, /login.html, /student/lab.html) ---")
-    for html_path in ["/index.html", "/login.html", "/student/lab.html", "/student/dashboard.html", "/faculty/dashboard.html"]:
+    print("\n--- 4. Testing Explicit HTML Paths (/index.html, /login.html, /student/lab.html, /faculty/manual.html) ---")
+    for html_path in ["/index.html", "/login.html", "/student/lab.html", "/student/dashboard.html", "/faculty/dashboard.html", "/faculty/manual.html"]:
         res = client.get(html_path)
         print(f"Path: {html_path} -> Status: {res.status_code}")
         assert res.status_code == 200
+
 
     print("\n--- 5. Testing API Problems (/api/problems) ---")
     res_prob = client.get("/api/problems")

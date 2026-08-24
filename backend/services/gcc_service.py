@@ -13,14 +13,16 @@ def compile_and_run(code: str, input_data: str | None = None, timeout_sec: int =
     If compilation succeeds, executes the binary with optional input_data stdin piping.
     Returns structured results with stderr line numbers and stdout.
     """
+    target_dir = TEMP_DIR
     try:
-        os.makedirs(TEMP_DIR, exist_ok=True)
+        os.makedirs(target_dir, exist_ok=True)
     except (OSError, PermissionError):
-        TEMP_DIR = tempfile.gettempdir()
+        target_dir = tempfile.gettempdir()
 
     file_id = uuid.uuid4().hex
-    src_path = os.path.join(TEMP_DIR, f"{file_id}.c")
-    exe_path = os.path.join(TEMP_DIR, f"{file_id}.exe")
+    src_path = os.path.join(target_dir, f"{file_id}.c")
+    exe_path = os.path.join(target_dir, f"{file_id}.exe")
+
 
     start_time = time.time()
 

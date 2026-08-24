@@ -10,8 +10,9 @@ import re
 import random
 from groq import Groq
 from dotenv import load_dotenv
-from database import SessionLocal, Problem, TestCase, User
+from database import SessionLocal, Problem, TestCase, User, ManualProgram
 from services.groq_service import _client, GROQ_MODELS
+
 
 load_dotenv()
 
@@ -130,15 +131,26 @@ def generate_challenge_problem(concept: str = "Arrays", student_id: str = "STU20
         user = db.query(User).filter(User.user_id == student_id).first()
         student_level = user.level if user else 5
 
+        # Check for uploaded college lab manual programs related to concept
+        manual_prog = db.query(ManualProgram).filter(
+            ManualProgram.published == True,
+            ManualProgram.topic.ilike(f"%{concept}%")
+        ).first()
+
+        concept_context = concept
+        if manual_prog:
+            concept_context = f"{concept} (Context from Manual: {manual_prog.title} - {manual_prog.problem_statement[:100]})"
+
         problem_data = None
 
         # 1. Attempt Groq Generation if available
         if _client:
             prompt = _CHALLENGE_PROMPT.format(
-                concept=concept,
+                concept=concept_context,
                 difficulty=difficulty,
                 student_level=student_level
             )
+
             for model_name in GROQ_MODELS:
                 try:
                     response = _client.chat.completions.create(

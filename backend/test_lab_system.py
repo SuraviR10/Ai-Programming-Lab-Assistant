@@ -97,11 +97,55 @@ def test_ai_practice_and_activity_logging():
     print("PASSED: AI Practice challenge generator and tab switch activity logging verified.")
 
 
+def test_pdf_lab_manual_upload_and_verification():
+    print("\n--- 6. Testing PDF Lab Manual Upload & Faculty Verification Module ---")
+    import io
+
+    # Create dummy PDF bytes for testing upload
+    pdf_content = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<< /Root 1 0 R >>\n%%EOF"
+    file_tuple = ("test_manual.pdf", io.BytesIO(pdf_content), "application/pdf")
+
+    # Upload PDF Manual
+    res_upload = client.post("/api/faculty/manual/upload", files={"file": file_tuple}).json()
+    print("Upload Response:", res_upload)
+    assert res_upload.get("success") is True
+    manual_id = res_upload.get("manual_id")
+    assert manual_id is not None
+    assert res_upload.get("total_detected") >= 3
+
+    # Get Detected Programs for Review
+    res_programs = client.get(f"/api/faculty/manual/{manual_id}/programs").json()
+    assert res_programs.get("success") is True
+    progs = res_programs.get("programs", [])
+    assert len(progs) > 0
+    p1 = progs[0]
+    print("Detected Program 1:", p1.get("title"))
+
+    # Edit Program Details as Faculty
+    res_edit = client.put(f"/api/faculty/manual/program/{p1['id']}", json={
+        "title": "Largest of Three (Verified)",
+        "faculty_verified": True
+    }).json()
+    assert res_edit.get("success") is True
+
+    # Approve & Publish to Student Bank
+    res_approve = client.post(f"/api/faculty/manual/program/{p1['id']}/approve").json()
+    assert res_approve.get("success") is True
+
+    # Verify published problem exists in student problem bank
+    res_bank = client.get("/api/problems").json()
+    problem_titles = [p["title"] for p in res_bank.get("problems", [])]
+    assert "Largest of Three (Verified)" in problem_titles
+    print("PASSED: PDF Manual upload, exercise detection, faculty verification, and publication verified.")
+
+
 if __name__ == "__main__":
     test_clean_compilation_no_groq()
     test_syntax_error_groq_instructions()
     test_anti_hardcoding_and_creativity()
     test_faculty_suspicious_review()
     test_ai_practice_and_activity_logging()
+    test_pdf_lab_manual_upload_and_verification()
     print("\nALL SYSTEM INTEGRATION TESTS COMPLETED SUCCESSFULLY WITH ZERO ERRORS!")
+
 

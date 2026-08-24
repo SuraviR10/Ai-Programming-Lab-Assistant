@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "cleanUrls": true,
   "builds": [
     {
       "src": "api/index.py",
@@ -14,6 +15,42 @@
     {
       "src": "/api/(.*)",
       "dest": "api/index.py"
+    },
+    {
+      "src": "/",
+      "dest": "frontend/index.html"
+    },
+    {
+      "src": "/login",
+      "dest": "frontend/login.html"
+    },
+    {
+      "src": "/student/dashboard",
+      "dest": "frontend/student/dashboard.html"
+    },
+    {
+      "src": "/student/lab",
+      "dest": "frontend/student/lab.html"
+    },
+    {
+      "src": "/student/problems",
+      "dest": "frontend/student/problems.html"
+    },
+    {
+      "src": "/student/progress",
+      "dest": "frontend/student/progress.html"
+    },
+    {
+      "src": "/student/achievements",
+      "dest": "frontend/student/achievements.html"
+    },
+    {
+      "src": "/faculty/dashboard",
+      "dest": "frontend/faculty/dashboard.html"
+    },
+    {
+      "src": "/faculty/manual",
+      "dest": "frontend/faculty/manual.html"
     },
     {
       "src": "/student/(.*)",
@@ -32,28 +69,9 @@
       "dest": "frontend/js/$1"
     },
     {
-      "src": "/login",
-      "dest": "frontend/login.html"
-    },
-    {
-      "src": "/achievements",
-      "dest": "frontend/student/achievements.html"
-    },
-    {
-      "src": "/problems",
-      "dest": "frontend/student/problems.html"
-    },
-    {
-      "src": "/progress",
-      "dest": "frontend/student/progress.html"
-    },
-    {
-      "src": "/lab",
-      "dest": "frontend/student/lab.html"
-    },
-    {
       "src": "/(.*)",
       "dest": "frontend/$1"
     }
   ]
 }
+
