@@ -290,6 +290,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
 
   <script src="../js/api.js"></script>
+  <script src="../js/security.js"></script>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
@@ -317,6 +318,10 @@
       viewportMargin: Infinity,
       autofocus: true
     });
+
+    if (typeof attachCodeMirrorCopyPasteBlock === 'function') {
+      attachCodeMirrorCopyPasteBlock(cmEditor);
+    }
 
     cmEditor.on('change', () => {
       if (examData && examData.problems && examData.problems[activeProblemIdx]) {

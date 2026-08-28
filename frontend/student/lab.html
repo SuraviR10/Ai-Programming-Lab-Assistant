@@ -690,8 +690,9 @@ int main() {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
 
-  <!-- JavaScript API & Logic -->
+  <!-- JavaScript API, Security & Logic -->
   <script src="../js/api.js"></script>
+  <script src="../js/security.js"></script>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
@@ -733,29 +734,31 @@ int main() {
       focusEditor();
     }
 
+    window.addEventListener('blur', () => handleTabSwitchViolation('Window lost focus'));
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        handleTabSwitchViolation('Browser tab switched');
-      }
+      if (document.hidden) handleTabSwitchViolation('Tab switched or browser minimized');
     });
 
-    window.addEventListener('blur', () => {
-      handleTabSwitchViolation('Window focus lost');
-    });
-
-    // ── Initialize CodeMirror if available, else native textarea fallback ──
+    // Initialize CodeMirror Editor
     try {
       if (typeof CodeMirror !== 'undefined' && textarea) {
         cmEditor = CodeMirror.fromTextArea(textarea, {
           mode: 'text/x-csrc',
           theme: 'material-darker',
           lineNumbers: true,
-          indentUnit: 4,
-          tabSize: 4,
           lineWrapping: false,
-          viewportMargin: Infinity,
-          autofocus: true
+          tabSize: 4,
+          indentUnit: 4,
+          indentWithTabs: false,
+          matchBrackets: true,
+          autoCloseBrackets: true,
+          viewportMargin: Infinity
         });
+
+        // Attach strict anti-copy-paste hook
+        if (typeof attachCodeMirrorCopyPasteBlock === 'function') {
+          attachCodeMirrorCopyPasteBlock(cmEditor);
+        }
 
         if (gutter) gutter.style.display = 'none';
 
