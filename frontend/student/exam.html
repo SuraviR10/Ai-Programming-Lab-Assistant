@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strict Proctored Examination Console — CODEVERSE</title>
+  <meta name="description" content="Secure Fullscreen Lockdown Environment for Practical C Programming Examinations." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- CodeMirror CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css" />
+
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <style>
+    /* Fullscreen Lockdown Layout — No Standard Sidebar Allowed */
+    body {
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .exam-header {
+      height: 60px;
+      background: rgba(5, 8, 22, 0.95);
+      border-bottom: 1px solid rgba(239, 68, 68, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+      position: relative;
+    }
+
+    .exam-timer {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 800;
+      color: #fbbf24;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      padding: 6px 16px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .exam-timer.urgent {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.15);
+      border-color: #ef4444;
+      animation: pulse 1s infinite;
+    }
+
+    .exam-body {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      height: calc(100vh - 60px);
+      position: relative;
+    }
+
+    .exam-left {
+      background: rgba(13, 21, 46, 0.85);
+      border-right: 1px solid var(--border-subtle);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .exam-right {
+      display: flex;
+      flex-direction: column;
+      background: #050816;
+      height: 100%;
+    }
+
+    .q-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+    }
+
+    .q-tab {
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      color: var(--text-ghost);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .q-tab.active {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      border-color: #ef4444;
+      color: #fff;
+    }
+
+    .editor-section {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .CodeMirror {
+      height: 100%;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      background: #090d1f !important;
+    }
+
+    .terminal-section {
+      height: 180px;
+      background: #030612;
+      border-top: 1px solid var(--border-subtle);
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-output {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #38bdf8;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* Strict Anti-Cheat Fullscreen Alert Overlay */
+    .violation-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 5, 10, 0.96);
+      backdrop-filter: blur(20px);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .violation-overlay.show {
+      display: flex;
+    }
+
+    .violation-card {
+      background: #140509;
+      border: 2px solid #ef4444;
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      max-width: 540px;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(239, 68, 68, 0.6);
+    }
+  </style>
+</head>
+
+<body class="theme-cyberpunk">
+  <div class="cyber-grid-bg"></div>
+
+  <!-- Exam Top Navigation Bar -->
+  <header class="exam-header">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <span style="font-family: var(--font-cyber); font-size: 14px; font-weight: 900; color: #ef4444; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px;">
+        <span>🔒</span> PROCTORED EXAM LOCKDOWN
+      </span>
+      <span id="exam-title-badge" style="font-size: 13px; color: #fff; font-weight: 700;">Loading Exam...</span>
+    </div>
+
+    <!-- Live Synced Countdown Timer -->
+    <div class="exam-timer" id="exam-timer">
+      <span>⏱</span> <span id="timer-display">45:00</span>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span id="autosave-indicator" style="font-size: 11px; font-family: var(--font-mono); color: #10b981;">● Autosaved</span>
+      <button class="btn" onclick="confirmEndExam()" style="padding: 8px 20px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 6px; color: #fff; font-weight: 800; cursor: pointer; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);">
+        End & Submit Exam
+      </button>
+    </div>
+  </header>
+
+  <!-- Exam Main Split View -->
+  <div class="exam-body">
+    <!-- Left Panel: Questions, Descriptions & Rules -->
+    <aside class="exam-left">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span class="label" style="color: #ef4444;">EXAM QUESTIONS</span>
+          <span style="font-size: 11px; font-family: var(--font-mono); color: #f87171;">AI POLICY: DISABLED</span>
+        </div>
+
+        <!-- Question Tabs -->
+        <div class="q-tabs" id="q-tabs-container"></div>
+
+        <!-- Active Question Details -->
+        <h2 id="q-title" style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 8px;">
+          Question 1
+        </h2>
+        <div id="q-desc" style="font-size: 13px; color: var(--text-ghost); line-height: 1.6; margin-bottom: 16px;">
+          Select a question to inspect requirements.
+        </div>
+
+        <div style="background: rgba(5, 8, 22, 0.6); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px;">
+          <div class="label" style="font-size: 10px; color: #a5b4fc; margin-bottom: 4px;">SAMPLE INPUT</div>
+          <pre id="q-sample-input" style="font-family: var(--font-mono); font-size: 12px; color: #fff; margin: 0;">None</pre>
+        </div>
+
+        <div style="background: rgba(5, 8, 22, 0.6); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px;">
+          <div class="label" style="font-size: 10px; color: #34d399; margin-bottom: 4px;">EXPECTED OUTPUT</div>
+          <pre id="q-sample-output" style="font-family: var(--font-mono); font-size: 12px; color: #34d399; margin: 0;">Output</pre>
+        </div>
+      </div>
+
+      <!-- Security Notice Footer in Sidebar -->
+      <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 10px; font-size: 11px; color: #fca5a5; line-height: 1.5;">
+        ⚠️ <strong>Security Notice:</strong> Tab switches and keyboard shortcuts are recorded. Leaving this window triggers real-time alerts on your faculty console.
+      </div>
+    </aside>
+
+    <!-- Right Panel: CodeMirror Editor & Output Terminal -->
+    <main class="exam-right">
+      <!-- Editor Controls Bar -->
+      <div style="height: 42px; background: rgba(13, 21, 46, 0.9); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; color: #a5b4fc;" id="active-filename">solution_q1.c</span>
+        <button class="btn" id="btn-run-exam" onclick="runExamCode()" style="padding: 5px 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 6px; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer;">
+          ▶ Run & Test Code
+        </button>
+      </div>
+
+      <!-- CodeMirror Editor Container -->
+      <div class="editor-section">
+        <textarea id="exam-textarea"></textarea>
+      </div>
+
+      <!-- Output Terminal -->
+      <div class="terminal-section">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span class="label" style="color: #38bdf8; font-size: 10px;">EXECUTION OUTPUT</span>
+          <span id="run-status-text" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-ghost);">READY</span>
+        </div>
+        <div class="terminal-output" id="terminal-output-box">Click 'Run & Test Code' to compile your solution with GCC MinGW...</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ═══ CRITICAL PROCTORING VIOLATION OVERLAY ═══ -->
+  <div class="violation-overlay" id="violation-overlay">
+    <div class="violation-card">
+      <div style="font-size: 52px; margin-bottom: 12px;">🚨</div>
+      <h2 style="font-family: var(--font-display); font-size: 22px; font-weight: 900; color: #ef4444; margin-bottom: 8px;">
+        CRITICAL EXAM INTEGRITY VIOLATION
+      </h2>
+      <p style="font-size: 14px; color: #fecdd3; line-height: 1.6; margin-bottom: 20px;">
+        Focus loss, tab switching, or exiting fullscreen was detected. This incident has been logged and reported to the Faculty Dashboard.
+      </p>
+
+      <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 8px; padding: 14px; margin-bottom: 24px;">
+        <div style="font-size: 13px; color: #fff; font-weight: 700;">
+          Total Recorded Violations: <span id="overlay-violation-count" style="color: #ef4444; font-size: 18px; font-family: var(--font-mono);">1</span> / 3
+        </div>
+        <div style="font-size: 11.5px; color: #fca5a5; margin-top: 4px;">
+          Exceeding the violation limit will flag your exam for disciplinary review.
+        </div>
+      </div>
+
+      <button class="btn" onclick="dismissViolation()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 8px; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);">
+        I Understand & Resume Examination Fullscreen
+      </button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+
+  <script src="../js/api.js"></script>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const examId = parseInt(urlParams.get('id')) || 1;
+    const studentId = API.getStudentId();
+
+    let examData = null;
+    let activeProblemIdx = 0;
+    let codeMap = {}; // { problem_id: code_string }
+    let remainingSeconds = 2700;
+    let timerInterval = null;
+    let cmEditor = null;
+    let violationCount = 0;
+    let isViolationModalOpen = false;
+
+    // Initialize CodeMirror
+    const textarea = document.getElementById('exam-textarea');
+    cmEditor = CodeMirror.fromTextArea(textarea, {
+      mode: 'text/x-csrc',
+      theme: 'material-darker',
+      lineNumbers: true,
+      indentUnit: 4,
+      tabSize: 4,
+      lineWrapping: false,
+      viewportMargin: Infinity,
+      autofocus: true
+    });
+
+    cmEditor.on('change', () => {
+      if (examData && examData.problems && examData.problems[activeProblemIdx]) {
+        const pId = examData.problems[activeProblemIdx].id;
+        codeMap[pId] = cmEditor.getValue();
+      }
+    });
+
+    // ── Strict Anti-Cheat Keyboard & Mouse Lockdown ─────────────
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    document.addEventListener('keydown', (e) => {
+      // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U (Inspect Element)
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) {
+        e.preventDefault();
+        recordViolation('Attempted to open browser developer tools / inspect');
+        return false;
+      }
+      // Block Ctrl+N, Ctrl+T, Ctrl+W
+      if (e.ctrlKey && (e.key === 't' || e.key === 'n' || e.key === 'w')) {
+        e.preventDefault();
+        recordViolation('Attempted browser navigation shortcut');
+        return false;
+      }
+    });
+
+    // Detect Tab Switch, Window Blur & Fullscreen Exit
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        recordViolation('Tab switched or browser minimized');
+      }
+    });
+
+    window.addEventListener('blur', () => {
+      recordViolation('Browser window focus lost');
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        recordViolation('Exited fullscreen lockdown');
+      }
+    });
+
+    function recordViolation(reason) {
+      if (isViolationModalOpen) return;
+      violationCount++;
+      isViolationModalOpen = true;
+
+      document.getElementById('overlay-violation-count').textContent = violationCount;
+      document.getElementById('violation-overlay').classList.add('show');
+
+      // Log immediately to backend
+      API.logActivity('exam_tab_switch', `Student ${studentId} triggered exam violation #${violationCount} during Exam #${examId}: ${reason}`).catch(() => {});
+    }
+
+    function dismissViolation() {
+      document.getElementById('violation-overlay').classList.remove('show');
+      isViolationModalOpen = false;
+
+      // Re-enter Fullscreen
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+      if (cmEditor) cmEditor.focus();
+    }
+
+    // ── Start & Load Exam ───────────────────────────────────────
+    async function initExam() {
+      try {
+        const res = await API.startExam(examId);
+        if (res.success && res.exam) {
+          examData = res.exam;
+          remainingSeconds = res.exam.remaining_seconds || (res.exam.duration_minutes * 60);
+
+          document.getElementById('exam-title-badge').textContent = res.exam.title;
+          renderQuestionTabs(res.exam.problems);
+          selectQuestion(0);
+          startTimer();
+
+          // Auto-save every 30 seconds
+          setInterval(autoSaveExamDraft, 30000);
+        } else {
+          alert('Failed to initialize exam: ' + (res.detail || 'Error'));
+        }
+      } catch (err) {
+        alert('Exam startup error: ' + err.message);
+      }
+    }
+
+    function renderQuestionTabs(problems) {
+      const container = document.getElementById('q-tabs-container');
+      container.innerHTML = problems.map((p, idx) => `
+        <button class="q-tab ${idx === 0 ? 'active' : ''}" onclick="selectQuestion(${idx})" id="q-tab-${idx}">
+          Q${idx+1}
+        </button>
+      `).join('');
+
+      // Populate initial code map
+      problems.forEach(p => {
+        if (!codeMap[p.id]) {
+          codeMap[p.id] = p.starter_code || '#include <stdio.h>\n\nint main() {\n    // Write your C exam solution here\n    \n    return 0;\n}\n';
+        }
+      });
+    }
+
+    function selectQuestion(idx) {
+      if (!examData || !examData.problems || !examData.problems[idx]) return;
+
+      activeProblemIdx = idx;
+      document.querySelectorAll('.q-tab').forEach((t, i) => {
+        t.classList.toggle('active', i === idx);
+      });
+
+      const p = examData.problems[idx];
+      document.getElementById('q-title').textContent = `Question 0${idx+1}: ${p.title}`;
+      document.getElementById('q-desc').textContent = p.description;
+      document.getElementById('q-sample-input').textContent = p.sample_input || 'None (no stdin required)';
+      document.getElementById('q-sample-output').textContent = p.sample_output || p.expected_output || 'Program Output';
+      document.getElementById('active-filename').textContent = `solution_q${idx+1}.c`;
+
+      // Set editor code
+      const currentCode = codeMap[p.id] || p.starter_code || '';
+      cmEditor.setValue(currentCode);
+    }
+
+    // ── Run & Compile Code with GCC ─────────────────────────────
+    async function runExamCode() {
+      if (!examData || !examData.problems || !examData.problems[activeProblemIdx]) return;
+      const p = examData.problems[activeProblemIdx];
+      const code = cmEditor.getValue();
+      const statusEl = document.getElementById('run-status-text');
+      const termBox = document.getElementById('terminal-output-box');
+
+      statusEl.textContent = 'COMPILING...';
+      statusEl.style.color = '#fbbf24';
+      termBox.textContent = 'Compiling solution with GCC MinGW...';
+
+      try {
+        const res = await API.runCode(code, p.id, p.sample_input || null, 'exam');
+        if (res.success) {
+          statusEl.textContent = 'COMPILED & EXECUTED';
+          statusEl.style.color = '#10b981';
+          termBox.textContent = res.output || '[Program executed with no console output]';
+        } else {
+          statusEl.textContent = 'COMPILATION ERROR';
+          statusEl.style.color = '#ef4444';
+          termBox.textContent = res.compiler_error || 'Compilation failed.';
+        }
+      } catch (err) {
+        statusEl.textContent = 'EXECUTION ERROR';
+        termBox.textContent = 'Compiler error: ' + err.message;
+      }
+    }
+
+    // ── Timer & Autosave ────────────────────────────────────────
+    function startTimer() {
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        remainingSeconds--;
+        updateTimerDisplay();
+
+        if (remainingSeconds <= 0) {
+          clearInterval(timerInterval);
+          alert('⏰ TIME EXPIRED: Your examination is being submitted automatically.');
+          submitExamFinal();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(remainingSeconds / 60);
+      const secs = remainingSeconds % 60;
+      const display = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      const timerEl = document.getElementById('timer-display');
+      const box = document.getElementById('exam-timer');
+
+      timerEl.textContent = display;
+      if (remainingSeconds < 300) {
+        box.classList.add('urgent');
+      }
+    }
+
+    async function autoSaveExamDraft() {
+      if (!examData) return;
+      const indicator = document.getElementById('autosave-indicator');
+      try {
+        await API.autosaveExam(examId, codeMap);
+        indicator.textContent = '● Draft Saved ' + new Date().toLocaleTimeString();
+      } catch (e) {}
+    }
+
+    // ── Final Submission ────────────────────────────────────────
+    function confirmEndExam() {
+      const confirmMsg = "Are you sure you want to end and submit your practical exam?\n\nOnce submitted, your solutions will be finalized and graded.";
+      if (confirm(confirmMsg)) {
+        submitExamFinal();
+      }
+    }
+
+    async function submitExamFinal() {
+      clearInterval(timerInterval);
+      const btn = document.querySelector('.exam-header button');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Submitting Exam...';
+      }
+
+      try {
+        const res = await API.submitExam(examId, codeMap);
+        if (res.success) {
+          alert(`✓ Examination Submitted Successfully!\nFinal Score: ${res.score} / 10`);
+          window.location.href = 'exams.html';
+        } else {
+          alert('Submission error: ' + (res.detail || 'Failed to submit'));
+        }
+      } catch (err) {
+        alert('Submission failed: ' + err.message);
+      }
+    }
+
+    // Initialize on load & trigger fullscreen
+    window.addEventListener('DOMContentLoaded', () => {
+      initExam();
+      document.documentElement.requestFullscreen().catch(() => {});
+    });
+  </script>
+</body>
+</html>

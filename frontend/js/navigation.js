@@ -14,15 +14,17 @@ const Navigation = (() => {
     students: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
     analytics: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>',
     sessions: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    exams: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
     logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
   };
 
   const studentMenu = [
-    { id: 'dashboard',    label: 'Dashboard',      icon: 'dashboard',    href: 'student/dashboard.html' },
-    { id: 'problems',     label: 'Lab Problems',   icon: 'problems',     href: 'student/problems.html' },
-    { id: 'lab',          label: 'C Code Editor',  icon: 'lab',          href: 'student/lab.html' },
-    { id: 'progress',     label: 'My Progress',    icon: 'progress',     href: 'student/progress.html' },
-    { id: 'achievements', label: 'Milestones',     icon: 'achievements', href: 'student/achievements.html' },
+    { id: 'dashboard',    label: 'Dashboard',         icon: 'dashboard',    href: 'student/dashboard.html' },
+    { id: 'problems',     label: 'Lab Problems',      icon: 'problems',     href: 'student/problems.html' },
+    { id: 'exams',        label: 'Exams & Write-ups', icon: 'exams',        href: 'student/exams.html' },
+    { id: 'lab',          label: 'C Code Editor',     icon: 'lab',          href: 'student/lab.html' },
+    { id: 'progress',     label: 'My Progress',       icon: 'progress',     href: 'student/progress.html' },
+    { id: 'achievements', label: 'Milestones',        icon: 'achievements', href: 'student/achievements.html' },
   ];
 
   const facultyMenu = [

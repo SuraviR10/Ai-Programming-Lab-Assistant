@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exams & Weekly Write-Ups — CODEVERSE</title>
+  <meta name="description" content="Proctored Practical Exams and Weekly Laboratory Write-ups for C Programming." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <style>
+    .main-content {
+      margin-left: 260px;
+      min-height: 100vh;
+      padding: 32px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      padding: 10px 22px;
+      background: rgba(13, 21, 46, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-ghost);
+      font-family: var(--font-display);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+      border-color: #6366f1;
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(79, 70, 229, 0.2) 100%);
+      border-color: #6366f1;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .exam-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 20px;
+    }
+
+    .exam-card {
+      background: rgba(13, 21, 46, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .exam-card:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .exam-card.strict-mode {
+      border-left: 4px solid #ef4444;
+    }
+
+    .exam-card.writeup-mode {
+      border-left: 4px solid #6366f1;
+    }
+
+    .security-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .security-lockdown {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+
+    .security-standard {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+    }
+
+    .rules-banner {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 768px) {
+      .main-content { margin-left: 0; padding: 20px; }
+      .exam-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body class="theme-cyberpunk">
+  <div class="cyber-grid-bg"></div>
+
+  <!-- Main Content Area -->
+  <div class="main-content" id="page-content">
+    <!-- Header -->
+    <header class="top-header" style="margin-bottom: 24px;">
+      <div>
+        <div class="label" style="color: var(--neon-cyan); margin-bottom: 4px;">ASSESSMENT CONSOLE</div>
+        <h1 style="font-family: var(--font-display); font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          Practical Exams & Lab Write-Ups
+        </h1>
+        <p style="color: var(--text-ghost); font-size: 14px; margin-top: 4px;">
+          Access strict proctored examinations and submit structured weekly laboratory write-up assignments.
+        </p>
+      </div>
+    </header>
+
+    <!-- Security Protocol Banner -->
+    <div class="rules-banner">
+      <div style="display: flex; align-items: flex-start; gap: 14px;">
+        <div style="font-size: 28px;">🛡️</div>
+        <div>
+          <h3 style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: #f87171; margin-bottom: 6px;">
+            STRICT EXAMINATION SECURITY & PROCTORING PROTOCOL
+          </h3>
+          <ul style="margin: 0; padding-left: 18px; font-size: 12.5px; color: #cbd5e1; line-height: 1.7;">
+            <li><strong>Fullscreen Lockdown:</strong> Practical exams run in forced fullscreen mode. Exiting fullscreen is recorded as a security violation.</li>
+            <li><strong>No Tab Switching:</strong> Switching tabs or minimizing the browser is strictly monitored and transmitted live to the Faculty Dashboard.</li>
+            <li><strong>Keyboard Restrictions:</strong> Shortcut keys (Alt+Tab, Ctrl+W, Ctrl+T, Ctrl+N, F12) and copy-pasting from outside are disabled.</li>
+            <li><strong>Submission Rule:</strong> Your work is submitted ONLY when you explicitly press <strong>"End & Submit Exam"</strong> or when the countdown timer expires.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-exams')">
+        <span>⏱️</span> Strict Practical Exams (<span id="count-exams">1</span>)
+      </button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-writeups')">
+        <span>📝</span> Weekly Lab Write-Ups (<span id="count-writeups">1</span>)
+      </button>
+    </div>
+
+    <!-- ── TAB 1: Practical Exams ── -->
+    <div id="tab-exams" class="tab-panel active">
+      <div class="exam-grid" id="exams-grid">
+        <div style="color: var(--text-ghost); padding: 24px;">Loading active exams...</div>
+      </div>
+    </div>
+
+    <!-- ── TAB 2: Weekly Lab Write-ups ── -->
+    <div id="tab-writeups" class="tab-panel">
+      <div class="exam-grid" id="writeups-grid">
+        <div style="color: var(--text-ghost); padding: 24px;">Loading weekly write-ups...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/audio.js"></script>
+  <script src="../js/cursor.js"></script>
+  <script src="../js/toast.js"></script>
+  <script src="../js/animations.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/app.js"></script>
+
+  <script>
+    function switchTab(e, tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+      e.currentTarget.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    App.init({
+      role: 'student',
+      activeNav: 'exams',
+      onReady: async () => {
+        await loadExams();
+        await loadWriteups();
+      }
+    });
+
+    async function loadExams() {
+      const grid = document.getElementById('exams-grid');
+      try {
+        const res = await API.getExams();
+        const exams = (res.success && res.exams) ? res.exams : [];
+
+        document.getElementById('count-exams').textContent = exams.length;
+
+        if (exams.length === 0) {
+          grid.innerHTML = '<div style="color: var(--text-ghost); padding: 24px;">No active practical exams scheduled at this time.</div>';
+          return;
+        }
+
+        grid.innerHTML = exams.map(ex => {
+          const isSubmitted = ex.status === 'submitted';
+          const isExpired = ex.status === 'expired';
+
+          return `
+            <div class="exam-card strict-mode">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <span class="security-badge security-lockdown">🔒 STRICT LOCKDOWN</span>
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: #fbbf24; font-weight: 700;">⏱ ${ex.duration_minutes} MINS</span>
+                </div>
+
+                <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 6px;">
+                  ${escapeHtml(ex.title)}
+                </h3>
+                <p style="font-size: 13px; color: var(--text-ghost); line-height: 1.5; margin-bottom: 16px;">
+                  ${escapeHtml(ex.description)}
+                </p>
+
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+                  <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-size: 11px; color: #a5b4fc;">${escapeHtml(ex.topics)}</span>
+                  <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-size: 11px; color: #38bdf8;">${ex.questions_count} Problems</span>
+                  <span style="background: rgba(239,68,68,0.15); color: #f87171; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">AI Disabled</span>
+                </div>
+              </div>
+
+              <div>
+                ${isSubmitted ? `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; margin-bottom: 10px;">
+                    <span style="color: #10b981; font-weight: 700; font-size: 12px;">✓ SUBMITTED</span>
+                    <span style="color: #10b981; font-family: var(--font-mono); font-weight: 800; font-size: 14px;">Score: ${ex.score} / 10</span>
+                  </div>
+                  <button class="btn" onclick="window.location.href='exam.html?id=${ex.id}'" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                    View Exam Submissions
+                  </button>
+                ` : isExpired ? `
+                  <div style="padding: 10px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; color: #f87171; text-align: center; font-size: 12px; font-weight: 700;">
+                    ⌛ TIME EXPIRED
+                  </div>
+                ` : `
+                  <button class="btn btn-primary" onclick="launchExam(${ex.id})" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 8px; color: #fff; font-weight: 800; cursor: pointer; box-shadow: 0 0 20px rgba(239,68,68,0.4); display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <span>🛡️</span> Start Proctored Exam
+                  </button>
+                `}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        grid.innerHTML = '<div style="color: #f43f5e; padding: 24px;">Failed to load examination schedule.</div>';
+      }
+    }
+
+    async function loadWriteups() {
+      const grid = document.getElementById('writeups-grid');
+      try {
+        const res = await API.getWriteups();
+        const writeups = (res.success && res.writeups) ? res.writeups : [];
+
+        document.getElementById('count-writeups').textContent = writeups.length;
+
+        if (writeups.length === 0) {
+          grid.innerHTML = '<div style="color: var(--text-ghost); padding: 24px;">No active weekly write-ups assigned.</div>';
+          return;
+        }
+
+        grid.innerHTML = writeups.map(w => {
+          const isSubmitted = w.status === 'submitted';
+
+          return `
+            <div class="exam-card writeup-mode">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <span class="security-badge security-standard">📝 WEEKLY WRITE-UP</span>
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: #38bdf8; font-weight: 700;">⏱ ${w.duration_minutes} MINS</span>
+                </div>
+
+                <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 6px;">
+                  ${escapeHtml(w.title)}
+                </h3>
+                <p style="font-size: 13px; color: var(--text-ghost); line-height: 1.5; margin-bottom: 16px;">
+                  ${escapeHtml(w.description)}
+                </p>
+
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+                  <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-size: 11px; color: #a5b4fc;">${escapeHtml(w.topics)}</span>
+                  <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-size: 11px; color: #38bdf8;">${w.questions_count} Problems</span>
+                  <span style="background: rgba(99,102,241,0.15); color: #818cf8; padding: 3px 8px; border-radius: 4px; font-size: 11px;">Algorithm Analysis</span>
+                </div>
+              </div>
+
+              <div>
+                ${isSubmitted ? `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; margin-bottom: 10px;">
+                    <span style="color: #10b981; font-weight: 700; font-size: 12px;">✓ SUBMITTED</span>
+                    <span style="color: #10b981; font-family: var(--font-mono); font-weight: 800; font-size: 14px;">Score: ${w.score} / 10</span>
+                  </div>
+                  <button class="btn" onclick="window.location.href='writeup.html?id=${w.id}'" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                    View Write-Up Solutions
+                  </button>
+                ` : `
+                  <button class="btn btn-primary" onclick="window.location.href='writeup.html?id=${w.id}'" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 8px; color: #fff; font-weight: 800; cursor: pointer; box-shadow: 0 0 20px rgba(99,102,241,0.4); display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <span>✍️</span> Start Weekly Write-Up
+                  </button>
+                `}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        grid.innerHTML = '<div style="color: #f43f5e; padding: 24px;">Failed to load write-up schedule.</div>';
+      }
+    }
+
+    function launchExam(examId) {
+      if (confirm("⚠️ PROCTORED EXAM WARNING:\n\n1. Fullscreen mode will be requested.\n2. Tab switching or minimizing is strictly prohibited and sent live to faculty.\n3. The exam will ONLY submit when you click 'End & Submit Exam' or time expires.\n\nAre you ready to start now?")) {
+        window.location.href = `exam.html?id=${examId}`;
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weekly Laboratory Write-Up — CODEVERSE</title>
+  <meta name="description" content="Weekly Laboratory Problem Solutions & Structured Algorithmic Write-ups." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- CodeMirror CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css" />
+
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/animations.css" />
+
+  <style>
+    .writeup-header {
+      height: 60px;
+      background: rgba(5, 8, 22, 0.95);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+      position: relative;
+    }
+
+    .writeup-body {
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      height: calc(100vh - 60px);
+      position: relative;
+    }
+
+    .writeup-left {
+      background: rgba(13, 21, 46, 0.85);
+      border-right: 1px solid var(--border-subtle);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .writeup-right {
+      display: flex;
+      flex-direction: column;
+      background: #050816;
+      height: 100%;
+    }
+
+    .q-tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+    }
+
+    .q-tab {
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      color: var(--text-ghost);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .q-tab.active {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      border-color: #6366f1;
+      color: #fff;
+    }
+
+    .editor-section {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .CodeMirror {
+      height: 100%;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      background: #090d1f !important;
+    }
+
+    .terminal-section {
+      height: 160px;
+      background: #030612;
+      border-top: 1px solid var(--border-subtle);
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-output {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #38bdf8;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .analysis-input {
+      width: 100%;
+      background: rgba(5, 8, 22, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: #fff;
+      padding: 10px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .analysis-input:focus {
+      outline: none;
+      border-color: #6366f1;
+    }
+  </style>
+</head>
+
+<body class="theme-cyberpunk">
+  <div class="cyber-grid-bg"></div>
+
+  <!-- Header -->
+  <header class="writeup-header">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <a href="exams.html" style="color: var(--text-ghost); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 4px;">
+        ← Exit Write-Up
+      </a>
+      <span style="font-family: var(--font-cyber); font-size: 14px; font-weight: 800; color: #818cf8; letter-spacing: 0.08em;">
+        📝 WEEKLY LAB WRITE-UP
+      </span>
+      <span id="writeup-title-badge" style="font-size: 13px; color: #fff; font-weight: 700;">Loading Write-up...</span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <span id="autosave-indicator" style="font-size: 11px; font-family: var(--font-mono); color: #10b981;">● Autosaved</span>
+      <button class="btn btn-primary" onclick="submitWriteupFinal()" style="padding: 8px 22px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 6px; color: #fff; font-weight: 800; cursor: pointer; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);">
+        Submit Laboratory Write-Up
+      </button>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="writeup-body">
+    <!-- Left: Problem Spec & Algorithmic Analysis Form -->
+    <aside class="writeup-left">
+      <!-- Question Tabs -->
+      <div class="q-tabs" id="q-tabs-container"></div>
+
+      <!-- Active Problem Spec -->
+      <div>
+        <h2 id="q-title" style="font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 6px;">
+          Problem 1
+        </h2>
+        <div id="q-desc" style="font-size: 13px; color: var(--text-ghost); line-height: 1.6; margin-bottom: 14px;">
+          Loading problem specification...
+        </div>
+      </div>
+
+      <!-- Section A: Algorithm & Logic Description -->
+      <div>
+        <label class="label" style="color: #a5b4fc; margin-bottom: 6px; display: block;">
+          1. ALGORITHM & STEP-BY-STEP LOGIC
+        </label>
+        <textarea class="analysis-input" id="input-algo" placeholder="Explain your algorithm step-by-step in clear English (e.g. 1. Initialize variables, 2. Iterate loop...)..."></textarea>
+      </div>
+
+      <!-- Section B: Time & Space Complexity -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <label class="label" style="color: #38bdf8; margin-bottom: 6px; display: block;">TIME COMPLEXITY</label>
+          <input type="text" class="analysis-input" id="input-time-comp" placeholder="e.g. O(n) or O(1)" style="min-height: 40px;" />
+        </div>
+        <div>
+          <label class="label" style="color: #34d399; margin-bottom: 6px; display: block;">SPACE COMPLEXITY</label>
+          <input type="text" class="analysis-input" id="input-space-comp" placeholder="e.g. O(1)" style="min-height: 40px;" />
+        </div>
+      </div>
+
+      <!-- Section C: Edge Cases & Observations -->
+      <div>
+        <label class="label" style="color: #fbbf24; margin-bottom: 6px; display: block;">
+          2. EDGE CASES & CRITICAL OBSERVATIONS
+        </label>
+        <textarea class="analysis-input" id="input-edge-cases" placeholder="Describe handled edge cases (e.g. negative inputs, zero values, overflow)..."></textarea>
+      </div>
+    </aside>
+
+    <!-- Right: Code Editor & Compiler Terminal -->
+    <main class="writeup-right">
+      <div style="height: 42px; background: rgba(13, 21, 46, 0.9); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; color: #a5b4fc;" id="active-filename">solution_q1.c</span>
+        <button class="btn" onclick="runWriteupCode()" style="padding: 5px 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 6px; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer;">
+          ▶ Run & Test Solution
+        </button>
+      </div>
+
+      <div class="editor-section">
+        <textarea id="writeup-textarea"></textarea>
+      </div>
+
+      <div class="terminal-section">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span class="label" style="color: #38bdf8; font-size: 10px;">GCC MinGW Output</span>
+          <span id="run-status-text" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-ghost);">READY</span>
+        </div>
+        <div class="terminal-output" id="terminal-output-box">Click 'Run & Test Solution' to execute code with GCC MinGW...</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="../js/api.js"></script>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const writeupId = parseInt(urlParams.get('id')) || 1;
+    const studentId = API.getStudentId();
+
+    let writeupData = null;
+    let activeIdx = 0;
+    let codeMap = {};
+    let analysisMap = {}; // { problem_id: { algo: '', time: '', space: '', edge: '' } }
+    let cmEditor = null;
+
+    // Initialize CodeMirror
+    cmEditor = CodeMirror.fromTextArea(document.getElementById('writeup-textarea'), {
+      mode: 'text/x-csrc',
+      theme: 'material-darker',
+      lineNumbers: true,
+      indentUnit: 4,
+      tabSize: 4,
+      lineWrapping: false,
+      viewportMargin: Infinity
+    });
+
+    cmEditor.on('change', () => {
+      if (writeupData && writeupData.problems && writeupData.problems[activeIdx]) {
+        const pId = writeupData.problems[activeIdx].id;
+        codeMap[pId] = cmEditor.getValue();
+      }
+    });
+
+    // Sync input fields on change
+    ['input-algo', 'input-time-comp', 'input-space-comp', 'input-edge-cases'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        if (!writeupData || !writeupData.problems || !writeupData.problems[activeIdx]) return;
+        const pId = writeupData.problems[activeIdx].id;
+        if (!analysisMap[pId]) analysisMap[pId] = {};
+
+        analysisMap[pId].algo = document.getElementById('input-algo').value;
+        analysisMap[pId].time = document.getElementById('input-time-comp').value;
+        analysisMap[pId].space = document.getElementById('input-space-comp').value;
+        analysisMap[pId].edge = document.getElementById('input-edge-cases').value;
+      });
+    });
+
+    async function initWriteup() {
+      try {
+        const res = await API.startWriteup(writeupId);
+        if (res.success && res.writeup) {
+          writeupData = res.writeup;
+          document.getElementById('writeup-title-badge').textContent = res.writeup.title;
+          renderTabs(res.writeup.problems);
+          selectProblem(0);
+
+          setInterval(autoSaveDraft, 30000);
+        } else {
+          alert('Failed to load write-up: ' + (res.detail || 'Error'));
+        }
+      } catch (err) {
+        alert('Write-up load error: ' + err.message);
+      }
+    }
+
+    function renderTabs(problems) {
+      const container = document.getElementById('q-tabs-container');
+      container.innerHTML = problems.map((p, idx) => `
+        <button class="q-tab ${idx === 0 ? 'active' : ''}" onclick="selectProblem(${idx})" id="q-tab-${idx}">
+          Problem ${idx+1}
+        </button>
+      `).join('');
+
+      problems.forEach(p => {
+        if (!codeMap[p.id]) {
+          codeMap[p.id] = p.starter_code || '#include <stdio.h>\n\nint main() {\n    // Implement solution\n    \n    return 0;\n}\n';
+        }
+        if (!analysisMap[p.id]) {
+          analysisMap[p.id] = { algo: '', time: 'O(n)', space: 'O(1)', edge: '' };
+        }
+      });
+    }
+
+    function selectProblem(idx) {
+      if (!writeupData || !writeupData.problems || !writeupData.problems[idx]) return;
+      activeIdx = idx;
+
+      document.querySelectorAll('.q-tab').forEach((t, i) => {
+        t.classList.toggle('active', i === idx);
+      });
+
+      const p = writeupData.problems[idx];
+      document.getElementById('q-title').textContent = `Problem 0${idx+1}: ${p.title}`;
+      document.getElementById('q-desc').textContent = p.description;
+      document.getElementById('active-filename').textContent = `writeup_problem${idx+1}.c`;
+
+      cmEditor.setValue(codeMap[p.id] || p.starter_code || '');
+
+      const an = analysisMap[p.id] || { algo: '', time: '', space: '', edge: '' };
+      document.getElementById('input-algo').value = an.algo || '';
+      document.getElementById('input-time-comp').value = an.time || '';
+      document.getElementById('input-space-comp').value = an.space || '';
+      document.getElementById('input-edge-cases').value = an.edge || '';
+    }
+
+    async function runWriteupCode() {
+      if (!writeupData || !writeupData.problems || !writeupData.problems[activeIdx]) return;
+      const p = writeupData.problems[activeIdx];
+      const code = cmEditor.getValue();
+      const statusEl = document.getElementById('run-status-text');
+      const termBox = document.getElementById('terminal-output-box');
+
+      statusEl.textContent = 'COMPILING...';
+      termBox.textContent = 'Running GCC MinGW...';
+
+      try {
+        const res = await API.runCode(code, p.id, p.sample_input || null, 'writeup');
+        if (res.success) {
+          statusEl.textContent = 'SUCCESSFUL EXECUTION';
+          statusEl.style.color = '#10b981';
+          termBox.textContent = res.output || '[No output produced]';
+        } else {
+          statusEl.textContent = 'COMPILATION ERROR';
+          statusEl.style.color = '#ef4444';
+          termBox.textContent = res.compiler_error || 'Compilation failed.';
+        }
+      } catch (err) {
+        statusEl.textContent = 'EXECUTION ERROR';
+        termBox.textContent = 'Error: ' + err.message;
+      }
+    }
+
+    async function autoSaveDraft() {
+      if (!writeupData) return;
+      const indicator = document.getElementById('autosave-indicator');
+      try {
+        await API.autosaveWriteup(writeupId, codeMap);
+        indicator.textContent = '● Draft Saved ' + new Date().toLocaleTimeString();
+      } catch (e) {}
+    }
+
+    async function submitWriteupFinal() {
+      if (!confirm("Are you ready to submit your Weekly Laboratory Write-Up?")) return;
+
+      try {
+        const res = await API.submitWriteup(writeupId, codeMap);
+        if (res.success) {
+          alert('✓ Laboratory Write-Up submitted successfully!');
+          window.location.href = 'exams.html';
+        } else {
+          alert('Submission error: ' + (res.detail || 'Failed'));
+        }
+      } catch (err) {
+        alert('Submission failed: ' + err.message);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initWriteup);
+  </script>
+</body>
+</html>
