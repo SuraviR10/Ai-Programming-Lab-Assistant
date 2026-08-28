@@ -325,43 +325,50 @@
       }
     });
 
-    // ── Silent Anti-Cheat Telemetry Logging (No Intrusive Warnings) ──
+    let isSubmitting = false;
+
+    // ── Immediate Auto-Termination & Auto-Submission on Tab Switch ──
     document.addEventListener('contextmenu', (e) => e.preventDefault());
 
     document.addEventListener('keydown', (e) => {
-      // Prevent accidental developer shortcuts or window closes
+      // Prevent developer inspect shortcuts
       if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) {
         e.preventDefault();
-        recordViolation('DevTools / inspect shortcut blocked');
+        triggerImmediateAutoSubmit('Developer tools / inspect shortcut attempted');
         return false;
       }
       if (e.ctrlKey && (e.key === 't' || e.key === 'n' || e.key === 'w')) {
         e.preventDefault();
-        recordViolation('Browser navigation shortcut blocked');
+        triggerImmediateAutoSubmit('Unauthorized browser navigation shortcut');
         return false;
       }
     });
 
-    // Detect Tab Switch, Window Blur & Fullscreen Exit Silently
+    // Detect Tab Switch, Window Blur & Fullscreen Exit -> Immediately Auto-Submit
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        recordViolation('Tab switched or minimized');
+        triggerImmediateAutoSubmit('Tab switch or browser minimized');
       }
     });
 
     window.addEventListener('blur', () => {
-      recordViolation('Window focus lost');
+      triggerImmediateAutoSubmit('Browser window focus lost');
     });
 
-    function recordViolation(reason) {
-      violationCount++;
-      const badge = document.getElementById('exam-title-badge');
-      if (badge && violationCount > 0) {
-        badge.innerHTML = `${escapeHtml(examData ? examData.title : 'Practical Exam')} <span style="font-size: 11px; color: #f87171; background: rgba(239,68,68,0.15); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); margin-left: 8px;">Violations: ${violationCount}</span>`;
+    function triggerImmediateAutoSubmit(reason) {
+      if (isSubmitting) return;
+      isSubmitting = true;
+
+      // Lock editor immediately
+      if (cmEditor) {
+        cmEditor.setOption('readOnly', true);
       }
 
-      // Log telemetry directly to Faculty Dashboard
-      API.logActivity('exam_tab_switch', `Student ${studentId} switched tabs during Exam #${examId} (Incident #${violationCount}: ${reason})`).catch(() => {});
+      // Log security violation to faculty console
+      API.logActivity('exam_tab_switch', `EXAM AUTO-TERMINATED: Student ${studentId} during Exam #${examId} (${reason})`).catch(() => {});
+
+      // Automatically evaluate and submit immediately
+      submitExamFinal(reason);
     }
 
     // ── Start & Load Exam ───────────────────────────────────────
@@ -425,7 +432,7 @@
 
     // ── Run & Compile Code with GCC ─────────────────────────────
     async function runExamCode() {
-      if (!examData || !examData.problems || !examData.problems[activeProblemIdx]) return;
+      if (isSubmitting || !examData || !examData.problems || !examData.problems[activeProblemIdx]) return;
       const p = examData.problems[activeProblemIdx];
       const code = cmEditor.getValue();
       const statusEl = document.getElementById('run-status-text');
@@ -461,8 +468,7 @@
 
         if (remainingSeconds <= 0) {
           clearInterval(timerInterval);
-          alert('⏰ TIME EXPIRED: Your examination is being submitted automatically.');
-          submitExamFinal();
+          triggerImmediateAutoSubmit('Time Expired');
         }
       }, 1000);
     }
@@ -481,7 +487,7 @@
     }
 
     async function autoSaveExamDraft() {
-      if (!examData) return;
+      if (!examData || isSubmitting) return;
       const indicator = document.getElementById('autosave-indicator');
       try {
         await API.autosaveExam(examId, codeMap);
@@ -490,8 +496,10 @@
     }
 
     // ── Direct Submission & Instant Mark Awarding ───────────────
-    async function submitExamFinal() {
+    async function submitExamFinal(forcedReason = null) {
       clearInterval(timerInterval);
+      isSubmitting = true;
+
       const btn = document.querySelector('.exam-header button');
       if (btn) {
         btn.disabled = true;
@@ -528,10 +536,13 @@
 
           resultsBody.innerHTML = `
             <div style="text-align: center; margin-bottom: 24px;">
-              <div style="font-size: 48px; margin-bottom: 8px;">🏆</div>
-              <div class="label" style="color: #10b981; margin-bottom: 4px;">EXAM EVALUATION COMPLETE</div>
+              <div style="font-size: 48px; margin-bottom: 8px;">${forcedReason ? '🚨' : '🏆'}</div>
+              <div class="label" style="color: ${forcedReason ? '#ef4444' : '#10b981'}; margin-bottom: 4px;">
+                ${forcedReason ? 'EXAM TERMINATED & AUTO-SUBMITTED' : 'EXAM EVALUATION COMPLETE'}
+              </div>
+              ${forcedReason ? `<div style="font-size: 12px; color: #fca5a5; margin-bottom: 8px;">Security Protocol: ${escapeHtml(forcedReason)}</div>` : ''}
               <h2 style="font-family: var(--font-display); font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 4px;">
-                Final Score: <span style="color: #10b981;">${res.score}</span> / 10.0
+                Final Marks Awarded: <span style="color: #10b981;">${res.score}</span> / 10.0
               </h2>
               <div style="font-family: var(--font-mono); font-size: 13px; color: #fbbf24; font-weight: 700;">
                 Percentage: ${scorePercent}% | Grade: ${grade}
@@ -539,7 +550,7 @@
             </div>
 
             <div style="margin-bottom: 20px;">
-              <div class="label" style="color: #a5b4fc; margin-bottom: 8px;">QUESTION-BY-QUESTION BREAKDOWN</div>
+              <div class="label" style="color: #a5b4fc; margin-bottom: 8px;">QUESTION-BY-QUESTION EVALUATION</div>
               ${breakdownHtml}
             </div>
 
