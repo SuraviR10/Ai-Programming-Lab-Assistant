@@ -36,8 +36,39 @@ def test_clean_compilation_no_groq():
     print("PASSED: Direct GCC output returned, Groq API bypassed cleanly.")
 
 
+def test_clean_problem_run_no_groq():
+    print("\n--- 1b. Testing Problem Run Matching Expected Output (No Groq Call) ---")
+    # Problem 1: Hello World
+    hello_c = '#include <stdio.h>\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}'
+    res = client.post("/api/compiler/run", json={"problem_id": 1, "code": hello_c, "mode": "practice"}).json()
+
+    assert res.get("success") is True
+    assert res.get("test_passed") is True
+    assert "ai_feedback" not in res
+    print("PASSED: Problem run matched expected output, Groq bypassed cleanly.")
+
+
+def test_testcase_mismatch_groq_guidance():
+    print("\n--- 1c. Testing Problem Run WITH Test Case Mismatch (Groq Test Failure Guidance) ---")
+    # Problem 2 (Sum of two numbers: sample input "5 10", expected output "Sum = 15")
+    # Wrong logic producing "Sum = 50" (multiplication instead of addition)
+    wrong_sum_c = '#include <stdio.h>\nint main() {\n    int a, b;\n    scanf("%d %d", &a, &b);\n    printf("Sum = %d\\n", a * b);\n    return 0;\n}'
+    res = client.post("/api/compiler/run", json={"problem_id": 2, "code": wrong_sum_c, "mode": "practice"}).json()
+
+    print("Success:", res.get("success"))
+    print("Test Passed:", res.get("test_passed"))
+    print("AI Feedback Present:", "ai_feedback" in res)
+    print("AI Explanation:", res.get("ai_feedback", {}).get("explanation"))
+
+    assert res.get("success") is True
+    assert res.get("test_passed") is False
+    assert "ai_feedback" in res
+    assert res.get("ai_feedback", {}).get("ai_disabled") is False
+    print("PASSED: Test case mismatch correctly triggered Groq AI test diagnostics with complete code.")
+
+
 def test_syntax_error_groq_instructions():
-    print("\n--- 2. Testing Program WITH Syntax Error (Groq Instructional Guidance) ---")
+    print("\n--- 2. Testing Program WITH Syntax Error (Groq Instructional Guidance with Complete Code) ---")
     error_c = '#include <stdio.h>\nint main() {\n    printf("Hello World")\n    return 0;\n}'
     res = client.post("/api/compiler/run", json={"code": error_c, "mode": "practice"}).json()
 
@@ -141,11 +172,14 @@ def test_pdf_lab_manual_upload_and_verification():
 
 if __name__ == "__main__":
     test_clean_compilation_no_groq()
+    test_clean_problem_run_no_groq()
+    test_testcase_mismatch_groq_guidance()
     test_syntax_error_groq_instructions()
     test_anti_hardcoding_and_creativity()
     test_faculty_suspicious_review()
     test_ai_practice_and_activity_logging()
     test_pdf_lab_manual_upload_and_verification()
     print("\nALL SYSTEM INTEGRATION TESTS COMPLETED SUCCESSFULLY WITH ZERO ERRORS!")
+
 
 

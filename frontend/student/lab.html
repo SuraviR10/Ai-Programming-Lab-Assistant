@@ -559,32 +559,44 @@ int main() {
 
         <!-- AI Tutor Guidance Tab -->
         <div class="ai-feedback-container" id="tab-ai">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="font-size: 24px;">💡</div>
-            <div>
-              <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: 800; color: #fff;">AI Tutor Guidance</div>
-              <div style="font-size: 11px; font-family: var(--font-mono); color: #38bdf8;" id="ai-status-text">HELPFUL SUGGESTIONS FOR YOUR CODE</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="font-size: 24px;">💡</div>
+              <div>
+                <div style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: 800; color: #fff;">AI Tutor Error Guidance</div>
+                <div style="font-size: 11px; font-family: var(--font-mono); color: #38bdf8;" id="ai-status-text">HELPFUL STEP-BY-STEP DIAGNOSTICS</div>
+              </div>
+            </div>
+            <div id="ai-line-badge" style="display: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; font-family: var(--font-mono); background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;">
+              🎯 Target Fix: Line 4
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div class="ai-card">
-              <div class="label" style="color: #a5b4fc; margin-bottom: 6px;">📘 WHAT HAPPENED</div>
-              <div id="ai-explanation" style="font-size: 13px; color: #fff; line-height: 1.6;">-</div>
-            </div>
-            <div class="ai-card">
-              <div class="label" style="color: #f43f5e; margin-bottom: 6px;">🔍 REASON FOR ERROR</div>
-              <div id="ai-reason" style="font-size: 13px; color: #fff; line-height: 1.6;">-</div>
-            </div>
+          <!-- What Happened -->
+          <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #6366f1;">
+            <div class="label" style="color: #a5b4fc; margin-bottom: 6px; font-weight: 700;">📘 WHAT HAPPENED</div>
+            <div id="ai-explanation" style="font-size: 13.5px; color: #fff; line-height: 1.6;">-</div>
           </div>
 
-          <div class="ai-card" style="margin-top: 12px;">
-            <div class="label" style="color: #34d399; margin-bottom: 6px;">💡 STEP-BY-STEP HINT TO FIX YOUR CODE</div>
-            <div id="ai-hint" style="font-size: 13px; color: #fff; line-height: 1.6; font-weight: 600;">-</div>
+          <!-- Why It Happened (Point-Wise) -->
+          <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #f43f5e; background: rgba(244, 63, 94, 0.05);">
+            <div class="label" style="color: #f87171; margin-bottom: 6px; font-weight: 700;">🔍 WHY THIS HAPPENED (UNDERSTAND THE REASON)</div>
+            <ul id="ai-why-list" style="margin: 0; padding-left: 20px; font-size: 13px; color: #fecdd3; line-height: 1.7;">
+              <li>Analyzing token structure...</li>
+            </ul>
           </div>
 
-          <div class="ai-card" style="margin-top: 12px; border: 1px solid rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.08);">
-            <div class="label" style="color: #fbbf24; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <!-- How to Fix (Step-by-Step Point-Wise) -->
+          <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05);">
+            <div class="label" style="color: #34d399; margin-bottom: 6px; font-weight: 700;">💡 HOW TO CORRECT YOUR CODE (STEP-BY-STEP)</div>
+            <ol id="ai-how-list" style="margin: 0; padding-left: 20px; font-size: 13px; color: #d1fae5; line-height: 1.7; font-weight: 600;">
+              <li>Inspect your syntax...</li>
+            </ol>
+          </div>
+
+          <!-- Key Information to Remember -->
+          <div class="ai-card" style="border: 1px solid rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.08); margin-bottom: 12px;">
+            <div class="label" style="color: #fbbf24; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; font-weight: 700;">
               <span>📌</span> INFORMATION TO REMEMBER (CONCEPT RULE OF THUMB)
             </div>
             <div id="ai-remember" style="font-size: 13px; color: #fef08a; line-height: 1.6; font-weight: 600;">
@@ -592,8 +604,8 @@ int main() {
             </div>
           </div>
 
-          <div style="margin-top: 12px; font-size: 11px; color: var(--text-ghost);">
-            C Concept Involved: <span id="ai-concept" style="color: #38bdf8; font-weight: 700;">Syntax</span>
+          <div style="font-size: 11px; color: var(--text-ghost);">
+            C Concept Involved: <span id="ai-concept" style="color: #38bdf8; font-weight: 700; background: rgba(56, 189, 248, 0.1); padding: 2px 8px; border-radius: 4px;">Syntax</span>
           </div>
 
         </div>
@@ -601,6 +613,7 @@ int main() {
     </div>
 
   </div>
+
 
   <!-- Result Evaluation Modal -->
   <div class="modal-overlay" id="result-overlay">
@@ -645,6 +658,31 @@ int main() {
     </div>
   </div>
 
+  <!-- Anti-Cheat Focus & Tab Switch Violation Modal -->
+  <div class="modal-overlay" id="tab-switch-modal">
+    <div class="modal-box" style="border: 2px solid #ef4444; box-shadow: 0 0 50px rgba(239, 68, 68, 0.6); max-width: 460px;">
+      <div style="font-size: 44px; margin-bottom: 8px;">🚨</div>
+      <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 900; color: #ef4444; margin-bottom: 6px; letter-spacing: 0.05em;">
+        TAB SWITCH VIOLATION DETECTED
+      </h3>
+      <p style="font-size: 13.5px; color: #fecdd3; margin-bottom: 16px; line-height: 1.6;">
+        Switching browser tabs or minimizing the laboratory editor window is prohibited during laboratory sessions.
+      </p>
+      <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: left; font-size: 12.5px; color: #fff;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span>Recorded Violations in this Session:</span>
+          <span id="violation-count-badge" style="color: #ef4444; font-weight: 900; font-size: 15px; font-family: var(--font-mono); background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 4px;">1</span>
+        </div>
+        <div style="margin-top: 6px; font-size: 11.5px; color: #fca5a5;">
+          ● This incident has been logged and reported to your faculty dashboard in real time.
+        </div>
+      </div>
+      <button class="btn" onclick="acknowledgeTabSwitch()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 6px; color: #fff; font-weight: 800; cursor: pointer; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);">
+        I Understand & Resume Laboratory Work
+      </button>
+    </div>
+  </div>
+
   <!-- CodeMirror Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
@@ -661,9 +699,46 @@ int main() {
     let currentProblem = null;
     let userHasTyped = false;
     let cmEditor = null;
+    let tabSwitchViolations = 0;
+    let isViolationModalOpen = false;
+
     const textarea = document.getElementById('code-textarea');
     const gutter = document.getElementById('line-numbers');
     const editorContainer = document.getElementById('editor-container');
+
+    // ── Anti-Cheat Tab Switch Detection ────────────────────────
+    function handleTabSwitchViolation(reason = 'Tab switch detected') {
+      if (isViolationModalOpen) return;
+      tabSwitchViolations++;
+      isViolationModalOpen = true;
+
+      const badge = document.getElementById('violation-count-badge');
+      if (badge) badge.textContent = tabSwitchViolations;
+
+      const modal = document.getElementById('tab-switch-modal');
+      if (modal) modal.classList.add('show');
+
+      // Send telemetry to backend and faculty dashboard in real time
+      const studentId = API.getStudentId();
+      API.logActivity('tab_switch', `Student ${studentId} switched tabs or minimized editor (Violation #${tabSwitchViolations} - ${reason})`).catch(() => {});
+    }
+
+    function acknowledgeTabSwitch() {
+      const modal = document.getElementById('tab-switch-modal');
+      if (modal) modal.classList.remove('show');
+      isViolationModalOpen = false;
+      focusEditor();
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        handleTabSwitchViolation('Browser tab switched');
+      }
+    });
+
+    window.addEventListener('blur', () => {
+      handleTabSwitchViolation('Window focus lost');
+    });
 
     // ── Initialize CodeMirror if available, else native textarea fallback ──
     try {
@@ -679,7 +754,6 @@ int main() {
           autofocus: true
         });
 
-        // Hide native gutter when CodeMirror is active
         if (gutter) gutter.style.display = 'none';
 
         cmEditor.on('change', () => {
@@ -694,7 +768,6 @@ int main() {
           if (editorContainer) editorContainer.classList.remove('is-focused');
         });
 
-        // Add Ctrl+Enter shortcut in CodeMirror
         cmEditor.setOption('extraKeys', {
           'Ctrl-Enter': () => runCode(),
           'Cmd-Enter': () => runCode(),
@@ -711,7 +784,6 @@ int main() {
       console.warn('CodeMirror initialization error, using native textarea fallback', e);
     }
 
-    // ── Update Line Numbers for Fallback Textarea ───────────────
     function updateLineNumbers() {
       if (cmEditor) return;
       if (!textarea || !gutter) return;
@@ -724,7 +796,6 @@ int main() {
       gutter.scrollTop = textarea.scrollTop;
     }
 
-    // ── Focus Editor ───────────────────────────────────────────
     function focusEditor(e) {
       if (cmEditor) {
         cmEditor.focus();
@@ -760,7 +831,6 @@ int main() {
       }
     }
 
-    // ── Native Textarea Event Bindings (Fallback) ──────────────
     if (textarea && !cmEditor) {
       textarea.addEventListener('focus', () => {
         if (editorContainer) editorContainer.classList.add('is-focused');
@@ -794,7 +864,6 @@ int main() {
       });
     }
 
-    // ── Load Problem Data ──────────────────────────────────────
     async function loadProblem(id) {
       try {
         const res = await API.getProblem(id);
@@ -827,7 +896,6 @@ int main() {
       const concepts = Array.isArray(prob.concepts) ? prob.concepts : JSON.parse(prob.concepts || '[]');
       conceptsContainer.innerHTML = concepts.map(c => `<span class="concept-tag" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 4px 10px; border-radius: 6px; font-size: 12px; margin-right: 6px;">${c}</span>`).join('');
 
-      // Hints
       const hintContainer = document.getElementById('hint-decryptor-container');
       const hints = Array.isArray(prob.progressive_hints) ? prob.progressive_hints : JSON.parse(prob.progressive_hints || '[]');
 
@@ -845,7 +913,6 @@ int main() {
         hintContainer.innerHTML = '<div style="font-size: 12px; color: var(--text-ghost);">No hints required for this basic problem.</div>';
       }
 
-      // Only set starter code if user hasn't typed custom code yet
       if (!userHasTyped && prob.starter_code) {
         setCodeValue(prob.starter_code);
       }
@@ -868,7 +935,6 @@ int main() {
     const tabAI = document.getElementById('tab-ai');
     const tabTestcases = document.getElementById('tab-testcases');
 
-    // Output Tabs
     document.querySelectorAll('.output-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
@@ -895,6 +961,78 @@ int main() {
       runStatus.style.color = '';
       focusEditor();
     });
+
+    // ── Render Point-Wise AI Feedback ───────────────────────────
+    function renderAIFeedback(feedback, statusHeading = 'AI TUTOR GUIDANCE') {
+      if (!feedback || feedback.ai_disabled) return;
+
+      aiTab.style.display = 'block';
+      document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+      aiTab.classList.add('active');
+      tabOutput.style.display = 'none';
+      tabTestcases.style.display = 'none';
+      tabAI.style.display = 'block';
+
+      const statusEl = document.getElementById('ai-status-text');
+      if (statusEl) statusEl.textContent = statusHeading;
+
+      // Line Offset Badge
+      const lineBadge = document.getElementById('ai-line-badge');
+      if (lineBadge) {
+        const actLine = feedback.actual_error_line;
+        const repLine = feedback.reported_line;
+        if (actLine) {
+          lineBadge.style.display = 'block';
+          if (repLine && repLine !== actLine) {
+            lineBadge.textContent = `🎯 Mistake on Line ${actLine} (Flagged as Line ${repLine})`;
+          } else {
+            lineBadge.textContent = `🎯 Target Error: Line ${actLine}`;
+          }
+        } else {
+          lineBadge.style.display = 'none';
+        }
+      }
+
+      // What Happened
+      document.getElementById('ai-explanation').textContent = feedback.explanation || 'Mistake detected during execution.';
+
+      // Why It Happened (Point-Wise)
+      const whyListEl = document.getElementById('ai-why-list');
+      if (whyListEl) {
+        const whyItems = Array.isArray(feedback.why_it_happened) ? feedback.why_it_happened : (feedback.reason ? [feedback.reason] : []);
+        if (whyItems.length > 0) {
+          whyListEl.innerHTML = whyItems.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+        } else {
+          whyListEl.innerHTML = `<li>${escapeHtml(feedback.reason || 'Unexpected token or syntax structure.')}</li>`;
+        }
+      }
+
+      // How to Fix (Point-Wise Steps)
+      const howListEl = document.getElementById('ai-how-list');
+      if (howListEl) {
+        const howItems = Array.isArray(feedback.how_to_fix) ? feedback.how_to_fix : (feedback.hint ? [feedback.hint] : []);
+        if (howItems.length > 0) {
+          howListEl.innerHTML = howItems.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+        } else {
+          howListEl.innerHTML = `<li>${escapeHtml(feedback.hint || 'Inspect your code syntax and delimiter placements.')}</li>`;
+        }
+      }
+
+      // Remember Tip & Concept
+      const remEl = document.getElementById('ai-remember');
+      if (remEl) {
+        remEl.textContent = feedback.remember_tip || "Rule of Thumb: In C, compiler error line numbers indicate where the compiler detected the issue. Missing semicolons ';' or braces are almost always on the line immediately ABOVE the reported line!";
+      }
+
+      const conceptEl = document.getElementById('ai-concept');
+      if (conceptEl) {
+        conceptEl.textContent = feedback.concept || "C Syntax & Logic";
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
     // ── Run C Code ─────────────────────────────────────────────
     async function runCode() {
@@ -925,11 +1063,21 @@ int main() {
         const res = await API.runCode(code, currentProblem ? currentProblem.id : problemId, inputData, mode);
 
         if (res.success) {
-          runDot.className = 'status-dot online';
-          runStatus.textContent = 'EXECUTION SUCCESSFUL';
-          runStatus.style.color = '#10b981';
-          outputBox.textContent = res.output || '[Program executed with no output]';
-          outputBox.style.color = '#fff';
+          if (res.test_passed === false && res.ai_feedback && !res.ai_feedback.ai_disabled) {
+            runDot.className = 'status-dot warning';
+            runStatus.textContent = 'OUTPUT MISMATCH';
+            runStatus.style.color = '#f59e0b';
+            outputBox.textContent = (res.output || '[No output]') + '\n\n⚠️ Output did not match problem expected output.';
+            outputBox.style.color = '#f59e0b';
+
+            renderAIFeedback(res.ai_feedback, 'TEST CASE OUTPUT MISMATCH GUIDANCE');
+          } else {
+            runDot.className = 'status-dot online';
+            runStatus.textContent = 'EXECUTION SUCCESSFUL';
+            runStatus.style.color = '#10b981';
+            outputBox.textContent = res.output || '[Program executed with no output]';
+            outputBox.style.color = '#fff';
+          }
         } else {
           runDot.className = 'status-dot offline';
           runStatus.textContent = 'COMPILATION ERROR';
@@ -938,22 +1086,7 @@ int main() {
           outputBox.style.color = '#f43f5e';
 
           if (res.ai_feedback && !res.ai_feedback.ai_disabled) {
-            aiTab.style.display = 'block';
-            document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
-            aiTab.classList.add('active');
-            tabOutput.style.display = 'none';
-            tabTestcases.style.display = 'none';
-            tabAI.style.display = 'block';
-
-            document.getElementById('ai-explanation').textContent = res.ai_feedback.explanation;
-            document.getElementById('ai-reason').textContent = res.ai_feedback.reason;
-            document.getElementById('ai-hint').textContent = res.ai_feedback.hint;
-            document.getElementById('ai-concept').textContent = res.ai_feedback.concept;
-            const remEl = document.getElementById('ai-remember');
-            if (remEl) {
-              remEl.textContent = res.ai_feedback.remember_tip || "Rule of Thumb: In C, compiler errors like 'expected ;' are usually caused by a missing semicolon on the line directly ABOVE the reported line!";
-            }
-
+            renderAIFeedback(res.ai_feedback, 'COMPILER ERROR POINT-WISE GUIDANCE');
           }
         }
       } catch (err) {
@@ -978,8 +1111,14 @@ int main() {
           if (evalData.test_case_results) {
             renderTestCaseResults(evalData.test_case_results);
           }
+          if (evalData.ai_feedback && !evalData.ai_feedback.ai_disabled) {
+            renderAIFeedback(evalData.ai_feedback, 'TEST SUITE DIAGNOSTIC GUIDANCE');
+          }
         } else {
           alert('Submission failed: ' + (evalData.compiler_error || 'Error'));
+          if (evalData.ai_feedback && !evalData.ai_feedback.ai_disabled) {
+            renderAIFeedback(evalData.ai_feedback, 'SUBMISSION COMPILATION GUIDANCE');
+          }
         }
       } catch (err) {
         alert('Submission error: ' + err.message);
@@ -1058,7 +1197,6 @@ int main() {
     updateLineNumbers();
     loadProblem(problemId);
 
-    // Immediate autofocus
     window.addEventListener('DOMContentLoaded', () => {
       focusEditor();
     });
@@ -1068,3 +1206,4 @@ int main() {
   </script>
 </body>
 </html>
+

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lab Manual PDF Upload & Verification — CODEVERSE</title>
-  <meta name="description" content="Faculty Lab Manual PDF parsing, exercise detection, and verification system for CODEVERSE." />
+  <title>Lab Problems & Manual Management — CODEVERSE Faculty</title>
+  <meta name="description" content="Faculty Lab Manual PDF parsing, manual problem authoring, test case management, and verification system for CODEVERSE." />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +21,52 @@
       padding: 32px;
       position: relative;
       z-index: 2;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background: rgba(13, 21, 46, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-ghost);
+      font-family: var(--font-display);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+      border-color: #6366f1;
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(79, 70, 229, 0.2) 100%);
+      border-color: #6366f1;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
     }
 
     .upload-box {
@@ -102,31 +148,6 @@
       border: 1px solid rgba(99, 102, 241, 0.3);
     }
 
-    /* Modal Styles */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(5, 8, 22, 0.85);
-      backdrop-filter: blur(12px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal-content {
-      background: #0d152e;
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      border-radius: var(--radius-lg);
-      width: 100%;
-      max-width: 720px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 28px;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
-    }
-
     .form-group {
       margin-bottom: 16px;
     }
@@ -162,6 +183,43 @@
       min-height: 80px;
       resize: vertical;
     }
+
+    .testcase-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 120px 40px;
+      gap: 12px;
+      align-items: center;
+      background: rgba(5, 8, 22, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 22, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: #0d152e;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 720px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+    }
   </style>
 </head>
 
@@ -182,7 +240,7 @@
       </a>
       <a href="/faculty/manual" class="nav-item active">
         <span class="nav-icon">📄</span>
-        <span>Lab Manual Upload</span>
+        <span>Lab Problems & Manual</span>
       </a>
       <a href="/login" class="nav-item">
         <span class="nav-icon">🚪</span>
@@ -197,87 +255,243 @@
         <div class="user-role">Faculty</div>
       </div>
     </div>
-
   </aside>
 
   <!-- Main Content Area -->
   <main class="main-content">
     <!-- Header -->
-    <header class="top-header" style="margin-bottom: 28px;">
+    <header class="top-header" style="margin-bottom: 24px;">
       <div>
         <h1 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-          PDF / Laboratory Manual Upload Module
+          Lab Problem & Manual Management Console
         </h1>
         <p style="color: var(--text-ghost); font-size: 14px; margin-top: 4px;">
-          Upload college laboratory manual PDFs to automatically extract, verify, and publish programming exercises.
+          Extract problem sets automatically from college PDF manuals or author custom problems with test cases.
         </p>
       </div>
     </header>
 
-    <!-- Upload Dropzone -->
-    <div class="upload-box" id="dropzone" onclick="document.getElementById('manualFileInput').click()">
-      <input type="file" id="manualFileInput" accept=".pdf" style="display: none;" onchange="handleFileSelected(event)" />
-      <div style="font-size: 42px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.5));">📄</div>
-      <h3 style="font-family: var(--font-display); font-size: 18px; color: #fff; margin-bottom: 6px;">
-        Upload Laboratory Manual PDF
-      </h3>
-      <p style="color: var(--text-ghost); font-size: 13px; max-width: 460px; margin: 0 auto 16px;">
-        Drag & drop your college manual here or click to browse. The AI engine will parse exercises, titles, statements, and test cases for your review.
-      </p>
-      <button class="btn btn-primary" onclick="event.stopPropagation(); document.getElementById('manualFileInput').click();" style="padding: 10px 24px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 8px; color: #fff; font-weight: 700; cursor: pointer;">
-        Select PDF File
+    <!-- Navigation Tabs -->
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('tab-pdf')">
+        <span>📄</span> Lab Manual PDF Upload
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-manual')">
+        <span>✏️</span> Manually Create Problem & Test Cases
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-bank')">
+        <span>📚</span> Published Problem Bank (<span id="bank-count-badge">10</span>)
       </button>
     </div>
 
-    <!-- Status Banner -->
-    <div id="uploadStatusBanner" style="display: none; padding: 16px 20px; border-radius: 12px; margin-bottom: 28px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #fff;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div id="uploadStatusSpinner" class="spinner" style="border-top-color: #6366f1;"></div>
-        <div id="uploadStatusText" style="font-weight: 600;">Processing PDF...</div>
+    <!-- ── TAB 1: PDF Upload & Extraction ── -->
+    <div id="tab-pdf" class="tab-panel active">
+      <!-- Upload Dropzone -->
+      <div class="upload-box" id="dropzone" onclick="document.getElementById('manualFileInput').click()">
+        <input type="file" id="manualFileInput" accept=".pdf" style="display: none;" onchange="handleFileSelected(event)" />
+        <div style="font-size: 42px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.5));">📄</div>
+        <h3 style="font-family: var(--font-display); font-size: 18px; color: #fff; margin-bottom: 6px;">
+          Upload Laboratory Manual PDF
+        </h3>
+        <p style="color: var(--text-ghost); font-size: 13px; max-width: 460px; margin: 0 auto 16px;">
+          Drag & drop your college manual here or click to browse. The AI engine will parse exercises, titles, statements, and test cases for your review.
+        </p>
+        <button class="btn btn-primary" onclick="event.stopPropagation(); document.getElementById('manualFileInput').click();" style="padding: 10px 24px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 8px; color: #fff; font-weight: 700; cursor: pointer;">
+          Select PDF File
+        </button>
+      </div>
+
+      <!-- Status Banner -->
+      <div id="uploadStatusBanner" style="display: none; padding: 16px 20px; border-radius: 12px; margin-bottom: 28px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #fff;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div id="uploadStatusSpinner" class="spinner" style="border-top-color: #6366f1;"></div>
+          <div id="uploadStatusText" style="font-weight: 600;">Processing PDF...</div>
+        </div>
+      </div>
+
+      <!-- Manuals & Detected Programs Section -->
+      <div class="manual-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #fff;">
+              Detected Programming Exercises from PDF
+            </h2>
+            <p style="color: var(--text-ghost); font-size: 13px;">
+              Review, edit, and approve detected programs before publishing to students.
+            </p>
+          </div>
+          <div>
+            <button class="btn" onclick="publishAllPrograms()" style="padding: 8px 18px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 8px; color: #fff; font-weight: 700; cursor: pointer;">
+              ✓ Approve & Publish All
+            </button>
+          </div>
+        </div>
+
+        <table class="program-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Detected Program Title</th>
+              <th>Topic / Concept</th>
+              <th>Confidence</th>
+              <th>Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="programsTableBody">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-ghost);">
+                No lab manual uploaded yet. Upload a PDF manual above to inspect detected programs.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- Manuals & Detected Programs Section -->
-    <div class="manual-card">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-        <div>
-          <h2 style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #fff;">
-            Detected Programming Exercises
-          </h2>
-          <p style="color: var(--text-ghost); font-size: 13px;">
-            Faculty Verification Interface — Review, edit, and approve detected programs before publishing to students.
-          </p>
-        </div>
-        <div>
-          <button class="btn" onclick="publishAllPrograms()" style="padding: 8px 18px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 8px; color: #fff; font-weight: 700; cursor: pointer;">
-            ✓ Approve & Publish All
+    <!-- ── TAB 2: Manually Create Problem & Test Cases ── -->
+    <div id="tab-manual" class="tab-panel">
+      <div class="manual-card">
+        <h2 style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 6px;">
+          Author New C Programming Lab Problem
+        </h2>
+        <p style="color: var(--text-ghost); font-size: 13px; margin-bottom: 24px;">
+          Directly define problem statements, topics, starter code, sample input/output, and test cases.
+        </p>
+
+        <form id="createProblemForm" onsubmit="handleManualProblemSubmit(event)">
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label>Problem Title *</label>
+              <input type="text" id="manualTitle" class="form-control" placeholder="e.g. Matrix Multiplication (2D Arrays)" required />
+            </div>
+            <div class="form-group">
+              <label>Topic / Concept *</label>
+              <input type="text" id="manualTopic" class="form-control" placeholder="e.g. 2D Arrays & Matrices" required />
+            </div>
+            <div class="form-group">
+              <label>Difficulty</label>
+              <select id="manualDifficulty" class="form-control">
+                <option value="easy">Easy (100 Points)</option>
+                <option value="medium" selected>Medium (150 Points)</option>
+                <option value="hard">Hard (200 Points)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Full Problem Statement *</label>
+            <textarea id="manualStatement" class="form-control" rows="4" placeholder="Write a comprehensive description of what the student's program must compute and output..." required></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label>Input Format Description</label>
+              <input type="text" id="manualInputFormat" class="form-control" placeholder="e.g. Two space-separated integers N and M" />
+            </div>
+            <div class="form-group">
+              <label>Output Format Description</label>
+              <input type="text" id="manualOutputFormat" class="form-control" placeholder="e.g. Matrix of size N x M formatted as integers" />
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label>Sample Input (Visible to Students)</label>
+              <textarea id="manualSampleInput" class="form-control" rows="2" placeholder="e.g. 3 4\n1 2 3 4..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Sample Output (Expected Output)</label>
+              <textarea id="manualSampleOutput" class="form-control" rows="2" placeholder="e.g. Result = 42" required></textarea>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Starter / Boilerplate Code (Given to Students)</label>
+            <textarea id="manualStarterCode" class="form-control" rows="5" style="font-family: var(--font-mono); font-size: 13px;">#include &lt;stdio.h&gt;
+
+int main() {
+    // Write your C solution here
+    
+    return 0;
+}
+</textarea>
+          </div>
+
+          <!-- Dynamic Test Cases Builder -->
+          <div class="form-group" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <label style="margin-bottom: 0; color: #a5b4fc; font-weight: 700;">
+                🧪 Automated Test Cases (Standard & Hidden)
+              </label>
+              <button type="button" class="btn" onclick="addTestCaseRow()" style="padding: 4px 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid #6366f1; color: #a5b4fc; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                + Add Test Case
+              </button>
+            </div>
+            <div id="testCasesContainer">
+              <!-- Initial Test Case Row -->
+              <div class="testcase-row">
+                <input type="text" class="form-control tc-input" placeholder="Input Data (e.g. 5 10)" />
+                <input type="text" class="form-control tc-output" placeholder="Expected Output (e.g. 15)" required />
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-ghost); margin-bottom: 0; cursor: pointer;">
+                  <input type="checkbox" class="tc-hidden" /> Hidden
+                </label>
+                <button type="button" onclick="this.closest('.testcase-row').remove()" style="background: none; border: none; color: #f43f5e; font-size: 16px; cursor: pointer;">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 28px; display: flex; justify-content: flex-end;">
+            <button type="submit" id="btnCreateProblem" class="btn" style="padding: 12px 28px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 8px; color: #fff; font-weight: 800; cursor: pointer; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">
+              ✓ Create & Publish Problem to Student Lab
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: Published Problem Bank ── -->
+    <div id="tab-bank" class="tab-panel">
+      <div class="manual-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <div>
+            <h2 style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #fff;">
+              Active Student Problem Bank
+            </h2>
+            <p style="color: var(--text-ghost); font-size: 13px;">
+              Live inventory of all active laboratory problems available to students for practice and evaluation.
+            </p>
+          </div>
+          <button class="btn" onclick="loadProblemBank()" style="padding: 6px 14px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 6px; font-size: 12px; cursor: pointer;">
+            🔄 Refresh Bank
           </button>
         </div>
-      </div>
 
-      <table class="program-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Detected Program Title</th>
-            <th>Topic / Concept</th>
-            <th>Confidence</th>
-            <th>Status</th>
-            <th style="text-align: right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="programsTableBody">
-          <tr>
-            <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-ghost);">
-              No lab manual uploaded yet. Upload a PDF manual above to inspect detected programs.
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <table class="program-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Problem Title</th>
+              <th>Topic / Concepts</th>
+              <th>Difficulty</th>
+              <th>Test Cases</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bankTableBody">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-ghost);">
+                Loading problem bank...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+
   </main>
 
-  <!-- Edit Program Modal -->
+  <!-- Edit Program Modal (for PDF extracted programs) -->
   <div class="modal-overlay" id="editModal">
     <div class="modal-content">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -325,11 +539,25 @@
     </div>
   </div>
 
-  <script style="display:none">
+  <script src="../js/api.js"></script>
+
+  <script>
     let currentManualId = null;
     let programsData = [];
 
-    // Drag and Drop support
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+      event.currentTarget.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'tab-bank') {
+        loadProblemBank();
+      }
+    }
+
+    // ── PDF Drag & Drop ─────────────────────────────────────────
     const dropzone = document.getElementById('dropzone');
     ['dragenter', 'dragover'].forEach(eventName => {
       dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }, false);
@@ -357,7 +585,7 @@
       const statusBanner = document.getElementById('uploadStatusBanner');
       const statusText = document.getElementById('uploadStatusText');
       statusBanner.style.display = 'block';
-      statusText.innerText = `Uploading and analyzing ${file.name}... Parsing text and detecting programs...`;
+      statusText.innerText = `Uploading and analyzing ${file.name}... Parsing text and detecting exercises with AI...`;
 
       const formData = new FormData();
       formData.append('file', file);
@@ -370,7 +598,7 @@
         const data = await res.json();
 
         if (res.ok && data.success) {
-          statusText.innerText = `✓ Analysis complete! Detected ${data.total_detected} programming problems. Ready for Faculty review.`;
+          statusText.innerText = `✓ Analysis complete! Detected ${data.total_detected} programming problems. Ready for review.`;
           currentManualId = data.manual_id;
           loadPrograms(currentManualId);
         } else {
@@ -474,6 +702,7 @@
         if (res.ok && data.success) {
           alert(data.message);
           if (currentManualId) loadPrograms(currentManualId);
+          loadProblemBank();
         }
       } catch (err) {
         alert('Failed to approve program: ' + err.message);
@@ -491,13 +720,139 @@
         if (res.ok && data.success) {
           alert(data.message);
           loadPrograms(currentManualId);
+          loadProblemBank();
         }
       } catch (err) {
         alert('Failed to publish all programs: ' + err.message);
       }
     }
 
-    // Load recent manuals on initial page open
+    // ── Dynamic Test Cases Builder ──────────────────────────────
+    function addTestCaseRow(inputVal = '', outputVal = '', isHidden = false) {
+      const container = document.getElementById('testCasesContainer');
+      const row = document.createElement('div');
+      row.className = 'testcase-row';
+      row.innerHTML = `
+        <input type="text" class="form-control tc-input" placeholder="Input Data" value="${escapeHtml(inputVal)}" />
+        <input type="text" class="form-control tc-output" placeholder="Expected Output" value="${escapeHtml(outputVal)}" required />
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-ghost); margin-bottom: 0; cursor: pointer;">
+          <input type="checkbox" class="tc-hidden" ${isHidden ? 'checked' : ''} /> Hidden
+        </label>
+        <button type="button" onclick="this.closest('.testcase-row').remove()" style="background: none; border: none; color: #f43f5e; font-size: 16px; cursor: pointer;">✕</button>
+      `;
+      container.appendChild(row);
+    }
+
+    async function handleManualProblemSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnCreateProblem');
+      btn.disabled = true;
+      btn.textContent = 'Publishing Problem...';
+
+      // Collect test cases
+      const tcRows = document.querySelectorAll('#testCasesContainer .testcase-row');
+      const testCases = [];
+      tcRows.forEach(r => {
+        const inp = r.querySelector('.tc-input').value;
+        const out = r.querySelector('.tc-output').value;
+        const hidden = r.querySelector('.tc-hidden').checked;
+        if (out.trim()) {
+          testCases.push({
+            input_data: inp,
+            expected_output: out,
+            is_hidden: hidden
+          });
+        }
+      });
+
+      const problemData = {
+        title: document.getElementById('manualTitle').value,
+        topic: document.getElementById('manualTopic').value,
+        difficulty: document.getElementById('manualDifficulty').value,
+        description: document.getElementById('manualStatement').value,
+        input_format: document.getElementById('manualInputFormat').value,
+        output_format: document.getElementById('manualOutputFormat').value,
+        sample_input: document.getElementById('manualSampleInput').value,
+        sample_output: document.getElementById('manualSampleOutput').value,
+        starter_code: document.getElementById('manualStarterCode').value,
+        expected_output: document.getElementById('manualSampleOutput').value,
+        xp_reward: document.getElementById('manualDifficulty').value === 'hard' ? 200 : document.getElementById('manualDifficulty').value === 'medium' ? 150 : 100,
+        test_cases: testCases
+      };
+
+      try {
+        const res = await API.createProblemManually(problemData);
+        if (res.success) {
+          alert('✓ ' + res.message);
+          document.getElementById('createProblemForm').reset();
+          loadProblemBank();
+        } else {
+          alert('Error: ' + (res.detail || 'Failed to create problem'));
+        }
+      } catch (err) {
+        alert('Failed to publish problem: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✓ Create & Publish Problem to Student Lab';
+      }
+    }
+
+    // ── Load Problem Bank ───────────────────────────────────────
+    async function loadProblemBank() {
+      const tbody = document.getElementById('bankTableBody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-ghost);">Loading problems...</td></tr>';
+
+      try {
+        const res = await API.getFacultyProblems();
+        if (res.success && res.problems) {
+          document.getElementById('bank-count-badge').textContent = res.problems.length;
+          if (res.problems.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-ghost);">No problems in bank yet. Author one above!</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = res.problems.map(p => {
+            const diffColor = p.difficulty === 'easy' ? '#10b981' : p.difficulty === 'hard' ? '#f43f5e' : '#f59e0b';
+            const tcCount = (p.test_cases && p.test_cases.length) || 1;
+            const hiddenCount = (p.test_cases && p.test_cases.filter(t => t.is_hidden).length) || 0;
+
+            return `
+              <tr>
+                <td style="font-family: var(--font-mono); font-weight: 700; color: var(--text-ghost);">#${p.id}</td>
+                <td style="font-weight: 700; color: #fff;">
+                  ${escapeHtml(p.title)}
+                  <div style="font-size: 11px; color: var(--text-ghost); font-weight: normal; margin-top: 2px;">${escapeHtml(p.description.substring(0, 70))}...</div>
+                </td>
+                <td><span style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 3px 8px; border-radius: 6px; font-size: 11px;">${Array.isArray(p.concepts) ? p.concepts[0] : p.concepts}</span></td>
+                <td><span style="color: ${diffColor}; font-weight: 700; text-transform: uppercase; font-size: 11px;">${p.difficulty}</span></td>
+                <td style="font-family: var(--font-mono); font-size: 12px; color: #38bdf8;">
+                  ${tcCount} cases (${hiddenCount} hidden)
+                </td>
+                <td style="text-align: right;">
+                  <button class="btn" onclick="window.open('/student/lab.html?problem=${p.id}', '_blank')" style="padding: 4px 10px; background: rgba(0, 242, 254, 0.12); border: 1px solid rgba(0, 242, 254, 0.3); color: #00f2fe; border-radius: 6px; font-size: 11px; cursor: pointer; margin-right: 6px;">Test In Lab ↗</button>
+                  <button class="btn" onclick="deleteProblem(${p.id})" style="padding: 4px 10px; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.3); color: #f43f5e; border-radius: 6px; font-size: 11px; cursor: pointer;">Delete</button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #f43f5e;">Failed to load problem bank.</td></tr>';
+      }
+    }
+
+    async function deleteProblem(id) {
+      if (!confirm(`Are you sure you want to delete problem #${id}?`)) return;
+      try {
+        const res = await API.deleteFacultyProblem(id);
+        if (res.success) {
+          loadProblemBank();
+        }
+      } catch (err) {
+        alert('Failed to delete problem: ' + err.message);
+      }
+    }
+
     async function loadRecentManuals() {
       try {
         const res = await fetch('/api/faculty/manuals');
@@ -514,6 +869,8 @@
     }
 
     loadRecentManuals();
+    loadProblemBank();
   </script>
 </body>
 </html>
+

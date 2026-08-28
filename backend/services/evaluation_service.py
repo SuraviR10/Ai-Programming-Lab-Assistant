@@ -11,16 +11,19 @@ from datetime import datetime, timezone
 from database import SessionLocal, Problem, TestCase, Submission, SubmissionAnalysis, LabActivity, User
 from services.gcc_service import compile_and_run
 from services.anti_hardcoding_service import analyze_c_code_structure
-from services.groq_service import analyze_solution_semantics
+from services.groq_service import analyze_compiler_error, analyze_test_failure, analyze_solution_semantics
 
 
 def evaluate_submission(problem_id: int, student_code: str, student_id: str = "STU2024001", mode: str = "practice") -> dict:
     """
     Complete solution evaluation pipeline:
-    1. GCC compilation
+    1. GCC compilation (with Groq error guidance if compilation fails)
     2. Execution against visible & hidden test cases
     3. Static Code Analysis (detecting constant printf outputs when input required)
-    4. Optional Groq Semantic Analysis
+    4. Conditional Groq Analysis:
+       - If EVERYTHING is correct (all test cases pass & clean logic) -> Bypass Groq completely (0 quota, instant speed)
+       - If test cases DO NOT match -> Call Groq test failure analyzer with complete code
+       - If suspicious static pattern detected -> Call Groq semantic analyzer
     5. Anti-hardcoding classification & evidence logging
     6. Non-punitive student guidance & XP allocation
     """
@@ -67,11 +70,20 @@ def evaluate_submission(problem_id: int, student_code: str, student_id: str = "S
                 db.add(sub)
                 db.commit()
 
+                # Call Groq AI Error Analyzer with COMPLETE student code on compilation error
+                ai_feedback = analyze_compiler_error(
+                    student_code=student_code,
+                    compiler_error=run_res["compiler_error"],
+                    line_number=run_res.get("line"),
+                    mode=mode
+                )
+
                 return {
                     "success": False,
                     "status": "COMPILATION_ERROR",
                     "compiler_error": run_res["compiler_error"],
                     "line": run_res.get("line"),
+                    "ai_feedback": ai_feedback,
                     "score": 0.0,
                     "passed_test_cases": 0,
                     "total_test_cases": total_cases
@@ -105,19 +117,53 @@ def evaluate_submission(problem_id: int, student_code: str, student_id: str = "S
 
         static_analysis = analyze_c_code_structure(student_code, problem_meta)
 
-        # 3. Groq Semantic Analysis
+        # 3. Conditional Groq Analysis:
+        # GROQ IS CALLED ONLY WHEN:
+        # - Test cases are not matching correctly (passed_count < total_cases)
+        # - Static analysis detects suspicious hardcoded patterns
+        # IF EVERYTHING IS CORRECT: Bypasses Groq completely.
         ai_analysis = {}
+        ai_feedback = None
+        is_completed = (passed_count == total_cases)
+
         if mode != "exam":
-            ai_analysis = analyze_solution_semantics(
-                student_code=student_code,
-                problem_title=problem.title,
-                problem_description=problem.description,
-                static_analysis=static_analysis,
-                test_results={"passed": passed_count, "total": total_cases}
-            )
+            if not is_completed:
+                # Test cases failed -> Call Groq with complete student code to explain why output mismatched
+                failed_cases = [tc for tc in test_details if not tc["passed"]]
+                ai_feedback = analyze_test_failure(
+                    student_code=student_code,
+                    problem_title=problem.title,
+                    problem_description=problem.description,
+                    failed_test_cases=failed_cases,
+                    mode=mode
+                )
+                ai_analysis = {
+                    "classification": "PARTIALLY_CORRECT" if passed_count > 0 else "WRONG_ANSWER",
+                    "confidence": 0.90,
+                    "reasoning": ai_feedback.get("reason", "Test case output mismatch."),
+                    "is_creative_approach": False,
+                    "creative_summary": ""
+                }
+            elif static_analysis["is_suspicious"]:
+                # Suspicious static patterns detected -> Call Groq to verify semantics
+                ai_analysis = analyze_solution_semantics(
+                    student_code=student_code,
+                    problem_title=problem.title,
+                    problem_description=problem.description,
+                    static_analysis=static_analysis,
+                    test_results={"passed": passed_count, "total": total_cases}
+                )
+            else:
+                # EVERYTHING IS CORRECT: Direct bypass, no Groq call!
+                ai_analysis = {
+                    "classification": "VALID",
+                    "confidence": 1.0,
+                    "reasoning": "All test cases passed cleanly with genuine dynamic logic.",
+                    "is_creative_approach": False,
+                    "creative_summary": ""
+                }
 
         # 4. Determine Final Solution Status & Hardcoding Classification
-        is_completed = (passed_count == total_cases)
         is_hardcoded = False
         final_status = "VALID_SOLUTION"
 
@@ -205,6 +251,8 @@ def evaluate_submission(problem_id: int, student_code: str, student_id: str = "S
             "passed_test_cases": passed_count,
             "total_test_cases": total_cases,
             "test_details": test_details,
+            "test_case_results": test_details,
+            "ai_feedback": ai_feedback,
             "xp_earned": total_xp_earned,
             "is_creative": is_creative,
             "is_hardcoded": is_hardcoded,

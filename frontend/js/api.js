@@ -197,6 +197,23 @@ const API = (() => {
     });
   }
 
+  async function getFacultyProblems() {
+    return await request('/api/faculty/problems');
+  }
+
+  async function createProblemManually(problemData) {
+    return await request('/api/faculty/problems/create', {
+      method: 'POST',
+      body: JSON.stringify(problemData)
+    });
+  }
+
+  async function deleteFacultyProblem(problemId) {
+    return await request(`/api/faculty/problems/${problemId}`, {
+      method: 'DELETE'
+    });
+  }
+
   // ── AI Practice Mode & Activity Logging API ──
   async function generateChallenge(concept = 'Arrays', difficulty = 'medium') {
     const studentId = getStudentId();
@@ -234,6 +251,9 @@ const API = (() => {
     getStudentProgress,
     getFacultyDashboard,
     getFacultyStudents,
+    getFacultyProblems,
+    createProblemManually,
+    deleteFacultyProblem,
     createWriteup,
     createExam,
     getSuspiciousSubmissions,
@@ -242,4 +262,5 @@ const API = (() => {
     logActivity
   };
 })();
+
 

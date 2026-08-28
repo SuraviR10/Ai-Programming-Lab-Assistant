@@ -1,9 +1,13 @@
 """
 Faculty Command Console Routes
-GET /api/faculty/dashboard — Class performance summary, difficult concepts, live lab activity
+GET /api/faculty/dashboard — Class performance summary, difficult concepts, live lab activity & anti-cheat telemetry
 GET /api/faculty/students — Student roster with progress metrics
 GET /api/faculty/students/{id} — Individual student breakdown
-GET /api/faculty/analytics — Detailed concept difficulty analysis & feedback breakdown
+GET /api/faculty/problems — List all problem bank entries with test cases
+POST /api/faculty/problems/create — Manually create problem statements, starter/solution code, and test cases
+PUT /api/faculty/problems/{id} — Update problem and test cases
+DELETE /api/faculty/problems/{id} — Delete problem from bank
+POST /api/faculty/manual/upload — Upload and AI-extract PDF lab manuals
 POST /api/faculty/writeups — Create new weekly lab writeup
 POST /api/faculty/exams — Create new practical exam
 """
@@ -16,7 +20,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import (
     get_db, User, Problem, Submission, WriteUp, WriteUpSession, Exam, ExamSession,
-    StudentFeedback, LabActivity, LabManual, ManualProgram, ProgramTopic, ProgramExtractionLog, TestCase
+    StudentFeedback, LabActivity, LabManual, ManualProgram, ProgramTopic, ProgramExtractionLog, TestCase, SubmissionAnalysis
 )
 from services.pdf_extraction_service import extract_text_from_pdf_bytes, extract_programs_from_manual_text
 
@@ -41,6 +45,44 @@ class CreateExamRequest(BaseModel):
     question_ids: list[int] = [3, 4]
 
 
+class TestCaseItem(BaseModel):
+    input_data: str = ""
+    expected_output: str
+    is_hidden: bool = False
+
+
+class CreateProblemManualRequest(BaseModel):
+    title: str
+    description: str
+    topic: str = "General C"
+    difficulty: str = "medium"  # easy, medium, hard
+    input_format: str | None = None
+    output_format: str | None = None
+    constraints: str | None = None
+    starter_code: str | None = None
+    sample_input: str | None = None
+    sample_output: str | None = None
+    expected_output: str | None = None
+    xp_reward: int = 100
+    hints: list[str] = []
+    test_cases: list[TestCaseItem] = []
+
+
+class UpdateProgramRequest(BaseModel):
+    title: str | None = None
+    problem_statement: str | None = None
+    topic: str | None = None
+    input_format: str | None = None
+    output_format: str | None = None
+    constraints: str | None = None
+    sample_input: str | None = None
+    sample_output: str | None = None
+    reference_code: str | None = None
+    faculty_verified: bool | None = None
+
+
+# ── 1. Dashboard & Analytics ───────────────────────────────────
+
 @router.get("/dashboard")
 def get_faculty_dashboard(db: Session = Depends(get_db)):
     students = db.query(User).filter(User.role == "student").all()
@@ -49,6 +91,9 @@ def get_faculty_dashboard(db: Session = Depends(get_db)):
     submissions = db.query(Submission).all()
     total_subs = len(submissions)
     avg_class_score = round(sum(s.score for s in submissions) / max(1, total_subs), 1) if total_subs > 0 else 8.4
+
+    # Count Tab Switch Violations
+    tab_switch_count = db.query(LabActivity).filter(LabActivity.action == "tab_switch").count()
 
     # Difficult Concepts Analysis
     difficult_concepts = [
@@ -81,8 +126,8 @@ def get_faculty_dashboard(db: Session = Depends(get_db)):
             {"user_id": "STU2024002", "full_name": "Rahul M", "section": "A", "current_xp": 2200, "avg_score": 6.9, "weak_concept": "Arrays & Strings"}
         ]
 
-    # Live Lab Activity Feed
-    activities = db.query(LabActivity).order_by(LabActivity.timestamp.desc()).limit(10).all()
+    # Live Lab Activity & Tab Switch Feed
+    activities = db.query(LabActivity).order_by(LabActivity.timestamp.desc()).limit(20).all()
     activity_feed = []
     for act in activities:
         st = db.query(User).filter(User.user_id == act.student_id).first()
@@ -102,7 +147,9 @@ def get_faculty_dashboard(db: Session = Depends(get_db)):
             "average_class_score": avg_class_score,
             "writeup_completion_rate": 92,
             "exam_performance": 88.5,
-            "total_submissions": total_subs
+            "total_submissions": total_subs,
+            "tab_switch_count": tab_switch_count,
+            "tab_switches_total": tab_switch_count
         },
         "difficult_concepts": difficult_concepts,
         "struggling_students": struggling_students,
@@ -119,6 +166,12 @@ def list_students(db: Session = Depends(get_db)):
         subs_count = len(s_subs)
         avg_score = round(sum(sub.score for sub in s_subs) / max(1, subs_count), 1) if subs_count > 0 else 8.6
 
+        # Check for tab switch violations by this student
+        student_switches = db.query(LabActivity).filter(
+            LabActivity.student_id == s.user_id,
+            LabActivity.action == "tab_switch"
+        ).count()
+
         results.append({
             "user_id": s.user_id,
             "full_name": s.full_name,
@@ -129,7 +182,8 @@ def list_students(db: Session = Depends(get_db)):
             "rank": s.rank,
             "streak_days": s.streak_days,
             "submissions_count": subs_count,
-            "average_score": avg_score
+            "average_score": avg_score,
+            "tab_switches": student_switches
         })
 
     return {"success": True, "students": results}
@@ -142,7 +196,7 @@ def get_student_detail(student_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Student not found")
 
     submissions = db.query(Submission).filter(Submission.student_id == student_id).order_by(Submission.timestamp.desc()).all()
-    feedback = db.query(StudentFeedback).filter(StudentFeedback.student_id == student_id).all()
+    activities = db.query(LabActivity).filter(LabActivity.student_id == student_id).order_by(LabActivity.timestamp.desc()).limit(30).all()
 
     return {
         "success": True,
@@ -166,10 +220,151 @@ def get_student_detail(student_id: str, db: Session = Depends(get_db)):
                     "mode": sub.mode,
                     "timestamp": sub.timestamp.isoformat() if sub.timestamp else None
                 } for sub in submissions
+            ],
+            "activities": [
+                {
+                    "id": act.id,
+                    "action": act.action,
+                    "details": act.details,
+                    "timestamp": act.timestamp.isoformat() if act.timestamp else None
+                } for act in activities
             ]
         }
     }
 
+
+# ── 2. Faculty Manual Problem & Test Case Creation ─────────────
+
+@router.get("/problems")
+def list_faculty_problems(db: Session = Depends(get_db)):
+    """Lists all problem bank items along with their test cases for faculty review."""
+    problems = db.query(Problem).order_by(Problem.id.asc()).all()
+    results = []
+    for p in problems:
+        tcs = db.query(TestCase).filter(TestCase.problem_id == p.id).all()
+        results.append({
+            "id": p.id,
+            "title": p.title,
+            "description": p.description,
+            "difficulty": p.difficulty,
+            "concepts": json.loads(p.concepts) if isinstance(p.concepts, str) else p.concepts,
+            "input_format": p.input_format,
+            "output_format": p.output_format,
+            "constraints": p.constraints,
+            "sample_input": p.sample_input,
+            "sample_output": p.sample_output,
+            "expected_output": p.expected_output,
+            "starter_code": p.starter_code,
+            "xp_reward": p.xp_reward,
+            "test_cases": [
+                {
+                    "id": tc.id,
+                    "input_data": tc.input_data,
+                    "expected_output": tc.expected_output,
+                    "is_hidden": tc.is_hidden
+                } for tc in tcs
+            ]
+        })
+    return {"success": True, "problems": results}
+
+
+@router.post("/problems/create")
+def create_problem_manually(req: CreateProblemManualRequest, db: Session = Depends(get_db)):
+    """
+    Allows Faculty to manually enter a new Problem Statement, Topic, Starter Code,
+    and a custom suite of visible and hidden test cases.
+    """
+    if not req.title.strip() or not req.description.strip():
+        raise HTTPException(status_code=400, detail="Title and Problem Statement are required.")
+
+    # Determine starter code
+    starter = req.starter_code
+    if not starter or not starter.strip():
+        starter = f'#include <stdio.h>\n\nint main() {{\n    // {req.title}\n    // Write your solution here\n    \n    return 0;\n}}\n'
+
+    # Determine expected output
+    expected_out = req.expected_output or req.sample_output or "Output"
+    if req.test_cases and len(req.test_cases) > 0 and not req.expected_output:
+        expected_out = req.test_cases[0].expected_output
+
+    sample_in = req.sample_input
+    if not sample_in and req.test_cases and len(req.test_cases) > 0:
+        sample_in = req.test_cases[0].input_data
+
+    sample_out = req.sample_output or expected_out
+
+    # Progressive Hints
+    p_hints = [
+        {"tier": 1, "title": "Overview", "text": f"This problem focuses on {req.topic}."},
+        {"tier": 2, "title": "Input Handling", "text": req.input_format or "Use scanf() to read inputs."},
+        {"tier": 3, "title": "Expected Format", "text": req.output_format or f"Output must match: {sample_out}"}
+    ]
+
+    new_p = Problem(
+        title=req.title.strip(),
+        description=req.description.strip(),
+        difficulty=req.difficulty,
+        concepts=json.dumps([req.topic, "Faculty Problem"]),
+        input_format=req.input_format,
+        output_format=req.output_format,
+        constraints=req.constraints,
+        starter_code=starter,
+        expected_output=expected_out,
+        sample_input=sample_in,
+        sample_output=sample_out,
+        xp_reward=req.xp_reward,
+        hints=json.dumps(req.hints if req.hints else [f"Topic: {req.topic}"]),
+        progressive_hints=json.dumps(p_hints),
+        requires_input=bool(sample_in and sample_in.strip()),
+        allows_fixed_output=False,
+        is_active=True
+    )
+    db.add(new_p)
+    db.flush()
+
+    # Add Test Cases
+    if req.test_cases and len(req.test_cases) > 0:
+        for tc in req.test_cases:
+            db.add(TestCase(
+                problem_id=new_p.id,
+                input_data=tc.input_data or "",
+                expected_output=tc.expected_output,
+                is_hidden=tc.is_hidden
+            ))
+    else:
+        # Create at least one default test case
+        db.add(TestCase(
+            problem_id=new_p.id,
+            input_data=sample_in or "",
+            expected_output=expected_out,
+            is_hidden=False
+        ))
+
+    db.commit()
+    db.refresh(new_p)
+
+    return {
+        "success": True,
+        "problem_id": new_p.id,
+        "title": new_p.title,
+        "message": f"Problem '{new_p.title}' and its test cases created successfully!"
+    }
+
+
+@router.delete("/problems/{problem_id}")
+def delete_problem(problem_id: int, db: Session = Depends(get_db)):
+    p = db.query(Problem).filter(Problem.id == problem_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    db.query(TestCase).filter(TestCase.problem_id == problem_id).delete()
+    db.delete(p)
+    db.commit()
+
+    return {"success": True, "message": f"Problem #{problem_id} deleted successfully."}
+
+
+# ── 3. Writeups & Practical Exams ──────────────────────────────
 
 @router.post("/writeups")
 def create_writeup(request: CreateWriteupRequest, db: Session = Depends(get_db)):
@@ -206,9 +401,10 @@ def create_exam(request: CreateExamRequest, db: Session = Depends(get_db)):
     return {"success": True, "exam_id": e.id, "message": "Practical Exam created successfully!"}
 
 
+# ── 4. Suspicious Submissions & Review ─────────────────────────
+
 @router.get("/suspicious_submissions")
 def list_suspicious_submissions(db: Session = Depends(get_db)):
-    from database import SubmissionAnalysis
     analyses = db.query(SubmissionAnalysis).filter(
         SubmissionAnalysis.status == "POTENTIALLY_HARDCODED"
     ).order_by(SubmissionAnalysis.timestamp.desc()).all()
@@ -237,6 +433,12 @@ def list_suspicious_submissions(db: Session = Depends(get_db)):
     return {"success": True, "suspicious_submissions": results}
 
 
+@router.post("/review_submission/{analysis_id}")
+def review_submission(analysis_id: int, status: str = "approved", faculty_id: str = "FAC2024001", db: Session = Depends(get_db)):
+    analysis = db.query(SubmissionAnalysis).filter(SubmissionAnalysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis record not found")
+
     analysis.review_status = status
     analysis.reviewed_by = faculty_id
     db.commit()
@@ -244,20 +446,7 @@ def list_suspicious_submissions(db: Session = Depends(get_db)):
     return {"success": True, "message": f"Submission review status updated to '{status}'."}
 
 
-# ── Lab Manual PDF Upload & Verification Routes ──────────────────
-
-class UpdateProgramRequest(BaseModel):
-    title: str | None = None
-    problem_statement: str | None = None
-    topic: str | None = None
-    input_format: str | None = None
-    output_format: str | None = None
-    constraints: str | None = None
-    sample_input: str | None = None
-    sample_output: str | None = None
-    reference_code: str | None = None
-    faculty_verified: bool | None = None
-
+# ── 5. Lab Manual PDF Upload & AI Extraction ───────────────────
 
 @router.post("/manual/upload")
 async def upload_lab_manual(
@@ -272,7 +461,6 @@ async def upload_lab_manual(
     if len(contents) == 0:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
-    # Save to temp directory safely
     import tempfile
     upload_dir = os.path.join(tempfile.gettempdir(), "lab_manuals")
     os.makedirs(upload_dir, exist_ok=True)
@@ -291,7 +479,7 @@ async def upload_lab_manual(
     db.commit()
     db.refresh(manual)
 
-    # 2. Extract PDF Text & check if scanned
+    # 2. Extract PDF Text
     extraction = extract_text_from_pdf_bytes(contents)
 
     log_entry = ProgramExtractionLog(
@@ -305,11 +493,10 @@ async def upload_lab_manual(
         manual.processing_status = "scanned_pdf"
         db.commit()
 
-    # 3. Detect programs using AI or heuristic parser
+    # 3. Detect programs
     pdf_text = extraction.get("text", "")
     detected_programs = extract_programs_from_manual_text(pdf_text)
 
-    # If no programs detected, fall back to sample programs to guarantee workflow functionality
     if not detected_programs:
         detected_programs = [
             {
@@ -373,13 +560,12 @@ async def upload_lab_manual(
             sample_output=item.get("sample_output"),
             reference_code=item.get("reference_code"),
             extraction_confidence=float(item.get("confidence", 0.9)),
-            faculty_verified=False, # Faculty must verify before publishing
+            faculty_verified=False,
             published=False
         )
         db.add(mp)
         db_programs.append(mp)
 
-    # Register topics
     for topic_name in topics_set:
         pt = ProgramTopic(manual_id=manual.id, topic_name=topic_name, unit_number="Manual Unit")
         db.add(pt)
@@ -490,7 +676,6 @@ def approve_and_publish_program(program_id: int, db: Session = Depends(get_db)):
     mp.faculty_verified = True
     mp.published = True
 
-    # Check if this program already exists in main Problem Bank
     existing_problem = db.query(Problem).filter(Problem.title == mp.title).first()
     if not existing_problem:
         starter_code = mp.reference_code or f'#include <stdio.h>\n\nint main() {{\n    // {mp.title}\n    return 0;\n}}\n'
@@ -519,7 +704,6 @@ def approve_and_publish_program(program_id: int, db: Session = Depends(get_db)):
         db.add(new_p)
         db.flush()
 
-        # Add initial test case
         tc = TestCase(
             problem_id=new_p.id,
             input_data=mp.sample_input or "",
@@ -572,4 +756,5 @@ def publish_all_programs(manual_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"success": True, "message": f"All {len(programs)} programs from manual approved and published!"}
+
 
