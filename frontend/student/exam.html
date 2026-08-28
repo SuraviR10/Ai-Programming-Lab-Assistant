@@ -189,7 +189,7 @@
     <!-- Actions -->
     <div style="display: flex; align-items: center; gap: 12px;">
       <span id="autosave-indicator" style="font-size: 11px; font-family: var(--font-mono); color: #10b981;">● Autosaved</span>
-      <button class="btn" onclick="confirmEndExam()" style="padding: 8px 20px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 6px; color: #fff; font-weight: 800; cursor: pointer; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);">
+      <button class="btn" onclick="submitExamFinal()" style="padding: 8px 20px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 6px; color: #fff; font-weight: 800; cursor: pointer; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);">
         End & Submit Exam
       </button>
     </div>
@@ -325,62 +325,43 @@
       }
     });
 
-    // ── Strict Anti-Cheat Keyboard & Mouse Lockdown ─────────────
+    // ── Silent Anti-Cheat Telemetry Logging (No Intrusive Warnings) ──
     document.addEventListener('contextmenu', (e) => e.preventDefault());
 
     document.addEventListener('keydown', (e) => {
-      // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U (Inspect Element)
+      // Prevent accidental developer shortcuts or window closes
       if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) {
         e.preventDefault();
-        recordViolation('Attempted to open browser developer tools / inspect');
+        recordViolation('DevTools / inspect shortcut blocked');
         return false;
       }
-      // Block Ctrl+N, Ctrl+T, Ctrl+W
       if (e.ctrlKey && (e.key === 't' || e.key === 'n' || e.key === 'w')) {
         e.preventDefault();
-        recordViolation('Attempted browser navigation shortcut');
+        recordViolation('Browser navigation shortcut blocked');
         return false;
       }
     });
 
-    // Detect Tab Switch, Window Blur & Fullscreen Exit
+    // Detect Tab Switch, Window Blur & Fullscreen Exit Silently
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        recordViolation('Tab switched or browser minimized');
+        recordViolation('Tab switched or minimized');
       }
     });
 
     window.addEventListener('blur', () => {
-      recordViolation('Browser window focus lost');
-    });
-
-    document.addEventListener('fullscreenchange', () => {
-      if (!document.fullscreenElement) {
-        recordViolation('Exited fullscreen lockdown');
-      }
+      recordViolation('Window focus lost');
     });
 
     function recordViolation(reason) {
-      if (isViolationModalOpen) return;
       violationCount++;
-      isViolationModalOpen = true;
-
-      document.getElementById('overlay-violation-count').textContent = violationCount;
-      document.getElementById('violation-overlay').classList.add('show');
-
-      // Log immediately to backend
-      API.logActivity('exam_tab_switch', `Student ${studentId} triggered exam violation #${violationCount} during Exam #${examId}: ${reason}`).catch(() => {});
-    }
-
-    function dismissViolation() {
-      document.getElementById('violation-overlay').classList.remove('show');
-      isViolationModalOpen = false;
-
-      // Re-enter Fullscreen
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
+      const badge = document.getElementById('exam-title-badge');
+      if (badge && violationCount > 0) {
+        badge.innerHTML = `${escapeHtml(examData ? examData.title : 'Practical Exam')} <span style="font-size: 11px; color: #f87171; background: rgba(239,68,68,0.15); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); margin-left: 8px;">Violations: ${violationCount}</span>`;
       }
-      if (cmEditor) cmEditor.focus();
+
+      // Log telemetry directly to Faculty Dashboard
+      API.logActivity('exam_tab_switch', `Student ${studentId} switched tabs during Exam #${examId} (Incident #${violationCount}: ${reason})`).catch(() => {});
     }
 
     // ── Start & Load Exam ───────────────────────────────────────
@@ -508,27 +489,66 @@
       } catch (e) {}
     }
 
-    // ── Final Submission ────────────────────────────────────────
-    function confirmEndExam() {
-      const confirmMsg = "Are you sure you want to end and submit your practical exam?\n\nOnce submitted, your solutions will be finalized and graded.";
-      if (confirm(confirmMsg)) {
-        submitExamFinal();
-      }
-    }
-
+    // ── Direct Submission & Instant Mark Awarding ───────────────
     async function submitExamFinal() {
       clearInterval(timerInterval);
       const btn = document.querySelector('.exam-header button');
       if (btn) {
         btn.disabled = true;
-        btn.textContent = 'Submitting Exam...';
+        btn.textContent = 'Evaluating & Grading...';
       }
+
+      const resultsModal = document.getElementById('results-modal');
+      const resultsBody = document.getElementById('results-body');
 
       try {
         const res = await API.submitExam(examId, codeMap);
         if (res.success) {
-          alert(`✓ Examination Submitted Successfully!\nFinal Score: ${res.score} / 10`);
-          window.location.href = 'exams.html';
+          const breakdownHtml = (res.breakdown || []).map((b, idx) => `
+            <div style="background: rgba(13, 21, 46, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <div style="font-weight: 700; color: #fff; font-size: 14px;">Question 0${idx+1}: ${escapeHtml(b.title)}</div>
+                <div style="font-size: 11px; color: var(--text-ghost); font-family: var(--font-mono); margin-top: 2px;">
+                  Test Cases: <span style="color: #38bdf8;">${b.passed_cases} / ${b.total_cases} Passed</span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: var(--font-mono); font-weight: 800; font-size: 16px; color: #10b981;">
+                  +${b.score} / ${b.max_score}
+                </div>
+                <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; ${b.status === 'PASSED' ? 'background: rgba(16,185,129,0.15); color: #34d399;' : (b.status === 'COMPILATION_ERROR' ? 'background: rgba(239,68,68,0.15); color: #f87171;' : 'background: rgba(251,191,36,0.15); color: #fbbf24;')}">
+                  ${b.status}
+                </span>
+              </div>
+            </div>
+          `).join('');
+
+          const scorePercent = res.percentage || Math.round((res.score / 10.0) * 100);
+          const grade = scorePercent >= 90 ? 'A+ (Outstanding)' : (scorePercent >= 75 ? 'A (Excellent)' : (scorePercent >= 60 ? 'B (Good)' : 'Needs Practice'));
+
+          resultsBody.innerHTML = `
+            <div style="text-align: center; margin-bottom: 24px;">
+              <div style="font-size: 48px; margin-bottom: 8px;">🏆</div>
+              <div class="label" style="color: #10b981; margin-bottom: 4px;">EXAM EVALUATION COMPLETE</div>
+              <h2 style="font-family: var(--font-display); font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 4px;">
+                Final Score: <span style="color: #10b981;">${res.score}</span> / 10.0
+              </h2>
+              <div style="font-family: var(--font-mono); font-size: 13px; color: #fbbf24; font-weight: 700;">
+                Percentage: ${scorePercent}% | Grade: ${grade}
+              </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <div class="label" style="color: #a5b4fc; margin-bottom: 8px;">QUESTION-BY-QUESTION BREAKDOWN</div>
+              ${breakdownHtml}
+            </div>
+
+            <button class="btn btn-primary" onclick="window.location.href='exams.html'" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 8px; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 0 20px rgba(16,185,129,0.4);">
+              Return to Exams Hub
+            </button>
+          `;
+
+          resultsModal.classList.add('show');
         } else {
           alert('Submission error: ' + (res.detail || 'Failed to submit'));
         }
@@ -537,11 +557,22 @@
       }
     }
 
-    // Initialize on load & trigger fullscreen
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Initialize on load
     window.addEventListener('DOMContentLoaded', () => {
       initExam();
       document.documentElement.requestFullscreen().catch(() => {});
     });
   </script>
+
+  <!-- ═══ OFFICIAL EXAM RESULT MODAL ═══ -->
+  <div class="violation-overlay" id="results-modal">
+    <div class="violation-card" style="border-color: #10b981; max-width: 580px; text-align: left; box-shadow: 0 0 60px rgba(16,185,129,0.4);" id="results-body">
+      <div style="text-align: center; color: #fff;">Evaluating solutions...</div>
+    </div>
+  </div>
 </body>
 </html>
