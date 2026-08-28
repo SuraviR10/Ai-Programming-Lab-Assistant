@@ -572,30 +572,33 @@ int main() {
             </div>
           </div>
 
-          <!-- What Happened -->
-          <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #6366f1;">
-            <div class="label" style="color: #a5b4fc; margin-bottom: 6px; font-weight: 700;">📘 WHAT HAPPENED</div>
-            <div id="ai-explanation" style="font-size: 13.5px; color: #fff; line-height: 1.6;">-</div>
-          </div>
+          <!-- Dynamic Multi-Error / Single-Error Container -->
+          <div id="ai-errors-container">
+            <!-- What Happened -->
+            <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #6366f1;">
+              <div class="label" style="color: #a5b4fc; margin-bottom: 6px; font-weight: 700;">📘 WHAT HAPPENED</div>
+              <div id="ai-explanation" style="font-size: 13.5px; color: #fff; line-height: 1.6;">-</div>
+            </div>
 
-          <!-- Why It Happened (Point-Wise) -->
-          <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #f43f5e; background: rgba(244, 63, 94, 0.05);">
-            <div class="label" style="color: #f87171; margin-bottom: 6px; font-weight: 700;">🔍 WHY THIS HAPPENED (UNDERSTAND THE REASON)</div>
-            <ul id="ai-why-list" style="margin: 0; padding-left: 20px; font-size: 13px; color: #fecdd3; line-height: 1.7;">
-              <li>Analyzing token structure...</li>
-            </ul>
-          </div>
+            <!-- Why It Happened (Point-Wise) -->
+            <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #f43f5e; background: rgba(244, 63, 94, 0.05);">
+              <div class="label" style="color: #f87171; margin-bottom: 6px; font-weight: 700;">🔍 WHY THIS HAPPENED (UNDERSTAND THE REASON)</div>
+              <ul id="ai-why-list" style="margin: 0; padding-left: 20px; font-size: 13px; color: #fecdd3; line-height: 1.7;">
+                <li>Analyzing token structure...</li>
+              </ul>
+            </div>
 
-          <!-- How to Fix (Step-by-Step Point-Wise) -->
-          <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05);">
-            <div class="label" style="color: #34d399; margin-bottom: 6px; font-weight: 700;">💡 HOW TO CORRECT YOUR CODE (STEP-BY-STEP)</div>
-            <ol id="ai-how-list" style="margin: 0; padding-left: 20px; font-size: 13px; color: #d1fae5; line-height: 1.7; font-weight: 600;">
-              <li>Inspect your syntax...</li>
-            </ol>
+            <!-- How to Fix (Step-by-Step Point-Wise) -->
+            <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05);">
+              <div class="label" style="color: #34d399; margin-bottom: 6px; font-weight: 700;">💡 HOW TO CORRECT YOUR CODE (STEP-BY-STEP)</div>
+              <ol id="ai-how-list" style="margin: 0; padding-left: 20px; font-size: 13px; color: #d1fae5; line-height: 1.7; font-weight: 600;">
+                <li>Inspect your syntax...</li>
+              </ol>
+            </div>
           </div>
 
           <!-- Key Information to Remember -->
-          <div class="ai-card" style="border: 1px solid rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.08); margin-bottom: 12px;">
+          <div class="ai-card" style="border: 1px solid rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.08); margin-bottom: 12px; margin-top: 12px;">
             <div class="label" style="color: #fbbf24; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; font-weight: 700;">
               <span>📌</span> INFORMATION TO REMEMBER (CONCEPT RULE OF THUMB)
             </div>
@@ -962,7 +965,7 @@ int main() {
       focusEditor();
     });
 
-    // ── Render Point-Wise AI Feedback ───────────────────────────
+    // ── Render Point-Wise AI Feedback (Single & Multi-Error Support) ──
     function renderAIFeedback(feedback, statusHeading = 'AI TUTOR GUIDANCE') {
       if (!feedback || feedback.ai_disabled) return;
 
@@ -974,48 +977,104 @@ int main() {
       tabAI.style.display = 'block';
 
       const statusEl = document.getElementById('ai-status-text');
-      if (statusEl) statusEl.textContent = statusHeading;
-
-      // Line Offset Badge
       const lineBadge = document.getElementById('ai-line-badge');
-      if (lineBadge) {
+      const container = document.getElementById('ai-errors-container');
+
+      const errors = Array.isArray(feedback.errors) && feedback.errors.length > 0 ? feedback.errors : null;
+
+      if (errors && errors.length > 1) {
+        if (statusEl) statusEl.textContent = `⚠️ MULTIPLE ISSUES DETECTED (${errors.length} ERRORS FOUND)`;
+        if (lineBadge) lineBadge.style.display = 'none';
+
+        // Render each error as an individual structured card
+        container.innerHTML = errors.map((err, idx) => {
+          const actLine = err.actual_error_line;
+          const repLine = err.reported_line;
+          const lineTag = actLine ? (repLine && repLine !== actLine ? `🎯 Mistake on Line ${actLine} (Flagged as Line ${repLine})` : `🎯 Target Fix: Line ${actLine}`) : '';
+
+          const whyItems = Array.isArray(err.why_it_happened) ? err.why_it_happened : (err.reason ? [err.reason] : []);
+          const howItems = Array.isArray(err.how_to_fix) ? err.how_to_fix : (err.hint ? [err.hint] : []);
+
+          return `
+            <div style="background: rgba(13, 21, 46, 0.9); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                <div style="font-weight: 800; font-size: 14px; color: #fff; display: flex; align-items: center; gap: 8px;">
+                  <span style="background: #ef4444; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono);">ISSUE 0${idx+1}</span>
+                  <span>${escapeHtml(err.title || 'Syntax Issue')}</span>
+                </div>
+                ${lineTag ? `<span style="font-family: var(--font-mono); font-size: 11px; color: #f87171; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); padding: 3px 8px; border-radius: 6px;">${lineTag}</span>` : ''}
+              </div>
+
+              <!-- What Happened -->
+              <div class="ai-card" style="margin-bottom: 10px; border-left: 3px solid #6366f1;">
+                <div class="label" style="color: #a5b4fc; margin-bottom: 4px; font-size: 11px;">📘 WHAT HAPPENED</div>
+                <div style="font-size: 13px; color: #fff; line-height: 1.5;">${escapeHtml(err.explanation || 'Issue detected')}</div>
+              </div>
+
+              <!-- Why It Happened -->
+              <div class="ai-card" style="margin-bottom: 10px; border-left: 3px solid #f43f5e; background: rgba(244, 63, 94, 0.05);">
+                <div class="label" style="color: #f87171; margin-bottom: 4px; font-size: 11px;">🔍 WHY THIS HAPPENED</div>
+                <ul style="margin: 0; padding-left: 18px; font-size: 12.5px; color: #fecdd3; line-height: 1.6;">
+                  ${whyItems.map(w => `<li>${escapeHtml(w)}</li>`).join('')}
+                </ul>
+              </div>
+
+              <!-- How to Fix -->
+              <div class="ai-card" style="border-left: 3px solid #10b981; background: rgba(16, 185, 129, 0.05);">
+                <div class="label" style="color: #34d399; margin-bottom: 4px; font-size: 11px;">💡 HOW TO CORRECT (STEP-BY-STEP)</div>
+                <ol style="margin: 0; padding-left: 18px; font-size: 12.5px; color: #d1fae5; line-height: 1.6; font-weight: 600;">
+                  ${howItems.map(h => `<li>${escapeHtml(h)}</li>`).join('')}
+                </ol>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } else {
+        // Single Error Rendering
+        if (statusEl) statusEl.textContent = statusHeading;
+
         const actLine = feedback.actual_error_line;
         const repLine = feedback.reported_line;
-        if (actLine) {
-          lineBadge.style.display = 'block';
-          if (repLine && repLine !== actLine) {
-            lineBadge.textContent = `🎯 Mistake on Line ${actLine} (Flagged as Line ${repLine})`;
+        if (lineBadge) {
+          if (actLine) {
+            lineBadge.style.display = 'block';
+            if (repLine && repLine !== actLine) {
+              lineBadge.textContent = `🎯 Mistake on Line ${actLine} (Flagged as Line ${repLine})`;
+            } else {
+              lineBadge.textContent = `🎯 Target Error: Line ${actLine}`;
+            }
           } else {
-            lineBadge.textContent = `🎯 Target Error: Line ${actLine}`;
+            lineBadge.style.display = 'none';
           }
-        } else {
-          lineBadge.style.display = 'none';
         }
-      }
 
-      // What Happened
-      document.getElementById('ai-explanation').textContent = feedback.explanation || 'Mistake detected during execution.';
-
-      // Why It Happened (Point-Wise)
-      const whyListEl = document.getElementById('ai-why-list');
-      if (whyListEl) {
         const whyItems = Array.isArray(feedback.why_it_happened) ? feedback.why_it_happened : (feedback.reason ? [feedback.reason] : []);
-        if (whyItems.length > 0) {
-          whyListEl.innerHTML = whyItems.map(item => `<li>${escapeHtml(item)}</li>`).join('');
-        } else {
-          whyListEl.innerHTML = `<li>${escapeHtml(feedback.reason || 'Unexpected token or syntax structure.')}</li>`;
-        }
-      }
-
-      // How to Fix (Point-Wise Steps)
-      const howListEl = document.getElementById('ai-how-list');
-      if (howListEl) {
         const howItems = Array.isArray(feedback.how_to_fix) ? feedback.how_to_fix : (feedback.hint ? [feedback.hint] : []);
-        if (howItems.length > 0) {
-          howListEl.innerHTML = howItems.map(item => `<li>${escapeHtml(item)}</li>`).join('');
-        } else {
-          howListEl.innerHTML = `<li>${escapeHtml(feedback.hint || 'Inspect your code syntax and delimiter placements.')}</li>`;
-        }
+
+        container.innerHTML = `
+          <!-- What Happened -->
+          <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #6366f1;">
+            <div class="label" style="color: #a5b4fc; margin-bottom: 6px; font-weight: 700;">📘 WHAT HAPPENED</div>
+            <div style="font-size: 13.5px; color: #fff; line-height: 1.6;">${escapeHtml(feedback.explanation || 'Mistake detected during execution.')}</div>
+          </div>
+
+          <!-- Why It Happened (Point-Wise) -->
+          <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #f43f5e; background: rgba(244, 63, 94, 0.05);">
+            <div class="label" style="color: #f87171; margin-bottom: 6px; font-weight: 700;">🔍 WHY THIS HAPPENED (UNDERSTAND THE REASON)</div>
+            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #fecdd3; line-height: 1.7;">
+              ${whyItems.map(w => `<li>${escapeHtml(w)}</li>`).join('')}
+            </ul>
+          </div>
+
+          <!-- How to Fix (Step-by-Step Point-Wise) -->
+          <div class="ai-card" style="margin-bottom: 12px; border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05);">
+            <div class="label" style="color: #34d399; margin-bottom: 6px; font-weight: 700;">💡 HOW TO CORRECT YOUR CODE (STEP-BY-STEP)</div>
+            <ol style="margin: 0; padding-left: 20px; font-size: 13px; color: #d1fae5; line-height: 1.7; font-weight: 600;">
+              ${howItems.map(h => `<li>${escapeHtml(h)}</li>`).join('')}
+            </ol>
+          </div>
+        `;
       }
 
       // Remember Tip & Concept

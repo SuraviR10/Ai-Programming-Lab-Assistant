@@ -33,21 +33,52 @@ def format_code_with_line_numbers(code: str) -> str:
 
 def detect_actual_error_line_heuristic(code: str, compiler_error: str, reported_line: int | None) -> int:
     """
-    Heuristic analyzer to detect if a C syntax error actually belongs on the previous line.
-    E.g. If line 5 triggers 'expected ; before return', line 4 was missing ';'.
+    Heuristic analyzer to detect if a C syntax error actually belongs on a previous line or unclosed block.
+    E.g.
+    1. If line 5 triggers 'expected ; before return', line 4 was missing ';'.
+    2. If line 9 triggers 'expected declaration or statement at end of input', an earlier block (like line 5 'if (...) {') was never closed.
     """
-    if not reported_line or reported_line <= 1:
+    if not code:
         return reported_line or 1
 
     lines = code.splitlines()
-    if reported_line > len(lines) + 1:
-        return min(reported_line, len(lines))
+    total_lines = len(lines)
+    err_lower = (compiler_error or "").lower()
 
-    err_lower = compiler_error.lower()
-
-    # Semicolon missing, expected token, or declaration error often trips on next line
+    # 1. Unclosed Brace / Block Analysis
     if any(k in err_lower for k in [
-        "expected ';'", "expected ';'", "expected declaration or statement",
+        "expected declaration or statement at end of input",
+        "expected '}' at end of input",
+        "expected '}' before",
+        "unterminated",
+        "expected '{'",
+        "reached end of file while parsing"
+    ]):
+        # Track opening braces and matching
+        open_blocks = [] # list of (line_num, line_text)
+        for i, l in enumerate(lines, start=1):
+            clean_l = re.sub(r'//.*$', '', l) # remove line comments
+            clean_l = re.sub(r'".*?"', '""', clean_l) # remove strings
+            for ch in clean_l:
+                if ch == '{':
+                    open_blocks.append((i, l.strip()))
+                elif ch == '}' and open_blocks:
+                    open_blocks.pop()
+
+        if len(open_blocks) > 1:
+            # More than just main() is unclosed! The innermost unclosed block (e.g. if/for/while) is the culprit
+            innermost_line, _ = open_blocks[-1]
+            return innermost_line
+
+    if not reported_line or reported_line <= 1:
+        return reported_line or 1
+
+    if reported_line > total_lines + 1:
+        return min(reported_line, total_lines)
+
+    # 2. Missing Semicolon or Delimiter on Preceding Statement
+    if any(k in err_lower for k in [
+        "expected ';'", "expected declaration or statement",
         "expected expression before", "expected '=', ',', ';'", "before 'return'",
         "before '}'", "before 'printf'", "before 'scanf'", "before 'if'", "before 'for'", "before 'while'"
     ]):
@@ -56,7 +87,6 @@ def detect_actual_error_line_heuristic(code: str, compiler_error: str, reported_
         while idx >= 0:
             stripped = lines[idx].strip()
             if stripped and not stripped.startswith("//") and not stripped.startswith("/*"):
-                # If this previous line does not end with ';' or '{' or '}' or ':' or '#', it's the real culprit!
                 if not stripped.endswith(";") and not stripped.endswith("{") and not stripped.endswith("}") and not stripped.endswith(":") and not stripped.startswith("#"):
                     return idx + 1
                 break
@@ -72,32 +102,44 @@ A student attempted to compile the following C program:
 Complete Student C Code (with line numbers):
 {numbered_student_code}
 
-Compiler Error:
+Full Compiler Error Output:
 {compiler_error}
 
-Compiler Reported Line Number: {line_number}
-Line Directly Above: {prev_line}
+Compiler Flagged Line Number: {line_number}
 Mode: {mode}
 
-Strict Teaching & Debugging Guidelines:
-1. COMPLETE SOURCE CODE & LINE OFFSET ANALYSIS:
-   - You have the student's COMPLETE source code with exact 1-based line numbers.
-   - In C compilers (like GCC/Clang), syntax errors such as missing semicolons (';'), unclosed parentheses (')'), unmatched brackets/braces ('}}'), or unclosed quotes are very frequently reported on the NEXT line or subsequent statement rather than where the typo occurred.
-   - Analyze line {line_number} AND the preceding lines (especially line {prev_line}).
-   - Determine the "actual_error_line" (the real line number where the student must make the fix). For example, if line 4 is missing a semicolon and GCC reports line 5, "actual_error_line" MUST be 4.
-2. DO NOT provide the full corrected code copy-paste solution. Guide the student so they learn how to fix it themselves.
-3. Use simple, beginner-friendly language (avoid heavy compiler jargon).
-4. Provide structured POINT-WISE explanations:
-   - "why_it_happened": A list of clear bullet points explaining WHY this error occurred and why the compiler behaved this way.
-   - "how_to_fix": A list of simple, step-by-step action items explaining HOW to correct the code without giving away the full program.
-5. Provide a "remember_tip" ("Key Information to Remember"): A memorable rule of thumb for future C programming.
-6. Identify the core C concept involved.
+Strict Teaching & Multi-Error Debugging Guidelines:
+1. COMPLETE SOURCE CODE & ERROR TRACE:
+   - Carefully analyze the student's COMPLETE source code and the compiler output.
+   - Count open and close curly braces '{{' vs '}}', parentheses '()', brackets '[]', and semicolons ';'.
+   - Determine whether the mistake occurred on the reported line, on a preceding statement (e.g. missing semicolon on line 4 when line 5 is reported), or inside an unclosed block (e.g. an 'if (...) {{' on line 5 that was never closed before 'return 0;').
+   - If there is a single error or MULTIPLE compiler errors, provide a comprehensive breakdown for each issue.
+2. DO NOT provide the full copy-paste solution. Explain what is missing, why it happened, and how to fix it step-by-step.
+3. Structure your response as JSON with:
+   - "actual_error_line": The exact line number in the student's code where the primary fix must be applied.
+   - "reported_line": The line number reported by GCC.
+   - "explanation": Simple plain-language summary of what happened.
+   - "why_it_happened": List of clear bullet points explaining why this happened in simple words.
+   - "how_to_fix": List of step-by-step action items explaining how to correct the code.
+   - "errors": An array containing an object for each error detected (if multiple or 1 error):
+     [
+       {{
+         "actual_error_line": integer,
+         "reported_line": integer,
+         "title": "Short descriptive title (e.g. Unclosed if-statement block / Missing semicolon / Undeclared variable)",
+         "explanation": "Simple plain-language description",
+         "why_it_happened": ["Point 1...", "Point 2..."],
+         "how_to_fix": ["Step 1...", "Step 2..."]
+       }}
+     ]
+   - "remember_tip": A memorable rule of thumb for students to remember.
+   - "concept": Core C concept involved.
 
 Return ONLY valid JSON in this exact structure:
 {{
   "actual_error_line": {prev_line},
   "reported_line": {line_number},
-  "explanation": "Simple plain-language summary of the mistake and where it is located",
+  "explanation": "Simple plain-language summary",
   "why_it_happened": [
     "Point 1 explaining why this happened in simple words",
     "Point 2 explaining compiler token scanning or delimiter expectations"
@@ -106,8 +148,18 @@ Return ONLY valid JSON in this exact structure:
     "Step 1: Check line X for...",
     "Step 2: Add or modify..."
   ],
+  "errors": [
+    {{
+      "actual_error_line": {prev_line},
+      "reported_line": {line_number},
+      "title": "Error Title",
+      "explanation": "Explanation for this error",
+      "why_it_happened": ["Point 1...", "Point 2..."],
+      "how_to_fix": ["Step 1...", "Step 2..."]
+    }}
+  ],
   "remember_tip": "Memorable rule of thumb for students to remember",
-  "concept": "C concept (e.g. Statement Semicolon Termination, Bracket Matching, Variable Declaration)"
+  "concept": "C Concept Name"
 }}"""
 
 
@@ -156,17 +208,19 @@ Return ONLY valid JSON in this exact structure:
 
 
 GROQ_MODELS = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
-    "mixtral-8x7b-32768",
-    "gemma2-9b-it"
+    "groq/compound-mini",
+    "qwen/qwen3.8-27b",
+    "groq/compound",
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "allam-2-7b"
 ]
 
 
 def analyze_compiler_error(student_code: str, compiler_error: str, line_number: int | None, mode: str = "practice") -> dict:
     """
     Sends complete student code and compiler error to Groq LLM.
-    Returns structured point-wise JSON guidance with intelligent line offset detection.
+    Returns structured point-wise JSON guidance with intelligent line offset detection and multi-error support.
     Enforces mode policy: 'exam' mode strictly returns disabled AI status.
     """
     actual_line = detect_actual_error_line_heuristic(student_code, compiler_error, line_number)
@@ -183,25 +237,43 @@ def analyze_compiler_error(student_code: str, compiler_error: str, line_number: 
             "why_it_happened": ["Official laboratory examination in progress."],
             "how_to_fix": ["Inspect the compiler error output and debug independently."],
             "hint": "Inspect the technical compiler error above to debug your code.",
+            "errors": [],
             "remember_tip": "During examinations, verify syntax independently.",
             "concept": "Examination Policy"
         }
 
     is_offset = (actual_line != line_number) if line_number else False
 
-    fallback_why = [
-        f"The compiler was reading tokens and encountered an unexpected token near line {line_number or 'unknown'}.",
-        f"In C, statements must end with a delimiter like ';' or braces '}}'. When omitted on line {actual_line}, the compiler only notices the mistake when reaching line {line_number or actual_line}."
-    ] if is_offset else [
-        f"The compiler encountered invalid C syntax on line {line_number or 1}.",
-        "A required symbol, correct format, or matching delimiter was missing or mismatched."
-    ]
+    # Clean fallback explanation without awkward repetition
+    if is_offset:
+        fallback_why = [
+            f"The compiler was scanning tokens and encountered an unexpected token near line {line_number or 'unknown'}.",
+            f"An opening block, delimiter, or statement on line {actual_line} was not properly terminated before reaching line {line_number or actual_line}."
+        ]
+        fallback_how = [
+            f"Inspect Line {actual_line} (the statement/block before line {line_number}): check if it is missing a closing brace '}}' or semicolon ';'.",
+            f"Verify that all parenthesis '()', curly braces '{{}}', and quotes '\"' are balanced between line {actual_line} and line {line_number or actual_line}.",
+            "Ensure all opened code blocks are properly closed with '}'."
+        ]
+    else:
+        fallback_why = [
+            f"The compiler encountered invalid C syntax on line {line_number or 1}.",
+            "A required symbol, correct format, or matching delimiter was missing or mismatched."
+        ]
+        fallback_how = [
+            f"Look directly at Line {actual_line}: check if a required symbol, delimiter, or type declaration is missing.",
+            f"Verify that all parenthesis '()', curly braces '{{}}', and double quotes '\"' on line {actual_line} are properly matched.",
+            "Ensure all variable names and function names are spelled correctly."
+        ]
 
-    fallback_how = [
-        f"Look directly at Line {actual_line} (the line right above line {line_number}): check if it is missing a semicolon (';') at the end.",
-        f"Verify that all parenthesis '()', curly braces '{{}}', and double quotes '\"' on lines {actual_line} to {line_number or actual_line} are properly matched.",
-        "Ensure all variable names and function names are spelled correctly."
-    ]
+    fallback_error_item = {
+        "actual_error_line": actual_line,
+        "reported_line": line_number,
+        "title": "Syntax Issue on Line " + str(actual_line),
+        "explanation": f"Mistake detected on Line {actual_line} (even though the compiler reported Line {line_number or actual_line})." if is_offset else f"Syntax issue detected on Line {line_number or 1}.",
+        "why_it_happened": fallback_why,
+        "how_to_fix": fallback_how
+    }
 
     fallback = {
         "ai_disabled": False,
@@ -211,8 +283,9 @@ def analyze_compiler_error(student_code: str, compiler_error: str, line_number: 
         "reason": f"When a delimiter like a semicolon (;) or closing bracket is missing on line {actual_line}, the C compiler continues reading until line {line_number or actual_line} before flagging an error.",
         "why_it_happened": fallback_why,
         "how_to_fix": fallback_how,
-        "hint": f"Check Line {actual_line} for a missing semicolon ';' or unclosed delimiter before Line {line_number or actual_line}.",
-        "remember_tip": "Rule of Thumb: In C, whenever GCC reports 'expected ; before...', the missing semicolon is almost always on the line immediately ABOVE the reported line!",
+        "hint": f"Check Line {actual_line} for a missing semicolon ';' or unclosed delimiter before Line {line_number or actual_line}." if is_offset else f"Check Line {actual_line} for missing symbols or syntax typos.",
+        "errors": [fallback_error_item],
+        "remember_tip": "Rule of Thumb: In C, whenever GCC reports 'expected ; before...' or 'expected declaration at end of input', the mistake is on the line where the unclosed block or statement began!",
         "concept": "C Statement Termination & Delimiters"
     }
 
@@ -234,8 +307,8 @@ def analyze_compiler_error(student_code: str, compiler_error: str, line_number: 
             response = _client.chat.completions.create(
                 model=model_name,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.2,
-                max_tokens=700,
+                temperature=0.1,
+                max_tokens=900,
             )
 
             raw_text = response.choices[0].message.content.strip()
@@ -259,6 +332,18 @@ def analyze_compiler_error(student_code: str, compiler_error: str, line_number: 
             except (ValueError, TypeError):
                 act_line = actual_line
 
+            # Extract multi-error array
+            errors_list = parsed.get("errors")
+            if not isinstance(errors_list, list) or len(errors_list) == 0:
+                errors_list = [{
+                    "actual_error_line": act_line,
+                    "reported_line": line_number,
+                    "title": "Compiler Error on Line " + str(act_line),
+                    "explanation": parsed.get("explanation", fallback["explanation"]),
+                    "why_it_happened": why_list,
+                    "how_to_fix": how_list
+                }]
+
             return {
                 "ai_disabled": False,
                 "actual_error_line": act_line,
@@ -268,6 +353,7 @@ def analyze_compiler_error(student_code: str, compiler_error: str, line_number: 
                 "why_it_happened": why_list,
                 "how_to_fix": how_list,
                 "hint": parsed.get("hint", "; ".join(how_list)),
+                "errors": errors_list,
                 "remember_tip": parsed.get("remember_tip", fallback["remember_tip"]),
                 "concept": parsed.get("concept", fallback["concept"])
             }
@@ -275,6 +361,7 @@ def analyze_compiler_error(student_code: str, compiler_error: str, line_number: 
             continue
 
     return fallback
+
 
 
 def analyze_test_failure(student_code: str, problem_title: str, problem_description: str, failed_test_cases: list, mode: str = "practice") -> dict:
