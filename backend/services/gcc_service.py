@@ -21,8 +21,8 @@ def compile_and_run(code: str, input_data: str | None = None, timeout_sec: int =
 
     file_id = uuid.uuid4().hex
     src_path = os.path.join(target_dir, f"{file_id}.c")
-    exe_path = os.path.join(target_dir, f"{file_id}.exe")
-
+    exe_name = f"{file_id}.exe" if os.name == "nt" else file_id
+    exe_path = os.path.join(target_dir, exe_name)
 
     start_time = time.time()
 
