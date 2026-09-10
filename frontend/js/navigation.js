@@ -43,8 +43,9 @@ const Navigation = (() => {
 
   function renderSidebar(role = 'student', activeId = '') {
     const menu = role === 'faculty' ? facultyMenu : studentMenu;
-    const userName = role === 'faculty' ? MockData.faculty.name : MockData.student.name;
-    const userRole = role === 'faculty' ? 'Instructor' : 'C Student';
+    const storedName = localStorage.getItem('codeverse_user_name');
+    const userName = storedName || (role === 'faculty' ? 'Dr. Anand Kumar' : 'Student');
+    const userRole = role === 'faculty' ? 'Faculty Instructor' : 'C Student';
     const isMuted = typeof SoundFX !== 'undefined' ? SoundFX.getMuted() : false;
 
     const sidebar = document.createElement('aside');

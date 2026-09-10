@@ -238,19 +238,49 @@ class ManualProgram(Base):
     program_number = Column(Integer, default=1)
     title = Column(String(256), nullable=False)
     problem_statement = Column(Text, nullable=False)
+    objective = Column(Text, nullable=True)
+    input_description = Column(Text, nullable=True)
+    output_description = Column(Text, nullable=True)
     topic = Column(String(128), default="General C")
     input_format = Column(Text, nullable=True)
     output_format = Column(Text, nullable=True)
     constraints = Column(Text, nullable=True)
     sample_input = Column(Text, nullable=True)
     sample_output = Column(Text, nullable=True)
+    test_cases = Column(Text, default="[]") # JSON list of {"input": "...", "expected_output": "..."}
     reference_code = Column(Text, nullable=True)
+    expected_output = Column(Text, nullable=True)
+    additional_requirements = Column(Text, nullable=True)
+    validation_report = Column(Text, default="{}") # JSON dict of validation results
     extraction_confidence = Column(Float, default=0.9)
     faculty_verified = Column(Boolean, default=False)
     published = Column(Boolean, default=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     manual = relationship("LabManual", back_populates="programs")
+
+
+class CodeSimilarityAnalysis(Base):
+    __tablename__ = "code_similarity_analysis"
+
+    id = Column(Integer, primary_key=True, index=True)
+    exam_id = Column(Integer, ForeignKey("exams.id"), nullable=True)
+    problem_id = Column(Integer, ForeignKey("problems.id"), nullable=False)
+    student_id_1 = Column(String(64), index=True, nullable=False)
+    student_id_2 = Column(String(64), index=True, nullable=False) # e.g. STU2024002 or "REFERENCE_CODE"
+    submission_id_1 = Column(Integer, ForeignKey("submissions.id"), nullable=True)
+    submission_id_2 = Column(Integer, ForeignKey("submissions.id"), nullable=True)
+    similarity_percentage = Column(Float, default=0.0) # 0.0 to 100.0
+    structural_similarity = Column(Float, default=0.0)
+    token_similarity = Column(Float, default=0.0)
+    matched_patterns = Column(Text, default="[]") # JSON list of matched tokens or fragments
+    normalized_code_1 = Column(Text, nullable=True)
+    normalized_code_2 = Column(Text, nullable=True)
+    is_flagged = Column(Boolean, default=False)
+    faculty_reviewed = Column(Boolean, default=False)
+    review_status = Column(String(32), default="pending") # pending, flagged, dismissed, verified
+    review_notes = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class ProgramTopic(Base):
@@ -287,16 +317,22 @@ def get_db():
 def init_db_and_seed():
     # Safely migrate new columns if database exists
     with engine.connect() as conn:
-        try:
-            conn.execute(text("ALTER TABLE problems ADD COLUMN requires_input BOOLEAN DEFAULT 1"))
-            conn.commit()
-        except Exception:
-            pass
-        try:
-            conn.execute(text("ALTER TABLE problems ADD COLUMN allows_fixed_output BOOLEAN DEFAULT 0"))
-            conn.commit()
-        except Exception:
-            pass
+        for col_stmt in [
+            "ALTER TABLE problems ADD COLUMN requires_input BOOLEAN DEFAULT 1",
+            "ALTER TABLE problems ADD COLUMN allows_fixed_output BOOLEAN DEFAULT 0",
+            "ALTER TABLE manual_programs ADD COLUMN objective TEXT",
+            "ALTER TABLE manual_programs ADD COLUMN input_description TEXT",
+            "ALTER TABLE manual_programs ADD COLUMN output_description TEXT",
+            "ALTER TABLE manual_programs ADD COLUMN test_cases TEXT DEFAULT '[]'",
+            "ALTER TABLE manual_programs ADD COLUMN expected_output TEXT",
+            "ALTER TABLE manual_programs ADD COLUMN additional_requirements TEXT",
+            "ALTER TABLE manual_programs ADD COLUMN validation_report TEXT DEFAULT '{}'",
+        ]:
+            try:
+                conn.execute(text(col_stmt))
+                conn.commit()
+            except Exception:
+                pass
 
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()

@@ -16,11 +16,11 @@ router = APIRouter(prefix="/api/student", tags=["student"])
 def get_student_progress(student_id: str = "STU2024001", db: Session = Depends(get_db)):
     user = db.query(User).filter(User.user_id == student_id).first()
     if not user:
-        # Fallback default student profile
-        user = User(user_id=student_id, full_name="Suravi R", role="student", current_xp=2840, level=8, rank="Code Architect", streak_days=5)
+        user = User(user_id=student_id, full_name="Student " + student_id, role="student", current_xp=0, level=1, rank="C Programmer", streak_days=1)
 
     submissions = db.query(Submission).filter(Submission.student_id == student_id).all()
-    total_problems = db.query(Problem).filter(Problem.is_active == True).count()
+    all_problems = db.query(Problem).filter(Problem.is_active == True).all()
+    total_problems = len(all_problems)
 
     completed_ids = set()
     total_attempts = len(submissions)
@@ -28,24 +28,73 @@ def get_student_progress(student_id: str = "STU2024001", db: Session = Depends(g
     creative_count = 0
 
     for s in submissions:
-        if s.status == "completed":
+        if s.status in ["completed", "passed"]:
             completed_ids.add(s.problem_id)
         total_score_sum += s.score
         if s.is_creative:
             creative_count += 1
 
-    avg_score = round(total_score_sum / max(1, total_attempts), 1) if total_attempts > 0 else 8.6
+    avg_score = round(total_score_sum / total_attempts, 1) if total_attempts > 0 else 0.0
     problems_completed = len(completed_ids)
 
-    # Concept Mastery Metrics
-    concepts_breakdown = [
-        {"concept": "Variables & I/O", "mastery": 90, "status": "Mastered"},
-        {"concept": "Conditionals", "mastery": 85, "status": "Mastered"},
-        {"concept": "Iteration & Loops", "mastery": 92, "status": "Mastered"},
-        {"concept": "Arrays & Strings", "mastery": 76, "status": "Proficient"},
-        {"concept": "Modular Functions", "mastery": 68, "status": "Practicing"},
-        {"concept": "Pointers & Memory", "mastery": 45, "status": "Needs Focus"}
+    # Dynamic Concept Mastery Calculation
+    CORE_CONCEPTS = [
+        "Variables & I/O",
+        "Conditionals",
+        "Iteration & Loops",
+        "Arrays & Strings",
+        "Modular Functions",
+        "Pointers & Memory"
     ]
+
+    concept_scores = {c: [] for c in CORE_CONCEPTS}
+    prob_concept_map = {}
+    for p in all_problems:
+        concepts = json.loads(p.concepts) if p.concepts else []
+        for c in concepts:
+            c_lower = c.lower()
+            if "io" in c_lower or "printf" in c_lower or "scanf" in c_lower or "variable" in c_lower or "basic" in c_lower:
+                prob_concept_map.setdefault(p.id, []).append("Variables & I/O")
+            elif "conditional" in c_lower or "if" in c_lower or "switch" in c_lower:
+                prob_concept_map.setdefault(p.id, []).append("Conditionals")
+            elif "loop" in c_lower or "iterat" in c_lower or "while" in c_lower or "for" in c_lower:
+                prob_concept_map.setdefault(p.id, []).append("Iteration & Loops")
+            elif "array" in c_lower or "string" in c_lower or "matrix" in c_lower:
+                prob_concept_map.setdefault(p.id, []).append("Arrays & Strings")
+            elif "function" in c_lower or "modular" in c_lower or "recursion" in c_lower:
+                prob_concept_map.setdefault(p.id, []).append("Modular Functions")
+            elif "pointer" in c_lower or "memory" in c_lower or "struct" in c_lower:
+                prob_concept_map.setdefault(p.id, []).append("Pointers & Memory")
+
+    for s in submissions:
+        matched_concepts = prob_concept_map.get(s.problem_id, [])
+        for mc in matched_concepts:
+            if mc in concept_scores:
+                concept_scores[mc].append(s.score)
+
+    concepts_breakdown = []
+    for c in CORE_CONCEPTS:
+        scores = concept_scores[c]
+        if scores:
+            mastery = min(100, int((sum(scores) / (len(scores) * 10.0)) * 100))
+        else:
+            mastery = 0
+
+        if mastery >= 80:
+            status = "Mastered"
+        elif mastery >= 60:
+            status = "Proficient"
+        elif mastery >= 30:
+            status = "Practicing"
+        else:
+            status = "Needs Focus" if scores else "Not Started"
+
+        concepts_breakdown.append({
+            "concept": c,
+            "mastery": mastery,
+            "status": status,
+            "attempts": len(scores)
+        })
 
     # Recent Submissions List
     recent_submissions = []

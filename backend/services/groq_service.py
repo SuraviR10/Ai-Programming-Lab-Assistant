@@ -208,11 +208,12 @@ Return ONLY valid JSON in this exact structure:
 
 
 GROQ_MODELS = [
-    "groq/compound-mini",
-    "qwen/qwen3.8-27b",
-    "groq/compound",
     "openai/gpt-oss-120b",
     "openai/gpt-oss-20b",
+    "qwen/qwen3.8-27b",
+    "qwen/qwen3.6-27b",
+    "groq/compound",
+    "groq/compound-mini",
     "allam-2-7b"
 ]
 

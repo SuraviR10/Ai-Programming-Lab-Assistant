@@ -58,6 +58,7 @@ def _normalize_str(s: str | None) -> str:
 
 
 @router.post("/api/compiler/run")
+@router.post("/api/code/run")
 def run_code(request: RunRequest, db: Session = Depends(get_db)):
     """
     Executes student C code via GCC with full code context.
@@ -142,6 +143,7 @@ def run_code(request: RunRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/api/submissions")
+@router.post("/api/code/submit")
 def submit_solution(request: SubmitRequest, db: Session = Depends(get_db)):
     from services.evaluation_service import evaluate_submission
     result = evaluate_submission(

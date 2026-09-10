@@ -90,19 +90,51 @@ def get_faculty_dashboard(db: Session = Depends(get_db)):
 
     submissions = db.query(Submission).all()
     total_subs = len(submissions)
-    avg_class_score = round(sum(s.score for s in submissions) / max(1, total_subs), 1) if total_subs > 0 else 8.4
+    avg_class_score = round(sum(s.score for s in submissions) / total_subs, 1) if total_subs > 0 else 0.0
 
     # Count Tab Switch Violations
     tab_switch_count = db.query(LabActivity).filter(LabActivity.action == "tab_switch").count()
 
-    # Difficult Concepts Analysis
-    difficult_concepts = [
-        {"concept": "Pointers & Memory", "difficulty_percentage": 78, "failure_rate": 48, "avg_attempts": 3.4, "perceived_rating": 4.2},
-        {"concept": "Recursion", "difficulty_percentage": 71, "failure_rate": 42, "avg_attempts": 3.1, "perceived_rating": 4.0},
-        {"concept": "Arrays & Strings", "difficulty_percentage": 54, "failure_rate": 28, "avg_attempts": 2.2, "perceived_rating": 3.4},
-        {"concept": "Modular Functions", "difficulty_percentage": 42, "failure_rate": 18, "avg_attempts": 1.8, "perceived_rating": 2.9},
-        {"concept": "Iteration & Loops", "difficulty_percentage": 25, "failure_rate": 10, "avg_attempts": 1.4, "perceived_rating": 2.1}
-    ]
+    # Write-up and Exam Performance
+    writeup_sessions = db.query(WriteUpSession).all()
+    completed_writeups = [ws for ws in writeup_sessions if ws.status == "submitted"]
+    writeup_completion_rate = round((len(completed_writeups) / max(1, len(writeup_sessions))) * 100, 1) if writeup_sessions else 0.0
+
+    exam_sessions = db.query(ExamSession).filter(ExamSession.status == "submitted").all()
+    avg_exam_score = round((sum(es.score for es in exam_sessions) / max(1, len(exam_sessions))) * 10, 1) if exam_sessions else 0.0
+
+    # Dynamic Difficult Concepts Analysis from Submissions
+    all_problems = db.query(Problem).filter(Problem.is_active == True).all()
+    concept_stats = {}
+
+    for p in all_problems:
+        concepts = json.loads(p.concepts) if p.concepts else []
+        topic = concepts[0] if concepts else "General C"
+        if topic not in concept_stats:
+            concept_stats[topic] = {"total_attempts": 0, "failures": 0, "scores": []}
+
+        p_subs = [s for s in submissions if s.problem_id == p.id]
+        for s in p_subs:
+            concept_stats[topic]["total_attempts"] += 1
+            concept_stats[topic]["scores"].append(s.score)
+            if s.status in ["failed", "attempted"] or s.score < 6.0:
+                concept_stats[topic]["failures"] += 1
+
+    difficult_concepts = []
+    for topic, stats in concept_stats.items():
+        if stats["total_attempts"] > 0:
+            fail_rate = round((stats["failures"] / stats["total_attempts"]) * 100, 1)
+            avg_score = round(sum(stats["scores"]) / len(stats["scores"]), 1)
+            diff_pct = round(100.0 - (avg_score * 10), 1)
+            difficult_concepts.append({
+                "concept": topic,
+                "difficulty_percentage": max(0, min(100, diff_pct)),
+                "failure_rate": fail_rate,
+                "avg_attempts": round(stats["total_attempts"] / max(1, total_students), 1),
+                "perceived_rating": round(5.0 - (avg_score / 2.0), 1)
+            })
+
+    difficult_concepts.sort(key=lambda x: x["failure_rate"], reverse=True)
 
     # Struggling Students Identification
     struggling_students = []
@@ -110,23 +142,17 @@ def get_faculty_dashboard(db: Session = Depends(get_db)):
         s_subs = [sub for sub in submissions if sub.student_id == s.user_id]
         if s_subs:
             s_avg = sum(sub.score for sub in s_subs) / len(s_subs)
-            if s_avg < 7.0 or s.current_xp < 1500:
+            if s_avg < 7.0:
                 struggling_students.append({
                     "user_id": s.user_id,
                     "full_name": s.full_name,
                     "section": s.section,
                     "current_xp": s.current_xp,
                     "avg_score": round(s_avg, 1),
-                    "weak_concept": "Pointers & Memory" if s.current_xp < 1500 else "Arrays"
+                    "weak_concept": "Needs Review"
                 })
 
-    if not struggling_students:
-        struggling_students = [
-            {"user_id": "STU2024004", "full_name": "Amit S", "section": "A", "current_xp": 950, "avg_score": 5.8, "weak_concept": "Pointers & Memory"},
-            {"user_id": "STU2024002", "full_name": "Rahul M", "section": "A", "current_xp": 2200, "avg_score": 6.9, "weak_concept": "Arrays & Strings"}
-        ]
-
-    # Live Lab Activity & Tab Switch Feed
+    # Live Lab Activity Feed
     activities = db.query(LabActivity).order_by(LabActivity.timestamp.desc()).limit(20).all()
     activity_feed = []
     for act in activities:
@@ -143,10 +169,10 @@ def get_faculty_dashboard(db: Session = Depends(get_db)):
     return {
         "success": True,
         "metrics": {
-            "total_students": max(total_students, 32),
+            "total_students": total_students,
             "average_class_score": avg_class_score,
-            "writeup_completion_rate": 92,
-            "exam_performance": 88.5,
+            "writeup_completion_rate": writeup_completion_rate,
+            "exam_performance": avg_exam_score,
             "total_submissions": total_subs,
             "tab_switch_count": tab_switch_count,
             "tab_switches_total": tab_switch_count
@@ -164,7 +190,7 @@ def list_students(db: Session = Depends(get_db)):
     for s in students:
         s_subs = db.query(Submission).filter(Submission.student_id == s.user_id).all()
         subs_count = len(s_subs)
-        avg_score = round(sum(sub.score for sub in s_subs) / max(1, subs_count), 1) if subs_count > 0 else 8.6
+        avg_score = round(sum(sub.score for sub in s_subs) / subs_count, 1) if subs_count > 0 else 0.0
 
         # Check for tab switch violations by this student
         student_switches = db.query(LabActivity).filter(
@@ -495,50 +521,7 @@ async def upload_lab_manual(
 
     # 3. Detect programs
     pdf_text = extraction.get("text", "")
-    detected_programs = extract_programs_from_manual_text(pdf_text)
-
-    if not detected_programs:
-        detected_programs = [
-            {
-                "program_number": 1,
-                "title": "Largest of Three Numbers",
-                "problem_statement": "Write a C program to find the largest of three numbers using conditional statements.",
-                "topic": "Conditionals",
-                "input_format": "Three space-separated integers",
-                "output_format": "Largest = X",
-                "constraints": "1 <= N <= 1000",
-                "sample_input": "15 42 28",
-                "sample_output": "Largest = 42",
-                "reference_code": "#include <stdio.h>\nint main() {\n    int a, b, c;\n    if (scanf(\"%d %d %d\", &a, &b, &c) == 3) {\n        int max = (a > b) ? ((a > c) ? a : c) : ((b > c) ? b : c);\n        printf(\"Largest = %d\\n\", max);\n    }\n    return 0;\n}",
-                "confidence": 0.95
-            },
-            {
-                "program_number": 2,
-                "title": "Prime Number Check",
-                "problem_statement": "Write a C program to check whether a given integer N is prime or not.",
-                "topic": "Loops & Numbers",
-                "input_format": "Single integer N",
-                "output_format": "Prime or Not Prime",
-                "constraints": "N >= 1",
-                "sample_input": "7",
-                "sample_output": "Prime",
-                "reference_code": None,
-                "confidence": 0.90
-            },
-            {
-                "program_number": 3,
-                "title": "Fibonacci Series Generator",
-                "problem_statement": "Write a C program to generate the first N numbers of the Fibonacci series.",
-                "topic": "Loops & Iteration",
-                "input_format": "Single integer N",
-                "output_format": "N space-separated integers",
-                "constraints": "1 <= N <= 30",
-                "sample_input": "5",
-                "sample_output": "0 1 1 2 3",
-                "reference_code": None,
-                "confidence": 0.92
-            }
-        ]
+    detected_programs = extract_programs_from_manual_text(pdf_text) if pdf_text else []
 
     db_programs = []
     topics_set = set()

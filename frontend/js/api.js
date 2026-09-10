@@ -173,6 +173,10 @@ const API = (() => {
     return await request('/api/faculty/students');
   }
 
+  async function getFacultyStudentDetail(studentId) {
+    return await request(`/api/faculty/students/${studentId}`);
+  }
+
   async function createWriteup(writeupData) {
     return await request('/api/faculty/writeups', {
       method: 'POST',
@@ -251,6 +255,7 @@ const API = (() => {
     getStudentProgress,
     getFacultyDashboard,
     getFacultyStudents,
+    getFacultyStudentDetail,
     getFacultyProblems,
     createProblemManually,
     deleteFacultyProblem,
