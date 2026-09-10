@@ -1,81 +1,15 @@
 {
-  "cleanUrls": true,
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py"
-    },
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
     {
-      "source": "/",
-      "destination": "/frontend/index.html"
-    },
-    {
-      "source": "/login",
-      "destination": "/frontend/login.html"
-    },
-    {
-      "source": "/student/dashboard",
-      "destination": "/frontend/student/dashboard.html"
-    },
-    {
-      "source": "/student/problems",
-      "destination": "/frontend/student/problems.html"
-    },
-    {
-      "source": "/student/lab",
-      "destination": "/frontend/student/lab.html"
-    },
-    {
-      "source": "/student/exams",
-      "destination": "/frontend/student/exams.html"
-    },
-    {
-      "source": "/student/exam",
-      "destination": "/frontend/student/exam.html"
-    },
-    {
-      "source": "/student/writeup",
-      "destination": "/frontend/student/writeup.html"
-    },
-    {
-      "source": "/student/progress",
-      "destination": "/frontend/student/progress.html"
-    },
-    {
-      "source": "/student/achievements",
-      "destination": "/frontend/student/achievements.html"
-    },
-    {
-      "source": "/faculty/dashboard",
-      "destination": "/frontend/faculty/dashboard.html"
-    },
-    {
-      "source": "/faculty/manual",
-      "destination": "/frontend/faculty/manual.html"
-    },
-    {
-      "source": "/faculty/students",
-      "destination": "/frontend/faculty/students.html"
-    },
-    {
-      "source": "/css/(.*)",
-      "destination": "/frontend/css/$1"
-    },
-    {
-      "source": "/js/(.*)",
-      "destination": "/frontend/js/$1"
-    },
-    {
-      "source": "/student/(.*)",
-      "destination": "/frontend/student/$1"
-    },
-    {
-      "source": "/faculty/(.*)",
-      "destination": "/frontend/faculty/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
+      "src": "/(.*)",
+      "dest": "api/index.py"
     }
   ]
 }

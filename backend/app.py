@@ -1,9 +1,9 @@
 import os
 import sys
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 # Ensure backend directory is in sys.path for root deployments
 backend_dir = os.path.dirname(os.path.abspath(__file__))
@@ -22,7 +22,7 @@ from routes.faculty import router as faculty_router
 # Initialize database tables and seed data
 init_db_and_seed()
 
-app = FastAPI(title="AI-Powered C Programming Laboratory Matrix", version="2.0")
+app = FastAPI(title="SMART LAB: AI-Powered C Programming Laboratory Matrix", version="2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,24 +42,89 @@ app.include_router(student_router)
 app.include_router(faculty_router)
 
 
+# ── Health Check ───────────────────────────────────────────────
 @app.get("/api/health")
 def health():
     return {"status": "ok", "matrix": "active"}
 
 
-# Serve static frontend at root with clean URL routing fallbacks
-frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
+# ── Multi-Environment Frontend Resolution ──────────────────────
+candidate_dirs = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend")),
+    os.path.abspath(os.path.join(os.getcwd(), "frontend")),
+    "/var/task/frontend",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "frontend")),
+]
 
-if os.path.exists(frontend_path):
-    @app.middleware("http")
-    async def clean_url_middleware(request: Request, call_next):
-        path = request.url.path
-        # If accessing non-API path without extension, check if .html file exists
-        if not path.startswith("/api") and "." not in os.path.basename(path) and path != "/":
-            relative_path = path.lstrip("/") + ".html"
-            html_file = os.path.join(frontend_path, relative_path)
-            if os.path.exists(html_file):
-                return FileResponse(html_file)
-        return await call_next(request)
+frontend_dir = None
+for cd in candidate_dirs:
+    if os.path.exists(cd):
+        frontend_dir = cd
+        break
 
-    app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
+
+def get_frontend_file(rel_path: str):
+    if not frontend_dir:
+        return None
+    full_path = os.path.join(frontend_dir, rel_path)
+    if os.path.exists(full_path):
+        return full_path
+    if not full_path.endswith(".html"):
+        html_path = full_path + ".html"
+        if os.path.exists(html_path):
+            return html_path
+    return None
+
+
+# ── Explicit Frontend Page Endpoints ────────────────────────────
+
+@app.get("/", response_class=FileResponse)
+@app.get("/index.html", response_class=FileResponse)
+def serve_root():
+    f = get_frontend_file("index.html")
+    if f and os.path.exists(f):
+        return FileResponse(f)
+    return HTMLResponse("<h1>SMART LAB Matrix Online</h1><p>Frontend assets initializing...</p>")
+
+
+@app.get("/login", response_class=FileResponse)
+@app.get("/login.html", response_class=FileResponse)
+def serve_login():
+    f = get_frontend_file("login.html")
+    if f and os.path.exists(f):
+        return FileResponse(f)
+    raise HTTPException(status_code=404, detail="login.html not found")
+
+
+@app.get("/student/{page}")
+def serve_student_page(page: str):
+    clean_page = page if page.endswith(".html") else f"{page}.html"
+    f = get_frontend_file(os.path.join("student", clean_page))
+    if f and os.path.exists(f):
+        return FileResponse(f)
+    raise HTTPException(status_code=404, detail=f"Student page '{page}' not found")
+
+
+@app.get("/faculty/{page}")
+def serve_faculty_page(page: str):
+    clean_page = page if page.endswith(".html") else f"{page}.html"
+    f = get_frontend_file(os.path.join("faculty", clean_page))
+    if f and os.path.exists(f):
+        return FileResponse(f)
+    raise HTTPException(status_code=404, detail=f"Faculty page '{page}' not found")
+
+
+# ── Mount Static Assets ─────────────────────────────────────────
+
+if frontend_dir:
+    css_dir = os.path.join(frontend_dir, "css")
+    if os.path.exists(css_dir):
+        app.mount("/css", StaticFiles(directory=css_dir), name="css")
+        app.mount("/frontend/css", StaticFiles(directory=css_dir), name="frontend_css")
+
+    js_dir = os.path.join(frontend_dir, "js")
+    if os.path.exists(js_dir):
+        app.mount("/js", StaticFiles(directory=js_dir), name="js")
+        app.mount("/frontend/js", StaticFiles(directory=js_dir), name="frontend_js")
+
+    app.mount("/frontend", StaticFiles(directory=frontend_dir, html=True), name="frontend_dir")
