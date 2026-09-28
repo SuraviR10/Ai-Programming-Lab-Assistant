@@ -406,6 +406,12 @@
 
       updateSummaryStats();
       applyFilters();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const studentParam = urlParams.get('student') || urlParams.get('id');
+      if (studentParam) {
+        inspectStudent(studentParam);
+      }
     }
 
     function updateSummaryStats() {

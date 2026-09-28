@@ -106,16 +106,25 @@ pip install -r requirements.txt
 ### 3. Environment Configuration
 Create a `.env` file in the project root or in `backend/`:
 ```env
-# Required for AI Error Explanations
+# Required for AI Error Explanations & Adaptive Practice Challenges
 GROQ_API_KEY=gsk_your_groq_api_key_here
 
 # Optional: Supabase PostgreSQL (leave unset to use local SQLite data/ailab.db)
-# DATABASE_URL=postgresql://user:password@host:5432/dbname
+# Direct or Session Pooler:
+# DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+# Or Transaction Pooler:
+# DATABASE_URL=postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
 
 PORT=8000
 ```
 
+### 4. Verify & Sync Database (Supabase / SQLite)
+```bash
+python backend/supabase_setup.py
+```
+
 ---
+
 
 ## Running the Application Locally
 

@@ -224,6 +224,32 @@ def get_student_detail(student_id: str, db: Session = Depends(get_db)):
     submissions = db.query(Submission).filter(Submission.student_id == student_id).order_by(Submission.timestamp.desc()).all()
     activities = db.query(LabActivity).filter(LabActivity.student_id == student_id).order_by(LabActivity.timestamp.desc()).limit(30).all()
 
+    sub_list = []
+    for sub in submissions:
+        prob = db.query(Problem).filter(Problem.id == sub.problem_id).first()
+        sub_list.append({
+            "id": sub.id,
+            "problem_id": sub.problem_id,
+            "problem_title": prob.title if prob else f"Problem #{sub.problem_id}",
+            "code": sub.code,
+            "status": sub.status,
+            "score": sub.score,
+            "passed_test_cases": sub.passed_test_cases,
+            "total_test_cases": sub.total_test_cases,
+            "mode": sub.mode,
+            "risk_score": 0.0,
+            "timestamp": sub.timestamp.isoformat() if sub.timestamp else None
+        })
+
+    act_list = [
+        {
+            "id": act.id,
+            "action": act.action,
+            "details": act.details,
+            "timestamp": act.timestamp.isoformat() if act.timestamp else None
+        } for act in activities
+    ]
+
     return {
         "success": True,
         "student": {
@@ -235,28 +261,12 @@ def get_student_detail(student_id: str, db: Session = Depends(get_db)):
             "level": user.level,
             "rank": user.rank,
             "streak_days": user.streak_days,
-            "submissions": [
-                {
-                    "id": sub.id,
-                    "problem_id": sub.problem_id,
-                    "status": sub.status,
-                    "score": sub.score,
-                    "passed_test_cases": sub.passed_test_cases,
-                    "total_test_cases": sub.total_test_cases,
-                    "mode": sub.mode,
-                    "timestamp": sub.timestamp.isoformat() if sub.timestamp else None
-                } for sub in submissions
-            ],
-            "activities": [
-                {
-                    "id": act.id,
-                    "action": act.action,
-                    "details": act.details,
-                    "timestamp": act.timestamp.isoformat() if act.timestamp else None
-                } for act in activities
-            ]
+            "submissions": sub_list,
+            "activities": act_list,
+            "recent_activity": act_list
         }
     }
+
 
 
 # ── 2. Faculty Manual Problem & Test Case Creation ─────────────

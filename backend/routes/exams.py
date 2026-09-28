@@ -145,13 +145,26 @@ def autosave_exam(exam_id: int, request: AutosaveExamRequest, db: Session = Depe
         ExamSession.student_id == request.student_id
     ).first()
 
-    if not session or session.status != "active":
-        return {"success": False, "message": "Exam session inactive or expired."}
+    if not session:
+        session = ExamSession(
+            exam_id=exam_id,
+            student_id=request.student_id,
+            start_time=datetime.now(timezone.utc),
+            duration_minutes=45,
+            saved_code=json.dumps(request.code_map),
+            status="active"
+        )
+        db.add(session)
+        db.commit()
+        return {"success": True, "message": "Exam draft code auto-saved."}
 
-    session.saved_code = json.dumps(request.code_map)
-    db.commit()
+    if session.status == "active":
+        session.saved_code = json.dumps(request.code_map)
+        db.commit()
+        return {"success": True, "message": "Exam draft code auto-saved."}
 
-    return {"success": True, "message": "Exam draft code auto-saved."}
+    return {"success": True, "message": "Exam session submitted or expired; draft preserved."}
+
 
 
 def _compare_outputs(actual: str, expected: str) -> bool:

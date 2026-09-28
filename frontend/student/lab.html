@@ -428,17 +428,23 @@
   <header class="lab-header">
     <div class="lab-header-left">
       <button class="lab-back-btn" onclick="window.location.href='/student/problems.html'">
-        <span>←</span> Back to Lab Programs
+        <span>←</span> Lab Programs
       </button>
       <div class="lab-title-hud" id="lab-title">
-        <span>C Programming Lab Assistant</span>
+        <span>C Programming Lab</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; margin-left: 12px;">
+        <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-ghost);">SWITCH PROBLEM:</span>
+        <select id="problem-selector" onchange="switchLabProblem(this.value)" style="background: rgba(13, 21, 46, 0.95); border: 1px solid var(--border-cyan); border-radius: 6px; color: #38bdf8; padding: 4px 10px; font-size: 12px; font-family: var(--font-mono); outline: none; cursor: pointer; max-width: 260px;">
+          <option value="1">Loading problems...</option>
+        </select>
       </div>
     </div>
 
     <div class="lab-header-right">
       <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; color: var(--neon-emerald);">
         <span class="status-dot online"></span>
-        System Active
+        GCC MinGW Online
       </div>
     </div>
   </header>
@@ -449,18 +455,17 @@
     <!-- Left Panel: Problem Statement & Hints -->
     <aside class="problem-panel" id="problem-panel">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <span class="label" style="color: var(--neon-cyan);">LAB PROGRAM</span>
+        <span class="label" style="color: var(--neon-cyan);">LAB PROBLEM</span>
         <span class="mission-xp-badge" id="mission-xp-tag" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px;">★ +100 Points</span>
       </div>
 
-      <h2 id="prob-title" style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px;">Hello World</h2>
-      <p class="problem-desc" id="prob-desc">Write a C program that prints "Hello, World!" to the console.</p>
+      <h2 id="prob-title" style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px;">Loading Problem...</h2>
+      <p class="problem-desc" id="prob-desc">Loading problem statement...</p>
 
       <div style="margin-bottom: 20px;">
         <div class="label" style="margin-bottom: 8px;">CONCEPTS</div>
         <div class="problem-concepts" id="prob-concepts">
-          <span class="concept-tag" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 4px 10px; border-radius: 6px; font-size: 12px;">printf</span>
-          <span class="concept-tag" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 4px 10px; border-radius: 6px; font-size: 12px; margin-left: 6px;">basics</span>
+          <span class="concept-tag" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 4px 10px; border-radius: 6px; font-size: 12px;">C Basics</span>
         </div>
       </div>
 
@@ -471,7 +476,7 @@
 
       <div style="margin-bottom: 20px;">
         <div class="label" style="margin-bottom: 8px;">EXPECTED OUTPUT</div>
-        <div class="problem-expected" id="prob-output">Hello, World!</div>
+        <div class="problem-expected" id="prob-output">Loading...</div>
       </div>
 
       <!-- Step-by-Step Hints -->
@@ -513,20 +518,9 @@
       <!-- 100% Reliable Code Editor Container -->
       <div class="code-editor-container" id="editor-container" onclick="focusEditor(event)">
         <div class="line-numbers-gutter" id="line-numbers">1<br>2<br>3<br>4<br>5<br>6</div>
-        <textarea id="code-textarea" class="code-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" autofocus placeholder="// Type your C program code here...
-#include <stdio.h>
-
-int main() {
-    printf(&quot;Hello, World!\n&quot;);
-    return 0;
-}">#include <stdio.h>
-
-int main() {
-    printf("Hello, World!\n");
-    return 0;
-}
-</textarea>
+        <textarea id="code-textarea" class="code-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" autofocus placeholder="// Type your C program code here..."></textarea>
       </div>
+
 
       <!-- Optional Standard Input Box -->
       <div class="stdin-panel" id="stdin-panel">
@@ -870,17 +864,84 @@ int main() {
       });
     }
 
+    let allProblemsList = [];
+
+    async function loadAllProblemsList() {
+      try {
+        const res = await API.getProblems();
+        if (res && res.success && res.problems) {
+          allProblemsList = res.problems;
+          populateProblemSelector(res.problems);
+        } else if (typeof MockData !== 'undefined' && MockData.problems) {
+          allProblemsList = MockData.problems;
+          populateProblemSelector(MockData.problems);
+        }
+      } catch (err) {
+        if (typeof MockData !== 'undefined' && MockData.problems) {
+          allProblemsList = MockData.problems;
+          populateProblemSelector(MockData.problems);
+        }
+      }
+    }
+
+    function populateProblemSelector(problems) {
+      const selector = document.getElementById('problem-selector');
+      if (!selector || !Array.isArray(problems)) return;
+      const curId = currentProblem ? currentProblem.id : problemId;
+      selector.innerHTML = problems.map(p => `
+        <option value="${p.id}" ${p.id === curId ? 'selected' : ''}>
+          Problem ${p.id}: ${escapeHtml(p.title)}
+        </option>
+      `).join('');
+    }
+
+    function switchLabProblem(newId) {
+      const pId = parseInt(newId);
+      if (!pId) return;
+
+      // Update URL without reload
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.set('problem', pId);
+      window.history.replaceState({}, '', newUrl);
+
+      // Clean output box & AI guidance
+      if (outputBox) {
+        outputBox.textContent = 'Program output will appear here after clicking Run Code...';
+        outputBox.style.color = 'var(--text-ghost)';
+      }
+      if (tabAI) tabAI.style.display = 'none';
+      if (aiTab) aiTab.style.display = 'none';
+      if (runDot) runDot.className = 'status-dot online';
+      if (runStatus) {
+        runStatus.textContent = 'READY';
+        runStatus.style.color = '';
+      }
+
+      loadProblem(pId);
+    }
+
     async function loadProblem(id) {
       try {
         const res = await API.getProblem(id);
-        if (res.success && res.problem) {
+        if (res && res.success && res.problem) {
           currentProblem = res.problem;
           renderProblem(res.problem);
-        } else {
-          document.getElementById('prob-title').textContent = 'Problem #' + id;
+        } else if (typeof MockData !== 'undefined' && MockData.problems) {
+          const mockP = MockData.problems.find(p => p.id === id) || MockData.problems[0];
+          if (mockP) {
+            currentProblem = mockP;
+            renderProblem(mockP);
+          }
         }
       } catch (err) {
         console.error('Error loading problem', err);
+        if (typeof MockData !== 'undefined' && MockData.problems) {
+          const mockP = MockData.problems.find(p => p.id === id) || MockData.problems[0];
+          if (mockP) {
+            currentProblem = mockP;
+            renderProblem(mockP);
+          }
+        }
       }
     }
 
@@ -889,13 +950,21 @@ int main() {
       document.getElementById('prob-desc').textContent = prob.description;
       document.getElementById('prob-output').textContent = prob.expected_output || prob.expectedOutput || 'Output';
 
+      const xpReward = prob.xp_reward || prob.xpReward || 100;
+      const xpTag = document.getElementById('mission-xp-tag');
+      if (xpTag) xpTag.textContent = `★ +${xpReward} Points`;
+
       if (prob.sample_input) {
         document.getElementById('sample-input-section').style.display = 'block';
         document.getElementById('prob-input').textContent = prob.sample_input;
         const stdinEl = document.getElementById('stdin-input');
-        if (stdinEl && !stdinEl.value.trim()) {
+        if (stdinEl) {
           stdinEl.value = prob.sample_input;
         }
+      } else {
+        document.getElementById('sample-input-section').style.display = 'none';
+        const stdinEl = document.getElementById('stdin-input');
+        if (stdinEl) stdinEl.value = '';
       }
 
       const conceptsContainer = document.getElementById('prob-concepts');
@@ -903,7 +972,7 @@ int main() {
       conceptsContainer.innerHTML = concepts.map(c => `<span class="concept-tag" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; padding: 4px 10px; border-radius: 6px; font-size: 12px; margin-right: 6px;">${c}</span>`).join('');
 
       const hintContainer = document.getElementById('hint-decryptor-container');
-      const hints = Array.isArray(prob.progressive_hints) ? prob.progressive_hints : JSON.parse(prob.progressive_hints || '[]');
+      const hints = Array.isArray(prob.progressive_hints) ? prob.progressive_hints : (Array.isArray(prob.progressiveHints) ? prob.progressiveHints : JSON.parse(prob.progressive_hints || '[]'));
 
       if (hints.length > 0) {
         hintContainer.innerHTML = hints.map((h, idx) => `
@@ -919,8 +988,15 @@ int main() {
         hintContainer.innerHTML = '<div style="font-size: 12px; color: var(--text-ghost);">No hints required for this basic problem.</div>';
       }
 
-      if (!userHasTyped && prob.starter_code) {
-        setCodeValue(prob.starter_code);
+      // Explicit problem-specific starter code
+      const starter = prob.starter_code || prob.starterCode || `#include <stdio.h>\n\nint main() {\n    // Problem: ${prob.title}\n    // Write your C solution here\n    \n    return 0;\n}\n`;
+      setCodeValue(starter);
+      userHasTyped = false;
+
+      // Sync dropdown selector
+      const selector = document.getElementById('problem-selector');
+      if (selector && selector.value != prob.id) {
+        selector.value = prob.id;
       }
     }
 
@@ -953,11 +1029,8 @@ int main() {
 
     btnClear.addEventListener('click', () => {
       userHasTyped = false;
-      if (currentProblem && currentProblem.starter_code) {
-        setCodeValue(currentProblem.starter_code);
-      } else {
-        setCodeValue('#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}\n');
-      }
+      const starter = (currentProblem && (currentProblem.starter_code || currentProblem.starterCode)) || '#include <stdio.h>\n\nint main() {\n    // Write your C solution here\n    \n    return 0;\n}\n';
+      setCodeValue(starter);
       outputBox.textContent = 'Program output will appear here after clicking Run Code...';
       outputBox.style.color = 'var(--text-ghost)';
       tabAI.style.display = 'none';
@@ -1257,6 +1330,7 @@ int main() {
 
     // ── Initialize on Load ─────────────────────────────────────
     updateLineNumbers();
+    loadAllProblemsList();
     loadProblem(problemId);
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -1265,6 +1339,7 @@ int main() {
     window.addEventListener('load', () => {
       focusEditor();
     });
+
   </script>
 </body>
 </html>

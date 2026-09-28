@@ -147,13 +147,26 @@ def autosave_writeup(writeup_id: int, request: AutosaveWriteupRequest, db: Sessi
         WriteUpSession.student_id == request.student_id
     ).first()
 
-    if not session or session.status != "active":
-        return {"success": False, "message": "Session inactive or expired."}
+    if not session:
+        session = WriteUpSession(
+            writeup_id=writeup_id,
+            student_id=request.student_id,
+            start_time=datetime.now(timezone.utc),
+            duration_minutes=30,
+            saved_code=json.dumps(request.code_map),
+            status="active"
+        )
+        db.add(session)
+        db.commit()
+        return {"success": True, "message": "Draft code auto-saved successfully."}
 
-    session.saved_code = json.dumps(request.code_map)
-    db.commit()
+    if session.status == "active":
+        session.saved_code = json.dumps(request.code_map)
+        db.commit()
+        return {"success": True, "message": "Draft code auto-saved successfully."}
 
-    return {"success": True, "message": "Draft code auto-saved successfully."}
+    return {"success": True, "message": "Session submitted or expired; draft preserved."}
+
 
 
 def _compare_outputs(actual: str, expected: str) -> bool:
