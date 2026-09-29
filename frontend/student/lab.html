@@ -761,10 +761,16 @@
 
         cmEditor.on('change', () => {
           userHasTyped = true;
+          if (typeof FocusFullscreen !== 'undefined' && !FocusFullscreen.isFullscreen()) {
+            FocusFullscreen.enterFullscreen();
+          }
         });
 
         cmEditor.on('focus', () => {
           if (editorContainer) editorContainer.classList.add('is-focused');
+          if (typeof FocusFullscreen !== 'undefined' && !FocusFullscreen.isFullscreen()) {
+            FocusFullscreen.enterFullscreen();
+          }
         });
 
         cmEditor.on('blur', () => {
@@ -800,6 +806,9 @@
     }
 
     function focusEditor(e) {
+      if (typeof FocusFullscreen !== 'undefined' && !FocusFullscreen.isFullscreen()) {
+        FocusFullscreen.enterFullscreen();
+      }
       if (cmEditor) {
         cmEditor.focus();
       } else if (textarea) {
@@ -837,6 +846,9 @@
     if (textarea && !cmEditor) {
       textarea.addEventListener('focus', () => {
         if (editorContainer) editorContainer.classList.add('is-focused');
+        if (typeof FocusFullscreen !== 'undefined' && !FocusFullscreen.isFullscreen()) {
+          FocusFullscreen.enterFullscreen();
+        }
       });
       textarea.addEventListener('blur', () => {
         if (editorContainer) editorContainer.classList.remove('is-focused');
@@ -844,6 +856,9 @@
       textarea.addEventListener('input', () => {
         userHasTyped = true;
         updateLineNumbers();
+        if (typeof FocusFullscreen !== 'undefined' && !FocusFullscreen.isFullscreen()) {
+          FocusFullscreen.enterFullscreen();
+        }
       });
       textarea.addEventListener('scroll', () => {
         if (gutter) gutter.scrollTop = textarea.scrollTop;
@@ -1054,6 +1069,11 @@
       tabOutput.style.display = 'none';
       tabTestcases.style.display = 'none';
       tabAI.style.display = 'block';
+
+      const outputArea = document.getElementById('output-area');
+      if (outputArea) {
+        outputArea.scrollTop = 0;
+      }
 
       const statusEl = document.getElementById('ai-status-text');
       const lineBadge = document.getElementById('ai-line-badge');
