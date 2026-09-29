@@ -1,15 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════
    AI Programming Lab — Charts (charts.js)
-   Chart.js configurations for progress visualization
+   Chart.js configurations with Real-time Data Update Engine
    ═══════════════════════════════════════════════════════════════ */
 
 const Charts = (() => {
-  // Default chart styling
+  const chartInstances = new Map();
+
   const defaultFontFamily = "'Inter', sans-serif";
   const gridColor = 'rgba(30, 41, 59, 0.5)';
   const tickColor = '#64748b';
 
-  // Set Chart.js defaults
   function setDefaults() {
     if (typeof Chart === 'undefined') return;
 
@@ -17,22 +17,38 @@ const Charts = (() => {
     Chart.defaults.font.size = 12;
     Chart.defaults.color = tickColor;
     Chart.defaults.plugins.legend.labels.usePointStyle = true;
-    Chart.defaults.plugins.legend.labels.padding = 20;
-    Chart.defaults.plugins.tooltip.backgroundColor = '#0f172a';
+    Chart.defaults.plugins.legend.labels.padding = 16;
+    Chart.defaults.plugins.tooltip.backgroundColor = '#0d152e';
     Chart.defaults.plugins.tooltip.borderColor = '#1e293b';
     Chart.defaults.plugins.tooltip.borderWidth = 1;
     Chart.defaults.plugins.tooltip.cornerRadius = 8;
     Chart.defaults.plugins.tooltip.padding = 12;
-    Chart.defaults.plugins.tooltip.titleFont = { weight: '600' };
+    Chart.defaults.plugins.tooltip.titleFont = { weight: '700' };
+  }
+
+  function getCanvas(canvasId) {
+    if (typeof canvasId === 'string') {
+      return document.getElementById(canvasId);
+    }
+    return canvasId;
+  }
+
+  function destroyExisting(canvasId) {
+    if (chartInstances.has(canvasId)) {
+      try {
+        chartInstances.get(canvasId).destroy();
+      } catch (e) {}
+      chartInstances.delete(canvasId);
+    }
   }
 
   // ── Progress Timeline Chart ─────────────────────────────────
-
   function createProgressTimeline(canvasId, data) {
-    const ctx = document.getElementById(canvasId);
+    const ctx = getCanvas(canvasId);
     if (!ctx) return null;
+    destroyExisting(canvasId);
 
-    return new Chart(ctx, {
+    const chart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: data.map(d => d.week),
@@ -85,15 +101,18 @@ const Charts = (() => {
         },
       },
     });
+
+    chartInstances.set(canvasId, chart);
+    return chart;
   }
 
   // ── Success Rate Doughnut ───────────────────────────────────
-
   function createSuccessRate(canvasId, rate) {
-    const ctx = document.getElementById(canvasId);
+    const ctx = getCanvas(canvasId);
     if (!ctx) return null;
+    destroyExisting(canvasId);
 
-    return new Chart(ctx, {
+    const chart = new Chart(ctx, {
       type: 'doughnut',
       data: {
         labels: ['Success', 'Remaining'],
@@ -114,15 +133,18 @@ const Charts = (() => {
         },
       },
     });
+
+    chartInstances.set(canvasId, chart);
+    return chart;
   }
 
   // ── Problems Per Week Bar Chart ─────────────────────────────
-
   function createWeeklyProblems(canvasId, data) {
-    const ctx = document.getElementById(canvasId);
+    const ctx = getCanvas(canvasId);
     if (!ctx) return null;
+    destroyExisting(canvasId);
 
-    return new Chart(ctx, {
+    const chart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: data.map(d => d.week),
@@ -154,15 +176,18 @@ const Charts = (() => {
         },
       },
     });
+
+    chartInstances.set(canvasId, chart);
+    return chart;
   }
 
   // ── Error Trend Line ────────────────────────────────────────
-
   function createErrorTrend(canvasId, data) {
-    const ctx = document.getElementById(canvasId);
+    const ctx = getCanvas(canvasId);
     if (!ctx) return null;
+    destroyExisting(canvasId);
 
-    return new Chart(ctx, {
+    const chart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: data.map(d => d.week),
@@ -196,66 +221,93 @@ const Charts = (() => {
         },
       },
     });
+
+    chartInstances.set(canvasId, chart);
+    return chart;
   }
 
-  // ── Faculty: Error Distribution ─────────────────────────────
-
+  // ── Faculty: Real-Time Error Distribution ───────────────────
   function createErrorDistribution(canvasId, data) {
-    const ctx = document.getElementById(canvasId);
+    const ctx = getCanvas(canvasId);
     if (!ctx) return null;
 
+    if (chartInstances.has(canvasId)) {
+      const existing = chartInstances.get(canvasId);
+      existing.data.labels = data.map(d => d.type);
+      existing.data.datasets[0].data = data.map(d => d.count);
+      existing.update('none'); // Update without full redraw glitch
+      return existing;
+    }
+
     const colors = [
-      '#6366f1', '#a855f7', '#38bdf8', '#4ade80',
-      '#fbbf24', '#f87171', '#818cf8', '#94a3b8',
+      '#6366f1', '#00f2fe', '#a855f7', '#00f5d4',
+      '#fbbf24', '#f87171', '#38bdf8', '#e879f9'
     ];
 
-    return new Chart(ctx, {
+    const chart = new Chart(ctx, {
       type: 'doughnut',
       data: {
         labels: data.map(d => d.type),
         datasets: [{
           data: data.map(d => d.count),
           backgroundColor: colors.slice(0, data.length),
-          borderColor: '#0f172a',
+          borderColor: '#080d1e',
           borderWidth: 2,
         }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '55%',
+        cutout: '58%',
         plugins: {
           legend: {
             position: 'right',
             labels: {
               boxWidth: 10,
-              padding: 14,
+              padding: 12,
               font: { size: 11 },
+              color: '#94a3b8'
             },
           },
         },
       },
     });
+
+    chartInstances.set(canvasId, chart);
+    return chart;
   }
 
-  // ── Faculty: Class Performance Bar ──────────────────────────
-
+  // ── Faculty: Real-Time Class Performance Bar ────────────────
   function createClassPerformance(canvasId, students) {
-    const ctx = document.getElementById(canvasId);
+    const ctx = getCanvas(canvasId);
     if (!ctx) return null;
 
-    return new Chart(ctx, {
+    if (chartInstances.has(canvasId)) {
+      const existing = chartInstances.get(canvasId);
+      existing.data.labels = students.map(s => s.name ? s.name.split(' ')[0] : s.id);
+      existing.data.datasets[0].data = students.map(s => s.score);
+      existing.data.datasets[0].backgroundColor = students.map(s =>
+        s.attention ? 'rgba(248, 113, 113, 0.7)' : 'rgba(0, 242, 254, 0.65)'
+      );
+      existing.data.datasets[0].borderColor = students.map(s =>
+        s.attention ? '#f87171' : '#00f2fe'
+      );
+      existing.update('none');
+      return existing;
+    }
+
+    const chart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: students.map(s => s.name.split(' ')[0]),
+        labels: students.map(s => s.name ? s.name.split(' ')[0] : s.id),
         datasets: [{
-          label: 'Avg Score',
+          label: 'Score (out of 10)',
           data: students.map(s => s.score),
           backgroundColor: students.map(s =>
-            s.attention ? 'rgba(248, 113, 113, 0.6)' : 'rgba(99, 102, 241, 0.6)'
+            s.attention ? 'rgba(248, 113, 113, 0.7)' : 'rgba(0, 242, 254, 0.65)'
           ),
           borderColor: students.map(s =>
-            s.attention ? '#f87171' : '#6366f1'
+            s.attention ? '#f87171' : '#00f2fe'
           ),
           borderWidth: 1,
           borderRadius: 4,
@@ -270,20 +322,33 @@ const Charts = (() => {
             beginAtZero: true,
             max: 10,
             grid: { color: gridColor },
+            ticks: {
+              stepSize: 2,
+              color: '#94a3b8'
+            }
           },
           x: {
             grid: { display: false },
-            ticks: { font: { size: 10 } },
+            ticks: {
+              font: { size: 10 },
+              color: '#94a3b8'
+            },
           },
         },
         plugins: {
           legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => `Avg Score: ${context.parsed.y} / 10.0`
+            }
+          }
         },
       },
     });
-  }
 
-  // ── Init ────────────────────────────────────────────────────
+    chartInstances.set(canvasId, chart);
+    return chart;
+  }
 
   function init() {
     setDefaults();
@@ -297,5 +362,6 @@ const Charts = (() => {
     createErrorTrend,
     createErrorDistribution,
     createClassPerformance,
+    destroyExisting
   };
 })();

@@ -149,6 +149,12 @@
 
     <div style="display: flex; align-items: center; gap: 14px;">
       <span id="autosave-indicator" style="font-size: 11px; font-family: var(--font-mono); color: #10b981;">● Autosaved</span>
+      <button class="btn" data-fullscreen-btn style="padding: 6px 14px; background: rgba(0, 242, 254, 0.1); border: 1px solid rgba(0, 242, 254, 0.4); color: var(--neon-cyan); border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+        ⛶ Focus Fullscreen
+      </button>
+      <button class="btn" onclick="FocusFullscreen.exitAndReturnHome()" style="padding: 6px 14px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+        ✕ Exit to Home
+      </button>
       <button class="btn btn-primary" onclick="submitWriteupFinal()" style="padding: 8px 22px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 6px; color: #fff; font-weight: 800; cursor: pointer; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);">
         Submit Laboratory Write-Up
       </button>
@@ -229,6 +235,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/security.js"></script>
+  <script src="../js/fullscreen.js"></script>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);

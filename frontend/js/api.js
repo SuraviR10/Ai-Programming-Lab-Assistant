@@ -201,6 +201,22 @@ const API = (() => {
     });
   }
 
+  async function getSimilarityReports() {
+    return await request('/api/faculty/similarity');
+  }
+
+  async function reviewSimilarity(similarityId, status = 'dismissed', notes = '') {
+    return await request(`/api/faculty/review_similarity/${similarityId}?status=${status}&notes=${encodeURIComponent(notes)}`, {
+      method: 'POST'
+    });
+  }
+
+  async function scanProblemSimilarity(problemId) {
+    return await request(`/api/faculty/similarity/scan/${problemId}`, {
+      method: 'POST'
+    });
+  }
+
   async function getFacultyProblems() {
     return await request('/api/faculty/problems');
   }
@@ -212,10 +228,58 @@ const API = (() => {
     });
   }
 
+  async function updateProblem(problemId, problemData) {
+    return await request(`/api/faculty/problems/${problemId}`, {
+      method: 'PUT',
+      body: JSON.stringify(problemData)
+    });
+  }
+
   async function deleteFacultyProblem(problemId) {
     return await request(`/api/faculty/problems/${problemId}`, {
       method: 'DELETE'
     });
+  }
+
+  // ── Lab Manuals API ──
+  async function getManuals() {
+    return await request('/api/faculty/manuals');
+  }
+
+  async function getManualPrograms(manualId) {
+    return await request(`/api/faculty/manual/${manualId}/programs`);
+  }
+
+  async function updateManualProgram(programId, data) {
+    return await request(`/api/faculty/manual/program/${programId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async function approveManualProgram(programId) {
+    return await request(`/api/faculty/manual/program/${programId}/approve`, {
+      method: 'POST'
+    });
+  }
+
+  async function publishAllManualPrograms(manualId) {
+    return await request(`/api/faculty/manual/${manualId}/publish-all`, {
+      method: 'POST'
+    });
+  }
+
+  async function uploadManual(formData) {
+    const url = `${BASE_URL}/api/faculty/manual/upload`;
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Upload failed (${response.status})`);
+    }
+    return await response.json();
   }
 
   // ── AI Practice Mode & Activity Logging API ──
@@ -258,14 +322,22 @@ const API = (() => {
     getFacultyStudentDetail,
     getFacultyProblems,
     createProblemManually,
+    updateProblem,
     deleteFacultyProblem,
     createWriteup,
     createExam,
     getSuspiciousSubmissions,
     reviewSubmission,
+    getSimilarityReports,
+    reviewSimilarity,
+    scanProblemSimilarity,
+    getManuals,
+    getManualPrograms,
+    updateManualProgram,
+    approveManualProgram,
+    publishAllManualPrograms,
+    uploadManual,
     generateChallenge,
     logActivity
   };
 })();
-
-

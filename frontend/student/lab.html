@@ -509,6 +509,8 @@
           </div>
           <button class="btn btn-secondary btn-sm" id="btn-toggle-stdin" onclick="toggleStdin()" style="padding: 5px 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 4px; font-size: 11px; cursor: pointer;">⌨ Custom Input</button>
           <button class="btn btn-secondary btn-sm" id="btn-clear" style="padding: 5px 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); color: #fff; border-radius: 4px; font-size: 11px; cursor: pointer;">RESET</button>
+          <button class="btn btn-secondary btn-sm" data-fullscreen-btn style="padding: 5px 12px; background: rgba(0, 242, 254, 0.12); border: 1px solid rgba(0, 242, 254, 0.4); color: var(--neon-cyan); border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;">⛶ Focus Fullscreen</button>
+          <button class="btn btn-secondary btn-sm" onclick="FocusFullscreen.exitAndReturnHome()" style="padding: 5px 12px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;">✕ Exit to Home</button>
           <button class="btn-run" id="btn-run" style="padding: 7px 20px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none; border-radius: 6px; color: #fff; font-weight: 700; cursor: pointer; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);">
             ▶ Run Code
           </button>
@@ -684,8 +686,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
 
-  <!-- JavaScript API, Security & Logic -->
+  <!-- JavaScript API, Security, Fullscreen & Logic -->
   <script src="../js/api.js"></script>
+  <script src="../js/fullscreen.js"></script>
   <script src="../js/security.js"></script>
 
   <script>
@@ -1198,20 +1201,20 @@
         const res = await API.runCode(code, currentProblem ? currentProblem.id : problemId, inputData, mode);
 
         if (res.success) {
-          if (res.test_passed === false && res.ai_feedback && !res.ai_feedback.ai_disabled) {
-            runDot.className = 'status-dot warning';
-            runStatus.textContent = 'OUTPUT MISMATCH';
-            runStatus.style.color = '#f59e0b';
-            outputBox.textContent = (res.output || '[No output]') + '\n\n⚠️ Output did not match problem expected output.';
-            outputBox.style.color = '#f59e0b';
+          runDot.className = 'status-dot online';
+          runStatus.textContent = 'EXECUTION SUCCESSFUL';
+          runStatus.style.color = '#10b981';
+          outputBox.textContent = (res.output !== undefined && res.output !== null && res.output !== '') ? res.output : '[Program completed execution with return code 0 (no output)]';
+          outputBox.style.color = '#fff';
 
-            renderAIFeedback(res.ai_feedback, 'TEST CASE OUTPUT MISMATCH GUIDANCE');
-          } else {
-            runDot.className = 'status-dot online';
-            runStatus.textContent = 'EXECUTION SUCCESSFUL';
-            runStatus.style.color = '#10b981';
-            outputBox.textContent = res.output || '[Program executed with no output]';
-            outputBox.style.color = '#fff';
+          if (res.test_passed === false && res.ai_feedback && !res.ai_feedback.ai_disabled) {
+            aiTab.style.display = 'block';
+            renderAIFeedback(res.ai_feedback, 'DIAGNOSTIC LOGIC FEEDBACK');
+            // Keep Terminal Output active so student sees their exact program stdout
+            document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-tab="output"]').classList.add('active');
+            tabOutput.style.display = 'block';
+            tabAI.style.display = 'none';
           }
         } else {
           runDot.className = 'status-dot offline';

@@ -16,6 +16,7 @@ const Navigation = (() => {
     sessions: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
     exams: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
     logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+    fullscreen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>'
   };
 
   const studentMenu = [
@@ -61,7 +62,6 @@ const Navigation = (() => {
         </div>
       </div>
 
-
       <nav class="sidebar-nav" aria-label="Main navigation">
         <div style="padding: 0 12px 8px; font-size: 10px; font-weight: 700; color: var(--text-ghost); letter-spacing: 0.08em; text-transform: uppercase;">
           ${role === 'faculty' ? 'FACULTY PORTAL' : 'STUDENT PORTAL'}
@@ -78,6 +78,12 @@ const Navigation = (() => {
       </nav>
 
       <div class="sidebar-footer">
+        <!-- Distraction-Free Fullscreen / Exit Button -->
+        <button class="nav-item" data-fullscreen-btn style="width: 100%; display: flex; align-items: center; gap: 10px; background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.3); color: var(--neon-cyan); margin-bottom: 12px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; padding: 10px 14px; transition: all 0.2s ease;">
+          ${icons.fullscreen}
+          <span>Focus Fullscreen</span>
+        </button>
+
         ${role === 'student' ? `
           <div style="margin-bottom: 14px; padding: 10px; background: var(--bg-deepest); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -130,6 +136,9 @@ const Navigation = (() => {
     }
     if (typeof CyberCursor !== 'undefined') {
       CyberCursor.attachCursorEvents();
+    }
+    if (typeof FocusFullscreen !== 'undefined') {
+      FocusFullscreen.init();
     }
 
     return sidebar;
